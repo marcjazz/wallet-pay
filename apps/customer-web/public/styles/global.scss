@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Darker+Grotesque:wght@300..900&display=swap');
+
+body,
+#__next,
+html {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  font-family: 'Darker Grotesque', 'DM Sans', sans-serif !important;
+  font-optical-sizing: auto;
+  background-color: var(--color-background);
+}
+
+.container--x {
+  width: 100%;
+  max-width: 1276px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin: 0 auto;
+}
+
+.stripe-card {
+  border: 1px solid #232792;
+  border-radius: 4px;
+  padding: 4px 6px;
+}
