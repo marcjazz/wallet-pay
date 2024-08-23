@@ -11,11 +11,13 @@
     "@nx/next": "17.2.8",
     "@wallet/source": "file:",
     "next": "14.2.5",
-    "react": "^17.0.0 || ^18.0.0",
-    "react-dom": "^17.0.0 || ^18.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.14.5",
+    "@babel/preset-react": "^7.14.5",
     "@nx/cypress": "17.2.8",
     "@nx/eslint": "17.2.8",
     "@nx/eslint-plugin": "17.2.8",
