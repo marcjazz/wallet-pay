@@ -1,0 +1,405 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model BankPayoutInfo {
+  bank_payout_info_id String              @id @default(uuid()) @db.VarChar(36)
+  holder_name         String              @db.VarChar(45)
+  bank_name           String              @db.VarChar(45)
+  iban_number         String              @db.VarChar(45)
+  CybridTransactions  CybridTransaction[]
+  StripeTransactions  StripeTransaction[]
+
+  @@map("bank_payout_info")
+}
+
+model CybridCustomerAudit {
+  cybrid_customer_audit_id String         @id @default(uuid()) @db.VarChar(36)
+  is_active                Boolean        @default(true) @db.TinyInt
+  cybrid_customer_id       String         @db.VarChar(36)
+  CybridCustomer           CybridCustomer @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CustomerAudit_Customer1")
+  audited_by               String         @db.VarChar(36)
+  AuditedBy                PersonHasRole  @relation(fields: [audited_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CustomerAudit_PersonHasRole1")
+
+  @@index([cybrid_customer_id], map: "fk_CustomerAudit_Customer1_idx")
+  @@index([audited_by], map: "fk_CustomerAudit_PersonHasRole1_idx")
+  @@map("customer_audits")
+}
+
+model CybridAccount {
+  cybrid_account_id           String                  @id @default(uuid()) @db.VarChar(36)
+  cybrid_account_guid         String                  @db.VarChar(45)
+  currency                    CybridSupportedCurrency
+  is_active                   Boolean                 @default(true) @db.TinyInt
+  cybrid_customer_id          String
+  CybridCustomer              CybridCustomer          @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CybridAccount_CybridCustomer1")
+  account_type                CybridAccountType
+  CreatedByCybridTransactions CybridTransaction[]     @relation("cybridaccountTocybridtransaction_created_by")
+  CybridTransactions          CybridTransaction[]     @relation("cybridaccountTocybridtransaction_cybrid_account_id")
+
+  @@index([cybrid_customer_id], map: "fk_CybridAccount_CybridCustomer1_idx")
+  @@map("cybrid_accounts")
+}
+
+model CybridCustomer {
+  cybrid_customer_id         String                  @id @default(uuid()) @db.VarChar(36)
+  cybrid_customer_guid       String                  @db.VarChar(45)
+  country                    CybridSupportedCountry?
+  identity_verification_guid String                  @db.VarChar(45)
+  person_id                  String
+  Person                     Person                  @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Customer_Person1")
+  CustomerAudits             CybridCustomerAudit[]
+  CybridAccounts             CybridAccount[]
+  CybridExternalAccounts     CybridExternalAccount[]
+
+  @@index([person_id], map: "fk_Customer_Person1_idx")
+  @@map("cybrid_customers")
+}
+
+model CybridExternalAccount {
+  cybrid_external_account_id   String              @id @default(uuid()) @db.VarChar(36)
+  identity_verification_guid   String              @db.VarChar(45)
+  cybrid_external_account_guid String              @db.VarChar(45)
+  cybrid_customer_id           String
+  CybridCustomer               CybridCustomer      @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ExternalAccount_CybridCustomer1")
+  CybridTransactions           CybridTransaction[]
+
+  @@index([cybrid_customer_id], map: "fk_ExternalAccount_CybridCustomer1_idx")
+  @@map("cybrid_external_accounts")
+}
+
+model CybridTransaction {
+  cybrid_transaction_id      String                  @id @default(uuid()) @db.VarChar(36)
+  cybrid_transaction_guid    String                  @unique(map: "cybrid_transaction_guid_UNIQUE") @db.VarChar(45)
+  amount_sent                Int
+  initial_currency           CybridSupportedCurrency
+  converstion_rate           Int
+  fees                       Int
+  transaction_id             String                  @db.VarChar(45)
+  transaction_type           CybridTransactionType
+  initiated_at               DateTime                @default(now()) @db.DateTime(0)
+  settled_at                 DateTime?               @db.DateTime(0)
+  local_customer_id          String?
+  LocalCustomer              LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
+  payout_info_id             String?
+  ReceiverPayoutInfo         ReceiverPayoutInfo?     @relation(fields: [payout_info_id], references: [receiver_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
+  bank_info_id               String?
+  BankPayoutInfo             BankPayoutInfo?         @relation(fields: [bank_info_id], references: [bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_BankInfo1")
+  cybrid_account_id          String?
+  CybridAccount              CybridAccount?          @relation("cybridaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount2")
+  cybrid_external_account_id String?
+  CybridExternalAccount      CybridExternalAccount?  @relation(fields: [cybrid_external_account_id], references: [cybrid_external_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridExternalAccount1")
+  initiated_by               String
+  InitiatedBy                CybridAccount           @relation("cybridaccountTocybridtransaction_created_by", fields: [initiated_by], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount1")
+
+  @@index([bank_info_id], map: "fk_CybridTransaction_BankInfo1_idx")
+  @@index([initiated_by], map: "fk_CybridTransaction_CybridAccount1_idx")
+  @@index([cybrid_account_id], map: "fk_CybridTransaction_CybridAccount2_idx")
+  @@index([cybrid_external_account_id], map: "fk_CybridTransaction_CybridExternalAccount1_idx")
+  @@index([local_customer_id], map: "fk_CybridTransaction_LocalCustomer1_idx")
+  @@index([payout_info_id], map: "fk_CybridTransaction_PayoutInfo1_idx")
+  @@map("cybrid_transactions")
+}
+
+model LocalCustomer {
+  local_customer_id           String                           @id @default(uuid()) @db.VarChar(36)
+  currency                    SupportedLocalCurrency?
+  account_number              String                           @db.VarChar(45)
+  verification_status         LocalCustomerVerificationStatus?
+  balance                     Int
+  created_at                  DateTime                         @default(now()) @db.DateTime(0)
+  person_id                   String
+  Person                      Person                           @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_LocalCustomer_Person1")
+  CybridTransactions          CybridTransaction[]
+  SentByLocalTransactions     LocalTransaction[]               @relation("localcustomerTolocaltransaction_sent_by")
+  ReceivedByLocalTransactions LocalTransaction[]               @relation("localcustomerTolocaltransaction_received_by")
+  StripeTransactions          StripeTransaction[]
+
+  @@index([person_id], map: "fk_LocalCustomer_Person1_idx")
+  @@map("local_customers")
+}
+
+model LocalTransaction {
+  local_transaction_id String        @id @default(uuid()) @db.VarChar(36)
+  amount               Int
+  initiated_at         DateTime?     @default(now()) @db.DateTime(0)
+  sent_by              String
+  SendBy               LocalCustomer @relation("localcustomerTolocaltransaction_sent_by", fields: [sent_by], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_LocalTransaction_LocalCustomer1")
+  received_by          String
+  ReceivedBy           LocalCustomer @relation("localcustomerTolocaltransaction_received_by", fields: [received_by], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_LocalTransaction_LocalCustomer2")
+  initiated_by         String
+  InitiatedBy          PersonHasRole @relation(fields: [initiated_by], references: [person_has_role_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_LocalTransaction_PersonHasRole1")
+
+  @@index([sent_by], map: "fk_LocalTransaction_LocalCustomer1_idx")
+  @@index([received_by], map: "fk_LocalTransaction_LocalCustomer2_idx")
+  @@index([initiated_by], map: "fk_LocalTransaction_PersonHasRole1_idx")
+  @@map("local_transactions")
+}
+
+model Log {
+  log_id        String    @id @default(uuid()) @db.VarChar(36)
+  login_at      DateTime  @default(now()) @db.DateTime(0)
+  logout_at     DateTime? @db.DateTime(0)
+  method        String    @db.VarChar(45)
+  refresh_token String    @db.VarChar(45)
+  subdomain     String?   @db.VarChar(45)
+  person_id     String
+  Person        Person    @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Log_Person1")
+
+  @@index([person_id], map: "fk_Log_Person1_idx")
+  @@map("logs")
+}
+
+model OTP {
+  otp_id     String    @id @default(uuid()) @db.VarChar(36)
+  is_valid   Boolean   @db.TinyInt
+  code       String    @db.VarChar(45)
+  usage      String    @db.VarChar(45) //resset password, validate transaction, etc...
+  is_used    Boolean   @default(false) @db.TinyInt
+  updated_at DateTime? @db.DateTime(0)
+  created_at DateTime  @default(now()) @db.DateTime(0)
+  person_id  String
+  Person     Person    @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ResetPassword_Person1")
+
+  @@index([person_id], map: "fk_ResetPassword_Person1_idx")
+  @@map("otps")
+}
+
+model Person {
+  person_id          String            @id @default(uuid()) @db.VarChar(36)
+  first_name         String            @db.VarChar(45)
+  last_name          String            @db.VarChar(45)
+  email              String            @db.VarChar(45)
+  username           String            @db.VarChar(45)
+  phone_number       String            @db.VarChar(45)
+  password           String            @db.VarChar(45)
+  created_at         DateTime          @default(now()) @db.DateTime(0)
+  preferred_language PreferredLanguage
+  CybridCustomers    CybridCustomer[]
+  LocalCustomers     LocalCustomer[]
+  Logs               Log[]
+  OTPs               OTP[]
+  PersonAudits       PersonAudit[]
+  PersonHasRoles     PersonHasRole[]
+  Roles              Role[]
+  RoleAudits         RoleAudit[]
+
+  @@map("persons")
+}
+
+model PersonAudit {
+  person_audit_id Int           @id
+  first_name      String?       @db.VarChar(45)
+  last_name       String?       @db.VarChar(45)
+  email           String?       @db.VarChar(45)
+  username        String?       @db.VarChar(45)
+  phone_number    String?       @db.VarChar(45)
+  password        String?       @db.VarChar(45)
+  audited_at      DateTime      @default(now()) @db.DateTime(0)
+  person_id       String
+  Person          Person        @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_Person2")
+  audited_by      String
+  AuditedBy       PersonHasRole @relation(fields: [audited_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_PersonHasRole1")
+
+  @@index([person_id], map: "fk_PersonAudit_Person2_idx")
+  @@index([audited_by], map: "fk_PersonAudit_PersonHasRole1_idx")
+  @@map("person_audits")
+}
+
+model PersonHasRole {
+  person_has_role_id           String                   @id @default(cuid()) @db.VarChar(36)
+  created_at                   DateTime                 @default(now()) @db.DateTime(0)
+  is_active                    Boolean                  @default(false) @db.TinyInt
+  person_id                    String                   @db.VarChar(36)
+  Person                       Person                   @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_Person1")
+  role_id                      String                   @db.VarChar(36)
+  Role                         Role                     @relation(fields: [role_id], references: [role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_Role1")
+  created_by                   String?                  @db.VarChar(36)
+  CreatedBy                    PersonHasRole?           @relation("personhasroleTopersonhasrole", fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_PersonHasRole1")
+  CustomerAudits               CybridCustomerAudit[]
+  Localtransactions            LocalTransaction[]
+  PersonAudits                 PersonAudit[]
+  PersonHasRoles               PersonHasRole[]          @relation("personhasroleTopersonhasrole")
+  PersonHasRoleAudits          PersonHasRoleAudit[]     @relation("personhasroleTopersonhasroleaudit_person_has_role_id")
+  AuditedByPersonHasRoleAudits PersonHasRoleAudit[]     @relation("personhasroleTopersonhasroleaudit_audited_by")
+  StripeTransactions           StripeTransaction[]
+  SupportedCurrencies          SupportedCurrency[]
+  SupportedCurrencyAudits      SupportedCurrencyAudit[]
+
+  @@index([person_id], map: "fk_Login_Person1_idx")
+  @@index([role_id], map: "fk_Login_Role1_idx")
+  @@index([created_by], map: "fk_PersonHasRole_PersonHasRole1_idx")
+  @@map("person_has_roles")
+}
+
+model PersonHasRoleAudit {
+  person_has_role_audit_id String        @id @default(cuid()) @db.VarChar(36)
+  is_active                Boolean       @db.TinyInt
+  audited_at               DateTime      @default(now()) @db.DateTime(0)
+  person_has_role_id       String
+  PersonHasRole            PersonHasRole @relation("personhasroleTopersonhasroleaudit_person_has_role_id", fields: [person_has_role_id], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRoleAudit_PersonHasRole1")
+  audited_by               String
+  AuditedBy                PersonHasRole @relation("personhasroleTopersonhasroleaudit_audited_by", fields: [audited_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRoleAudit_PersonHasRole2")
+
+  @@index([person_has_role_id], map: "fk_PersonHasRoleAudit_PersonHasRole1_idx")
+  @@index([audited_by], map: "fk_PersonHasRoleAudit_PersonHasRole2_idx")
+  @@map("person_has_role_audits")
+}
+
+model ReceiverPayoutInfo {
+  receiver_payout_info_id String              @id @default(uuid()) @db.VarChar(36)
+  fullname                String              @db.VarChar(45)
+  phone_number            String              @db.VarChar(45)
+  national_id_number      String?             @db.VarChar(45)
+  created_at              DateTime            @default(now()) @db.DateTime(0)
+  CybridTransactions      CybridTransaction[]
+  StripeTransactions      StripeTransaction[]
+
+  @@map("receiver_payout_info")
+}
+
+model Role {
+  role_id        String          @id @default(uuid()) @db.VarChar(36)
+  title          String          @db.VarChar(45)
+  is_active      Boolean         @db.TinyInt
+  created_at     DateTime        @default(now()) @db.DateTime(0)
+  created_by     String
+  CreatedBy      Person          @relation(fields: [created_by], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Role_Person1")
+  PersonHasRoles PersonHasRole[]
+  RoleAudits     RoleAudit[]
+
+  @@index([created_by], map: "fk_Role_Person1_idx")
+  @@map("roles")
+}
+
+model RoleAudit {
+  role_audit_id String   @id @default(uuid()) @db.VarChar(36)
+  is_active     Boolean  @default(true) @db.TinyInt
+  title         String   @db.VarChar(45)
+  audited_at    DateTime @default(now()) @db.DateTime(0)
+  role_id       String
+  role          Role     @relation(fields: [role_id], references: [role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_RoleAudit_Role1")
+  audited_by    String
+  AuditedBy     Person   @relation(fields: [audited_by], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_RoleAudit_Person1")
+
+  @@index([audited_by], map: "fk_RoleAudit_Person1_idx")
+  @@index([role_id], map: "fk_RoleAudit_Role1_idx")
+  @@map("role_audits")
+}
+
+model StripeTransaction {
+  stripe_transaction_id   String              @id @default(uuid()) @db.VarChar(36)
+  amount_sent             Int
+  fees                    Int
+  converstion_rate        Int
+  transaction_id          String              @db.VarChar(45)
+  stripe_transaction_guid String              @db.VarChar(45)
+  created_at              DateTime            @default(now()) @db.DateTime(0)
+  settled_at              DateTime?           @db.DateTime(0)
+  initial_currency        String              @db.VarChar(36)
+  InitialCurrency         SupportedCurrency   @relation(fields: [initial_currency], references: [supported_currency_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_SupportedCurrency1")
+  created_by              String              @db.VarChar(36)
+  CreatedBy               PersonHasRole       @relation(fields: [created_by], references: [person_has_role_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_PersonHasRole1")
+  local_customer_id       String?             @db.VarChar(36)
+  LocalCustomer           LocalCustomer?      @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_LocalCustomer1")
+  receiver_payout_info_id String?             @db.VarChar(36)
+  ReceiverPayoutInfo      ReceiverPayoutInfo? @relation(fields: [receiver_payout_info_id], references: [receiver_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_ReceiverPayoutInfo1")
+  bank_payout_info_id     String?             @db.VarChar(36)
+  BankPayoutInfo          BankPayoutInfo?     @relation(fields: [bank_payout_info_id], references: [bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_BankPayoutInfo1")
+
+  @@index([bank_payout_info_id], map: "fk_StripeTransaction_BankPayoutInfo1_idx")
+  @@index([local_customer_id], map: "fk_StripeTransaction_LocalCustomer1_idx")
+  @@index([created_by], map: "fk_StripeTransaction_PersonHasRole1_idx")
+  @@index([receiver_payout_info_id], map: "fk_StripeTransaction_ReceiverPayoutInfo1_idx")
+  @@index([initial_currency], map: "fk_StripeTransaction_SupportedCurrency1_idx")
+  @@map("stripe_transactions")
+}
+
+model SupportedCurrency {
+  supported_currency_id   String                   @id @default(uuid()) @db.VarChar(36)
+  currency                CybridSupportedCountry
+  is_active               Boolean                  @default(true) @db.TinyInt
+  xaf_rate                Int
+  last_updated            DateTime                 @db.DateTime(0)
+  created_at              DateTime                 @default(now()) @db.DateTime(0)
+  created_by              String
+  CreatedBy               PersonHasRole            @relation(fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrency_PersonHasRole1")
+  StripeTransactions      StripeTransaction[]
+  SupportedCurrencyAudits SupportedCurrencyAudit[]
+
+  @@index([created_by], map: "fk_SupportedCurrency_PersonHasRole1_idx")
+  @@map("supported_currencies")
+}
+
+model SupportedCurrencyAudit {
+  supported_currency_audit_id String            @id @default(uuid()) @db.VarChar(36)
+  is_active                   Boolean           @default(true) @db.TinyInt
+  audited_at                  DateTime          @default(now()) @db.DateTime(0)
+  supported_currency_id       String
+  SupportedCurrency           SupportedCurrency @relation(fields: [supported_currency_id], references: [supported_currency_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrencyAudit_SupportedCurrency1")
+  audited_by                  String
+  AuditedBy                   PersonHasRole     @relation(fields: [audited_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrency_PersonHasRole10")
+
+  @@index([supported_currency_id], map: "fk_SupportedCurrencyAudit_SupportedCurrency1_idx")
+  @@index([audited_by], map: "fk_SupportedCurrency_PersonHasRole1_idx")
+  @@map("supported_currency_audits")
+}
+
+enum SupportedLocalCurrency {
+  XAF
+  NIARA
+
+  @@map("supported_local_currency")
+}
+
+enum CybridSupportedCountry {
+  USA    @map("usa")
+  CANADA @map("canada")
+
+  @@map("cybrid_supported_country")
+}
+
+enum CybridSupportedCurrency {
+  USD @map("usd")
+  CAD @map("cad")
+
+  @@map("cybrid_supported_currency")
+}
+
+enum LocalCustomerVerificationStatus {
+  UNVERIFIED @map("unverified")
+  PENDING    @map("pending")
+  VERIFIED   @map("verified")
+
+  @@map("local_customer_verification_status")
+}
+
+enum CybridAccountType {
+  EXTERNAL @map("external")
+  FIAT     @map("fiat")
+
+  @@map("cybrid_account_type")
+}
+
+enum PreferredLanguage {
+  EN_US @map("en-US")
+  FR    @map("fr")
+
+  @@map("preferred_language")
+}
+
+enum CybridTransactionType {
+  REMITTANCE @map("remittance")
+  CONVERT    @map("convert")
+  FUNDING    @map("funding")
+  WITHDRAWAL @map("withdrawal")
+  ACCOUNT    @map("account")
+  XAF        @map("xaf")
+
+  @@map("cybrid_transaction_type")
+}

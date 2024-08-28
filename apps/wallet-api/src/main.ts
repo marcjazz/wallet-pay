@@ -20,6 +20,8 @@ async function bootstrap() {
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+  app.enableShutdownHooks();
+
   const port = process.env.PORT || 5000;
   await app.listen(port);
   Logger.log(
