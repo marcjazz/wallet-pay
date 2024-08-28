@@ -28,8 +28,8 @@ async function bootstrap() {
   // swagger setup
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('Squoolr APIs')
-      .setDescription('Detailed description of Squoolr internal APIs.')
+      .setTitle('XAFPAY APIs')
+      .setDescription('Detailed description of XAFPAY internal APIs.')
       .setVersion('1.0')
       .addBearerAuth()
       .build();
