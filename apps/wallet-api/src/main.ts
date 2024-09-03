@@ -6,6 +6,7 @@
 import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app/app.module';
 
@@ -21,6 +22,20 @@ async function bootstrap() {
   app.setGlobalPrefix(globalPrefix);
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   app.enableShutdownHooks();
+
+  // swagger setup
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Squoolr APIs')
+      .setDescription('Detailed description of Squoolr internal APIs.')
+      .setVersion('1.0')
+      .addCookieAuth(process.env.SESSION_NAME)
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document, {
+      customSiteTitle: 'XafPay APIs docs',
+    });
+  }
 
   const port = process.env.PORT || 5000;
   await app.listen(port);

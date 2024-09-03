@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@xafpay/theme": ["libs/theme/src/index.ts"]
+      "@xafpay/theme": ["libs/theme/src/index.ts"],
+      "@xafpay/api-data-types": ["libs/api/data-types/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
