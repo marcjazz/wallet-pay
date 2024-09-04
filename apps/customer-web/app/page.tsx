@@ -1,3 +1,4 @@
+import { Button } from '@mui/material';
 import styles from './page.module.scss';
 
 export default async function Index() {
@@ -8,6 +9,16 @@ export default async function Index() {
    */
   return (
     <div className={styles.page}>
+      <Button
+        variant="contained"
+        size="medium"
+        fullWidth
+        color="primary"
+        // disabled
+        // startIcon={'s'}
+      >
+        Hello
+      </Button>
       <div className="wrapper">
         <div className="container">
           <div id="welcome">
