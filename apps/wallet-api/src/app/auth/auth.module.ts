@@ -8,6 +8,9 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt/jwt.strategy';
 import { LocalStrategy } from './local/local.strategy';
 import { RolesService } from './roles.service';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './jwt/jwt.strategy';
+import { LocalStrategy } from './local/local.strategy';
 
 @Module({
   imports: [
