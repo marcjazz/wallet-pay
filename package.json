@@ -33,8 +33,6 @@
     "@tanstack/react-query": "^5.54.1",
     "@tchakoumi/handy-components": "^0.0.1",
     "@prisma/client": "^5.19.0",
-    "@tanstack/react-query": "^5.54.1",
-    "@tchakoumi/handy-components": "^0.0.1",
     "@wallet/source": "file:",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
