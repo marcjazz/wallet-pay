@@ -142,16 +142,15 @@ model LocalTransaction {
 }
 
 model Log {
-  log_id        String    @id @default(uuid()) @db.VarChar(36)
-  login_at      DateTime  @default(now()) @db.DateTime(0)
-  logout_at     DateTime? @db.DateTime(0)
-  method        String    @db.VarChar(45)
-  refresh_token String    @db.VarChar(45)
-  subdomain     String?   @db.VarChar(45)
-  person_id     String
-  Person        Person    @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Log_Person1")
+  log_id             String        @id @default(uuid()) @db.VarChar(36)
+  login_at           DateTime      @default(now()) @db.DateTime(0)
+  logout_at          DateTime?     @db.DateTime(0)
+  method             String        @default("local") @db.VarChar(45)
+  refresh_token      String        @db.VarChar(45)
+  person_has_role_id String
+  PersonHasRole      PersonHasRole @relation(fields: [person_has_role_id], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Log_Person1")
 
-  @@index([person_id], map: "fk_Log_Person1_idx")
+  @@index([person_has_role_id], map: "fk_Log_Person1_idx")
   @@map("logs")
 }
 
@@ -172,21 +171,22 @@ model OTP {
 
 model Person {
   person_id          String            @id @default(uuid()) @db.VarChar(36)
+  gender             PersonGender
+  birthdate          DateTime
   first_name         String            @db.VarChar(45)
   last_name          String            @db.VarChar(45)
-  email              String            @db.VarChar(45)
-  username           String            @db.VarChar(45)
+  email              String            @unique @db.VarChar(45)
+  username           String            @unique @db.VarChar(45)
+  isVerified         Boolean           @default(false) @db.TinyInt
   phone_number       String            @db.VarChar(45)
   password           String            @db.VarChar(45)
   created_at         DateTime          @default(now()) @db.DateTime(0)
   preferred_language PreferredLanguage
   CybridCustomers    CybridCustomer[]
   LocalCustomers     LocalCustomer[]
-  Logs               Log[]
   OTPs               OTP[]
   PersonAudits       PersonAudit[]
   PersonHasRoles     PersonHasRole[]
-  Roles              Role[]
   RoleAudits         RoleAudit[]
 
   @@map("persons")
@@ -218,9 +218,11 @@ model PersonHasRole {
   person_id                    String                   @db.VarChar(36)
   Person                       Person                   @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_Person1")
   role_id                      String                   @db.VarChar(36)
-  Role                         Role                     @relation(fields: [role_id], references: [role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_Role1")
+  Role                         Role                     @relation("roleTopersonhasrole_role_id", fields: [role_id], references: [role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_Role1")
   created_by                   String?                  @db.VarChar(36)
   CreatedBy                    PersonHasRole?           @relation("personhasroleTopersonhasrole", fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_PersonHasRole1")
+  Logs                         Log[]
+  Roles                        Role[]                   @relation("personhasroleTorole_created_by")
   CustomerAudits               CybridCustomerAudit[]
   Localtransactions            LocalTransaction[]
   PersonAudits                 PersonAudit[]
@@ -265,14 +267,16 @@ model ReceiverPayoutInfo {
 
 model Role {
   role_id        String          @id @default(uuid()) @db.VarChar(36)
-  title          String          @db.VarChar(45)
+  title          String          @unique @db.VarChar(45)
   is_active      Boolean         @db.TinyInt
+  subdomain      String?         @db.VarChar(45)
   created_at     DateTime        @default(now()) @db.DateTime(0)
   created_by     String
-  CreatedBy      Person          @relation(fields: [created_by], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Role_Person1")
-  PersonHasRoles PersonHasRole[]
+  CreatedBy      PersonHasRole   @relation("personhasroleTorole_created_by", fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Role_Person1")
+  PersonHasRoles PersonHasRole[] @relation("roleTopersonhasrole_role_id")
   RoleAudits     RoleAudit[]
 
+  @@unique([title, subdomain])
   @@index([created_by], map: "fk_Role_Person1_idx")
   @@map("roles")
 }
@@ -391,6 +395,12 @@ enum PreferredLanguage {
   FR    @map("fr")
 
   @@map("preferred_language")
+}
+
+enum PersonGender {
+  MALE   @map("male")
+  FEMALE @map("female")
+  OTHER  @map("other")
 }
 
 enum CybridTransactionType {
