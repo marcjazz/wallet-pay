@@ -1,6 +1,5 @@
 import { AppLayout } from '../components/AppLayout';
 import '../public/styles/global.scss';
-import './global.css';
 
 export const metadata = {
   title: 'Welcome to customer-web',
