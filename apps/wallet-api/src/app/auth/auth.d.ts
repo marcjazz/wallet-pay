@@ -4,6 +4,7 @@ declare global {
   namespace Express {
     interface User extends Omit<Person, 'password'> {
       id: string;
+      is_active: boolean;
       subdomain: string | null;
     }
   }

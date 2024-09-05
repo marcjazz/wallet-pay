@@ -9,7 +9,7 @@ export enum MetadataEnum {
   IS_PUBLIC = 'isPublic',
 }
 
-export const IsPublic = () => SetMetadata(MetadataEnum.IS_PUBLIC, true);
+export const SkipAuth = () => SetMetadata(MetadataEnum.IS_PUBLIC, true);
 
 export const Roles = (...roles: RoleEnum[]) =>
   SetMetadata(MetadataEnum.ROLES, roles);

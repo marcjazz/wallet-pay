@@ -3,14 +3,13 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuthTokensDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './auth';
+import { AuthTokensDto, SignUpDto } from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +25,7 @@ export class AuthService {
     request: Request,
     username: string,
     password: string
-  ): Promise<Express.User> {
+  ): Promise<Express.User | null> {
     const person = await this.prismaService.person.findFirst({
       where: { OR: [{ email: username }, { username }] },
     });
@@ -39,23 +38,17 @@ export class AuthService {
         where: { Role: { subdomain: origin }, person_id },
       });
 
-      if (!personHasRole || !origin) {
-        throw new UnauthorizedException('Invalid request origin!');
+      if (origin && personHasRole?.is_active) {
+        return {
+          ...personData,
+          person_id,
+          subdomain: origin,
+          is_active: personHasRole.is_active,
+          id: personHasRole.person_has_role_id,
+        };
       }
-
-      if (!personHasRole.is_active) {
-        throw new UnauthorizedException('Account was disabled!');
-      }
-
-      return {
-        ...personData,
-        person_id,
-        subdomain: origin,
-        id: personHasRole.person_has_role_id,
-      };
     }
-
-    throw new UnauthorizedException('Incorrect email or password!');
+    return null;
   }
 
   async registerUser(
@@ -71,6 +64,7 @@ export class AuthService {
     const {
       PersonHasRoles: [
         {
+          is_active,
           person_has_role_id,
           Role: { subdomain },
         },
@@ -78,7 +72,9 @@ export class AuthService {
       ...person
     } = await this.prismaService.person.create({
       include: {
-        PersonHasRoles: { select: { person_has_role_id: true, Role: true } },
+        PersonHasRoles: {
+          include: { Role: true },
+        },
       },
       data: {
         ...payload,
@@ -96,7 +92,7 @@ export class AuthService {
         },
       },
     });
-    return { ...person, id: person_has_role_id, subdomain };
+    return { ...person, id: person_has_role_id, subdomain, is_active };
   }
 
   async login(user: Express.User): Promise<AuthTokensDto> {
@@ -108,18 +104,12 @@ export class AuthService {
 
   private async generateTokens(user: Express.User) {
     const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: 'refresh_token' },
-      {
-        secret: process.env.JWT_SECRET,
-        expiresIn: '7d',
-      }
+      { sub: user.id, type: AuthService.REFRESH_TOKEN_TYPE },
+      { expiresIn: '7d' }
     );
     const accessToken = this.jwtService.sign(
-      { sub: user.id, type: 'access_token' },
-      {
-        secret: process.env.JWT_SECRET,
-        expiresIn: '1h',
-      }
+      { sub: user.id, type: AuthService.ACCESS_TOKEN_TYPE },
+      { expiresIn: '1h' }
     );
 
     await this.prismaService.log.create({
@@ -134,21 +124,10 @@ export class AuthService {
     });
   }
 
-  async authorizeToken(
-    authzToken: string,
+  async validateToken(
+    payload: IJWTPayload,
     type: TokenType = AuthService.ACCESS_TOKEN_TYPE
   ): Promise<Express.User> {
-    let payload: IJWTPayload;
-    try {
-      payload = this.jwtService.verify(authzToken, {
-        secret: process.env.JWT_SECRET,
-      });
-    } catch (error) {
-      throw new ForbiddenException(
-        `Error validating token (type: ${type}): ${error.message}`
-      );
-    }
-
     if (payload.type !== type) {
       throw new ForbiddenException('Invalid token type!');
     }
@@ -163,19 +142,10 @@ export class AuthService {
     const {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       Person: { password, ...person },
+      is_active,
       Role: { subdomain },
     } = personHasRole;
 
-    return { ...person, subdomain, id: payload.sub };
-  }
-
-  extractTokenFromHeader(request: Request): string {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-
-    if (type !== 'Bearer' || !token) {
-      throw new ForbiddenException('No access token found!');
-    }
-
-    return token;
+    return { ...person, subdomain, is_active, id: payload.sub };
   }
 }

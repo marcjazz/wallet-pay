@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   PreconditionFailedException,
   Req,
@@ -11,6 +12,7 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiInternalServerErrorResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiPreconditionFailedResponse,
   ApiResponse,
@@ -23,6 +25,8 @@ import { AuthTokensDto, SignInDto, SignUpDto } from './auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './local/local.guard';
 import { RolesService } from './roles.service';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+import { PersonEntity } from '../../modules/persons/person.dto';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -77,5 +81,12 @@ export class AuthController {
 
     const user = await this.authService.registerUser(newUser, role.role_id);
     return this.authService.login(user);
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: PersonEntity })
+  getProfile(@Req() req: Request) {
+    return new PersonEntity(req.user);
   }
 }
