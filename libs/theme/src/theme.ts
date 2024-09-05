@@ -97,7 +97,7 @@ export function useTheme() {
     },
     typography: {
       allVariants: {
-        fontFamily: 'Darker Grotesque, sans-serif, DM Sans, sans-serif',
+        fontFamily: 'Darker Grotesque, DM Sans, sans-serif',
         color: 'var(--text-color-primary)',
       },
       p1r: {

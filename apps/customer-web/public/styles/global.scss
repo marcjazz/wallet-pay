@@ -13,6 +13,10 @@ body {
   font-family: 'Darker Grotesque', 'DM Sans', sans-serif !important;
   font-optical-sizing: auto;
   background-color: var(--color-background);
+
+  width: 100%;
+  max-width: 744px;
+  margin: 0 auto;
 }
 
 .container--x {
