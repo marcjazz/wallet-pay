@@ -3,8 +3,8 @@
 body,
 #__next,
 html {
-  width: 100%;
-  height: 100%;
+  width: 100svw;
+  height: 100svh;
   padding: 0;
   margin: 0;
 }
@@ -17,6 +17,7 @@ body {
   width: 100%;
   max-width: 744px;
   margin: 0 auto;
+  height: 100svh;
 }
 
 .container--x {
