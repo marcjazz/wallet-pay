@@ -23,7 +23,8 @@
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "customer-web:build",
-        "dev": true
+        "dev": true,
+        "proxyConfig": "apps/customer-web/proxy.conf.json"
       },
       "configurations": {
         "development": {
