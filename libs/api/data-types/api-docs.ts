@@ -20,10 +20,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in to authenticate a user */
+        post: operations["AuthController_signIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sign-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a new user */
+        post: operations["AuthController_signUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        SignInDto: {
+            /** @description Valid user email */
+            email: string;
+            /** @description Strong password */
+            password: string;
+        };
+        PersonEntity: {
+            /** @description Valid user email */
+            email: string;
+            /** @enum {string} */
+            country: "USA" | "CANADA";
+            username: string;
+            /** @description User first name */
+            first_name: string;
+            /** @description User last name */
+            last_name: string;
+            /** @description Valid user phone number */
+            phone_number: string;
+            /**
+             * Format: date-time
+             * @description User date of birth
+             */
+            birthdate: string;
+            /**
+             * @description User gender
+             * @example MALE
+             * @enum {string}
+             */
+            gender: "MALE" | "FEMALE" | "OTHER";
+            /**
+             * @description User preffered language.
+             * @default en
+             * @enum {string}
+             */
+            preferred_language: "EN_US" | "FR";
+            /**
+             * @description User person id
+             * @example 3eee38fd-d89a-4aea-be50-bdb8ec63d145
+             */
+            person_id: string;
+            /**
+             * @description Account creation datetime in milleseconds.
+             * @example 1725521822685
+             */
+            created_at: number;
+        };
+        SignUpDto: {
+            /** @description Valid user email */
+            email: string;
+            /** @description Strong password */
+            password: string;
+            /** @enum {string} */
+            country: "USA" | "CANADA";
+            username: string;
+            /** @description User first name */
+            first_name: string;
+            /** @description User last name */
+            last_name: string;
+            /** @description Valid user phone number */
+            phone_number: string;
+            /**
+             * Format: date-time
+             * @description User date of birth
+             */
+            birthdate: string;
+            /**
+             * @description User gender
+             * @example MALE
+             * @enum {string}
+             */
+            gender: "MALE" | "FEMALE" | "OTHER";
+            /** @enum {string} */
+            preferred_language: "EN_US" | "FR";
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -42,6 +151,101 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_signIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignInDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonEntity"];
+                };
+            };
+            /** @description Bad request. This often happens when the request payload it not respected. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized request. incorrect email or password */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Precondition failed, user account must be activated before signing in. */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. An unexpected exception was thrown */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_signUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignUpDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonEntity"];
+                };
+            };
+            /** @description Bad request. This often happens when the request payload it not respected. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict, user email is already registered with another account. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. An unexpected exception was thrown */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
