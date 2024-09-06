@@ -1,8 +1,30 @@
-import { Box, Button, Typography } from '@mui/material';
+'use client';
+
+import { Box, Button, keyframes, Typography } from '@mui/material';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { ArrowRight } from 'react-feather';
 
+const swipeLeft = keyframes`
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+`;
+
 export default function WelcomeScreen() {
+  const [swipe, setSwipe] = useState<boolean>(false);
+  const { push } = useRouter();
+
+  const handleSwipe = () => {
+    setSwipe(true);
+    setTimeout(() => {
+      push('/new-route');
+    }, 600);
+  };
   return (
     <Box
       sx={{
@@ -13,6 +35,7 @@ export default function WelcomeScreen() {
         gridTemplateRows: 'auto 1fr',
         rowGap: '50px',
         padding: '0 16px',
+        animation: swipe ? `${swipeLeft} 0.6s ease-out forwards` : 'none',
       }}
     >
       <Box
@@ -58,6 +81,7 @@ export default function WelcomeScreen() {
         variant="text"
         endIcon={<ArrowRight />}
         sx={{ position: 'absolute', left: '16px', bottom: '65px' }}
+        onClick={handleSwipe}
       >
         Click to swipe
       </Button>
