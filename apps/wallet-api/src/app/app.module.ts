@@ -1,21 +1,21 @@
 import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 
+import { BullModule } from '@nestjs/bull';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
+import { HttpExceptionFilter } from '../exception-filters/http-exception.filter';
+import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.filter';
+import { MailerModule } from '../mailer/mailer.module';
+import { AccountsModule } from '../modules/accounts/accounts.module';
+import { CounterpartiesModule } from '../modules/counterparties/counterparties.module';
+import { CurrenciesModule } from '../modules/currencies/currencies.module';
+import { TransactionsModule } from '../modules/transactions/transactions.module';
+import { UsersModule } from '../modules/users/users.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from '../prisma/prisma.module';
-import { BullModule } from '@nestjs/bull';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
-import { UsersModule } from '../modules/users/users.module';
-import { MailerModule } from '../mailer/mailer.module';
-import { HttpExceptionFilter } from '../exception-filters/http-exception.filter';
-import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.filter';
-import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
-import { AccountsModule } from '../modules/accounts/accounts.module';
-import { TransactionsModule } from '../modules/transactions/transactions.module';
-import { CounterpartiesModule } from '../modules/counterparties/counterparties.module';
-import { CurrenciesModule } from '../modules/currencies/currencies.module';
 
 @Module({
   imports: [
