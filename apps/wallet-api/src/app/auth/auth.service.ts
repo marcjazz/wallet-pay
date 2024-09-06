@@ -10,6 +10,9 @@ import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { IJWTPayload, TokenType } from './auth';
 import { AuthTokensDto, SignUpDto } from './auth.dto';
+import { MailerService } from '../../mailer/mailer.service';
+import { OTPService } from '../two-fa/services/otp.service';
+import { TWoFAUsage } from '../two-fa/two-fa.interface';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +21,9 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly prismaService: PrismaService
+    private readonly prismaService: PrismaService,
+    private readonly mailerService: MailerService,
+    private readonly otpService: OTPService
   ) {}
 
   async validateUser(
@@ -97,7 +102,15 @@ export class AuthService {
 
   async login(user: Express.User): Promise<AuthTokensDto> {
     if (!user.isVerified) {
-      // await this.otpService.sendOTP(user.phoneNumber);
+      const otpCode = await this.otpService.request(
+        user.id,
+        TWoFAUsage.VERIFY_EMAIL
+      );
+      await this.mailerService.sendText({
+        to: `${user.first_name} <${user.email}>`,
+        subject: 'Email Verification',
+        text: `Your One time password is ${otpCode}`,
+      });
     }
     return this.generateTokens(user);
   }

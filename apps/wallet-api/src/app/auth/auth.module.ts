@@ -7,6 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt/jwt.strategy';
 import { LocalStrategy } from './local/local.strategy';
 import { MailerModule } from '../../mailer/mailer.module';
+import { TwoFAModule } from '../two-fa/two-fa.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { MailerModule } from '../../mailer/mailer.module';
       pass: process.env.EMAIL_PASS as string,
       user: process.env.APP_EMAIL as string,
     }),
+    TwoFAModule,
   ],
   providers: [AuthService, RolesService, JwtStrategy, LocalStrategy],
   controllers: [AuthController],

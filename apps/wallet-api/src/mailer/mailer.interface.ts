@@ -7,7 +7,7 @@ export interface MailerOptions {
 
 export interface ISendTextMail {
   to: string;
-  from: string;
+  from?: string;
   subject: string;
   text: string;
 }

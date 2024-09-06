@@ -1,5 +1,5 @@
 import { Process, Processor } from '@nestjs/bull';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { Transporter } from 'nodemailer';
 import { mailerConstants } from './constant';
@@ -14,6 +14,11 @@ export class MailerProcessor {
   @Process('text-mailer')
   async handleMailQueue(job: Job<ISendTextMail>) {
     const info = await this.transpoter.sendMail(job.data);
+
+    Logger.debug(
+      'Successfully processed text-mailer  job ✅',
+      MailerProcessor.name
+    );
     return info.messageId;
   }
 }
