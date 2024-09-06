@@ -25,7 +25,7 @@ export class MailerModule {
     transporter
       .verify()
       .then(() =>
-        Logger.log('🚀 Transpoter created successfully', MailerModule.name)
+        Logger.log('Transpoter is ready to go 🚀', MailerModule.name)
       );
 
     return {
