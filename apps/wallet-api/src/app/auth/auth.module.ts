@@ -11,6 +11,7 @@ import { RolesService } from './roles.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt/jwt.strategy';
 import { LocalStrategy } from './local/local.strategy';
+import { MailerModule } from '../../nodemailer/mailer.module';
 
 @Module({
   imports: [
