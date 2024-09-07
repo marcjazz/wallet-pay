@@ -1,7 +1,7 @@
 import {
-    ExecutionContext,
-    ForbiddenException,
-    Injectable
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
@@ -15,9 +15,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    const isPublic = this.reflector.get<boolean>(
+    const isPublic = this.reflector.getAllAndOverride<boolean>(
       MetadataEnum.IS_PUBLIC,
-      context.getHandler()
+      [context.getHandler(), context.getClass()]
     );
 
     if (isPublic) return isPublic;

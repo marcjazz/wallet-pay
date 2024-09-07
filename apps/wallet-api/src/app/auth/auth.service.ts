@@ -2,22 +2,25 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
-import { PrismaService } from '../../prisma/prisma.service';
-import { IJWTPayload, TokenType } from './auth';
-import { AuthTokensDto, SignUpDto } from './auth.dto';
 import { MailerService } from '../../mailer/mailer.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { OTPService } from '../two-fa/otp/otp.service';
 import { TwoFAUsage } from '../two-fa/two-fa.interface';
+import { AuthTokensDto, SignUpDto } from './auth.dto';
+import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
 
 @Injectable()
 export class AuthService {
   private static readonly ACCESS_TOKEN_TYPE: TokenType = 'access_token';
   private static readonly REFRESH_TOKEN_TYPE: TokenType = 'refresh_token';
+
+  private readonly logger = new Logger(AuthService.name);
 
   constructor(
     private readonly jwtService: JwtService,

@@ -1,8 +1,15 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { IJWTPayload } from '../auth';
 import { AuthService } from '../auth.service';
+
+export type TokenType = 'access_token' | 'refresh_token';
+export interface IJWTPayload {
+  sub: string;
+  type: TokenType;
+  iat?: number;
+  exp?: number;
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

@@ -3,7 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
-import { Logger, VersioningType } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -22,6 +22,8 @@ async function bootstrap() {
   app.setGlobalPrefix(globalPrefix);
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   app.enableShutdownHooks();
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   // swagger setup
   if (process.env.NODE_ENV !== 'production') {

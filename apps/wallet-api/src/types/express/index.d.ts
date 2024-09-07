@@ -7,13 +7,11 @@ declare global {
       is_active: boolean;
       subdomain: string | null;
     }
-  }
-}
 
-type TokenType = 'access_token' | 'refresh_token';
-interface IJWTPayload {
-  sub: string;
-  type: TokenType;
-  iat?: number;
-  exp?: number;
+    namespace Express {
+      interface Request {
+        user?: User;
+      }
+    }
+  }
 }
