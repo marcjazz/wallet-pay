@@ -16,9 +16,9 @@ import { useFormik } from 'formik';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import styles from './login.module.css';
-import { useIntl } from 'react-intl';
 
 export default function Login() {
   const { formatMessage } = useIntl();
