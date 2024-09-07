@@ -36,17 +36,14 @@ export class AuthService {
     });
     if (person && bcrypt.compareSync(password, person.password)) {
       const origin = request.headers.origin;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, person_id, ...personData } = person;
 
       const personHasRole = await this.prismaService.personHasRole.findFirst({
-        where: { Role: { subdomain: origin }, person_id },
+        where: { Role: { subdomain: origin }, person_id: person.person_id },
       });
 
       if (origin && personHasRole?.is_active) {
         return {
-          ...personData,
-          person_id,
+          ...person,
           subdomain: origin,
           is_active: personHasRole.is_active,
           id: personHasRole.person_has_role_id,
@@ -101,7 +98,7 @@ export class AuthService {
   }
 
   async login(user: Express.User): Promise<AuthTokensDto> {
-    if (!user.isVerified) {
+    if (!user.is_verified) {
       const otpCode = await this.otpService.request(
         user.id,
         TwoFAUsage.VERIFY_EMAIL
@@ -153,8 +150,7 @@ export class AuthService {
       throw new NotFoundException('Invalid token payload!');
     }
     const {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      Person: { password, ...person },
+      Person: person,
       is_active,
       Role: { subdomain },
     } = personHasRole;

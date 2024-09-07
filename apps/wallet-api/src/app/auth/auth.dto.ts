@@ -78,7 +78,7 @@ export class SignUpDto extends SignInDto {
 
   @IsOptional()
   @IsEnum(PreferredLanguage)
-  @ApiProperty({ enum: PreferredLanguage })
+  @ApiProperty({ enum: PreferredLanguage, default: PreferredLanguage.EN_US })
   preferred_language: PreferredLanguage = PreferredLanguage.EN_US;
 
   constructor(props: SignUpDto) {
