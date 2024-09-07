@@ -13,6 +13,7 @@ import {
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Image from 'next/image';
+import Link from 'next/link';
 import * as Yup from 'yup';
 
 export default function Login() {
@@ -125,6 +126,8 @@ export default function Login() {
             <Typography
               variant="p3r"
               sx={{ color: theme.palette.primary.main, paddingRight: '6px' }}
+              component={Link}
+              href="/forgot-password"
             >
               Forgot your password?
             </Typography>
@@ -134,13 +137,18 @@ export default function Login() {
               Login
             </Button>
             <Typography variant="p2r">
-              Don&rsquo;t have an account?
+              Don&rsquo;t have an account?{' '}
               <Typography
                 variant="p2r"
-                sx={{ color: theme.palette.primary.main, fontWeight: 500 }}
-                component="span"
+                sx={{
+                  color: theme.palette.primary.main,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                }}
+                href="/register"
+                component={Link}
               >
-                {' '}
                 Register
               </Typography>
             </Typography>
