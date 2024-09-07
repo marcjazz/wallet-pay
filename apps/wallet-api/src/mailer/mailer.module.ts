@@ -1,10 +1,11 @@
-import { DynamicModule, Logger, Module } from '@nestjs/common';
+import { DynamicModule, Global, Logger, Module } from '@nestjs/common';
 import { createTransport } from 'nodemailer';
 import { MailerOptions } from './mailer.interface';
 import { MailerService } from './mailer.service';
 import { BullModule } from '@nestjs/bull';
 import { mailerConstants } from './constant';
 
+@Global()
 @Module({})
 export class MailerModule {
   static forRoot({

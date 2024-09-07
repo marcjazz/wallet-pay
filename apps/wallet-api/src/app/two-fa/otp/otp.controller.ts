@@ -6,7 +6,7 @@ import {
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { OTPEntity, VerifyOTPDto } from '../dto/two-fa.dto';
 import { OTPService } from './otp.service';
@@ -14,8 +14,9 @@ import { TwoFAUsage } from '../two-fa.interface';
 import { MailerService } from '../../../mailer/mailer.service';
 
 @ApiTags('2FA')
+@ApiBearerAuth()
 @Controller('two-fa/otp')
-export class TwoFAController {
+export class OTPController {
   constructor(
     private readonly otpService: OTPService,
     private readonly mailerService: MailerService
