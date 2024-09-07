@@ -131,7 +131,11 @@ export default function Login() {
             </FormControl>
             <Typography
               variant="p3r"
-              sx={{ color: theme.palette.primary.main, paddingRight: '6px' }}
+              sx={{
+                color: theme.palette.primary.main,
+                paddingRight: '6px',
+                textDecoration: 'none',
+              }}
               component={Link}
               href="/forgot-password"
             >
