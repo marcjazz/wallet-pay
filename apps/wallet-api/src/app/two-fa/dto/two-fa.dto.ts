@@ -26,14 +26,14 @@ export class OTPEntity implements OTP {
   @ApiHideProperty()
   code: string;
 
-  @ApiProperty()
-  is_valid: boolean;
-
   @ApiProperty({ enum: TwoFAUsage })
-  usage: TwoFAUsage;
+  usage: string;
 
   @ApiProperty()
   is_used: boolean;
+
+  @ApiProperty()
+  expires_at: Date;
 
   @ApiProperty({ nullable: true })
   updated_at: Date | null;

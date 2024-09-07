@@ -38,6 +38,8 @@ export class TwoFAController {
       subject: 'Verification code',
       text: `Your verification code is ${otp.code}`,
     });
+
+    return new OTPEntity(otp);
   }
 
   @Post('verify')

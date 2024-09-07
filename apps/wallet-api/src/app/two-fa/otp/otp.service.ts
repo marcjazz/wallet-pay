@@ -13,6 +13,7 @@ export class OTPService implements ITwoFAService<OTP> {
       data: {
         usage,
         code: generateOtp(5),
+        expires_at: new Date(Date.now() + 120_000), // 2min validity
         PersonHasRole: { connect: { person_has_role_id: userId } },
       },
     });
@@ -22,9 +23,18 @@ export class OTPService implements ITwoFAService<OTP> {
 
   async verify(id: string, otpCode: string): Promise<boolean> {
     const otp = await this.prismaService.oTP.findUnique({
-      where: { otp_id: id },
+      where: { otp_id: id, is_used: false, expires_at: { lt: new Date() } },
     });
 
-    return !!otp && otp.code === otpCode && otp.is_valid;
+    const isVerified = !!otp && otp.code === otpCode && !otp.is_used;
+    if (!isVerified) {
+      return false;
+    }
+
+    await this.prismaService.oTP.update({
+      data: { is_used: true, updated_at: new Date() },
+      where: { otp_id: id },
+    });
+    return true;
   }
 }
