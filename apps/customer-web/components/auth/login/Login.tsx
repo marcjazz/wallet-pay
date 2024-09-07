@@ -3,6 +3,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Divider,
   FormControl,
   FormHelperText,
@@ -14,7 +15,9 @@ import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import * as Yup from 'yup';
+import styles from './login.module.css';
 
 export default function Login() {
   const validationSchema = Yup.object({
@@ -29,12 +32,19 @@ export default function Login() {
     password: '',
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: (values) => {
+    onSubmit: (values, { resetForm }) => {
       //TODO: CALL API HERE TO SUBMIT LOGIN
+      //TODO: USE alert in case of error. will be replaced with proper notifications later
       console.log(values);
+      setIsSubmitting(true);
+      setTimeout(() => {
+        resetForm();
+        setIsSubmitting(false);
+      }, 3000);
     },
   });
   const { errors, touched } = formik;
@@ -44,6 +54,12 @@ export default function Login() {
     //TODO: CALL API HERE TO LOGIN WITH GOOGLE
     console.log('Google login');
   }
+
+  const preventRouteWhenSubmitting = (event: React.MouseEvent) => {
+    if (isSubmitting) {
+      event.preventDefault();
+    }
+  };
 
   return (
     <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
@@ -71,6 +87,7 @@ export default function Login() {
           variant="outlined"
           size="medium"
           color="inherit"
+          disabled={isSubmitting}
           startIcon={
             <Image
               src="/assets/google.svg"
@@ -78,6 +95,8 @@ export default function Login() {
               height={24}
               width={24}
               loading="lazy"
+              style={{ transition: 'filter 0.3s ease, opacity 0.3s ease' }}
+              className={isSubmitting ? styles.disabledIcon : ''}
             />
           }
         >
@@ -104,7 +123,11 @@ export default function Login() {
           onSubmit={formik.handleSubmit}
           sx={{ display: 'grid', gap: 3 }}
         >
-          <FormControl required error={!!(touched.email && errors.email)}>
+          <FormControl
+            disabled={isSubmitting}
+            required
+            error={!!(touched.email && errors.email)}
+          >
             <FormLabel htmlFor="email">Email</FormLabel>
             <OutlinedInput
               id="email"
@@ -116,6 +139,7 @@ export default function Login() {
           </FormControl>
           <Box sx={{ display: 'grid', justifyItems: 'end' }}>
             <FormControl
+              disabled={isSubmitting}
               required
               error={!!(touched.password && errors.password)}
             >
@@ -136,15 +160,25 @@ export default function Login() {
                 color: theme.palette.primary.main,
                 paddingRight: '6px',
                 textDecoration: 'none',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
               component={Link}
               href="/forgot-password"
+              onClick={preventRouteWhenSubmitting}
             >
               Forgot your password?
             </Typography>
           </Box>
           <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1.5 }}>
-            <Button fullWidth size="medium" type="submit">
+            <Button
+              fullWidth
+              size="medium"
+              type="submit"
+              disabled={isSubmitting}
+              endIcon={
+                isSubmitting && <CircularProgress size={20} thickness={23} />
+              }
+            >
               Login
             </Button>
             <Typography variant="p2r">
@@ -154,11 +188,12 @@ export default function Login() {
                 sx={{
                   color: theme.palette.primary.main,
                   fontWeight: 500,
-                  cursor: 'pointer',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   textDecoration: 'none',
                 }}
                 href="/register"
                 component={Link}
+                onClick={preventRouteWhenSubmitting}
               >
                 Register
               </Typography>
