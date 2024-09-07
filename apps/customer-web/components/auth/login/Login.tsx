@@ -77,6 +77,7 @@ export default function Login() {
               alt="google"
               height={24}
               width={24}
+              loading="lazy"
             />
           }
         >
