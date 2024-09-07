@@ -23,16 +23,16 @@ export class OTPService implements ITwoFAService<OTP> {
 
   async verify(id: string, otpCode: string): Promise<boolean> {
     const otp = await this.prismaService.oTP.findUnique({
-      where: { otp_id: id, is_used: false, expires_at: { lt: new Date() } },
+      where: { otp_id: id, is_verified: false, expires_at: { lt: new Date() } },
     });
 
-    const isVerified = !!otp && otp.code === otpCode && !otp.is_used;
+    const isVerified = !!otp && otp.code === otpCode && !otp.is_verified;
     if (!isVerified) {
       return false;
     }
 
     await this.prismaService.oTP.update({
-      data: { is_used: true, updated_at: new Date() },
+      data: { is_verified: true, updated_at: new Date() },
       where: { otp_id: id },
     });
     return true;

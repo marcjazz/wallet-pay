@@ -158,7 +158,7 @@ model OTP {
   otp_id             String        @id @default(uuid()) @db.VarChar(36)
   code               String        @db.VarChar(45)
   usage              String        @db.VarChar(45) //resset password, validate transaction, etc...
-  is_used            Boolean       @default(false) @db.TinyInt
+  is_verified        Boolean       @default(false) @db.TinyInt
   expires_at         DateTime      @db.DateTime(0)
   updated_at         DateTime?     @db.DateTime(0)
   created_at         DateTime      @default(now()) @db.DateTime(0)
@@ -177,7 +177,7 @@ model Person {
   last_name          String            @db.VarChar(45)
   email              String            @unique @db.VarChar(45)
   username           String            @unique @db.VarChar(45)
-  isVerified         Boolean           @default(false) @db.TinyInt
+  is_verified        Boolean           @default(false) @db.TinyInt
   phone_number       String            @db.VarChar(45)
   password           String            @db.VarChar(45)
   created_at         DateTime          @default(now()) @db.DateTime(0)
@@ -192,13 +192,14 @@ model Person {
 }
 
 model PersonAudit {
-  person_audit_id Int           @id
-  first_name      String?       @db.VarChar(45)
-  last_name       String?       @db.VarChar(45)
-  email           String?       @db.VarChar(45)
-  username        String?       @db.VarChar(45)
-  phone_number    String?       @db.VarChar(45)
-  password        String?       @db.VarChar(45)
+  person_audit_id String        @id @default(cuid())
+  first_name      String        @db.VarChar(45)
+  last_name       String        @db.VarChar(45)
+  email           String        @db.VarChar(45)
+  username        String        @db.VarChar(45)
+  phone_number    String        @db.VarChar(45)
+  password        String        @db.VarChar(45)
+  is_verified     Boolean       @db.TinyInt
   audited_at      DateTime      @default(now()) @db.DateTime(0)
   person_id       String
   Person          Person        @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_Person2")
@@ -283,7 +284,7 @@ model Role {
 
 model RoleAudit {
   role_audit_id String   @id @default(uuid()) @db.VarChar(36)
-  is_active     Boolean  @default(true) @db.TinyInt
+  is_active     Boolean  @db.TinyInt
   title         String   @db.VarChar(45)
   audited_at    DateTime @default(now()) @db.DateTime(0)
   role_id       String
@@ -326,7 +327,7 @@ model StripeTransaction {
 
 model SupportedCurrency {
   supported_currency_id   String                   @id @default(uuid()) @db.VarChar(36)
-  currency                CybridSupportedCountry
+  currency                String                   @db.VarChar(3)
   is_active               Boolean                  @default(true) @db.TinyInt
   xaf_rate                Int
   last_updated            DateTime                 @db.DateTime(0)
@@ -342,8 +343,8 @@ model SupportedCurrency {
 
 model SupportedCurrencyAudit {
   supported_currency_audit_id String            @id @default(uuid()) @db.VarChar(36)
-  is_active                   Boolean           @default(true) @db.TinyInt
-  audited_at                  DateTime          @default(now()) @db.DateTime(0)
+  is_active                   Boolean           @db.TinyInt
+  audited_at                  DateTime          @db.DateTime(0)
   supported_currency_id       String
   SupportedCurrency           SupportedCurrency @relation(fields: [supported_currency_id], references: [supported_currency_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrencyAudit_SupportedCurrency1")
   audited_by                  String

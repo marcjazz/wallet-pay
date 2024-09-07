@@ -30,7 +30,7 @@ export class OTPEntity implements OTP {
   usage: string;
 
   @ApiProperty()
-  is_used: boolean;
+  is_verified: boolean;
 
   @ApiProperty()
   expires_at: Date;
