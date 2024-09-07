@@ -40,6 +40,11 @@ export default function Login() {
   const { errors, touched } = formik;
   const theme = useTheme();
 
+  function handleGoogleLogin() {
+    //TODO: CALL API HERE TO LOGIN WITH GOOGLE
+    console.log('Google login');
+  }
+
   return (
     <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
       <Box sx={{ display: 'grid', rowGap: 2.5 }}>
@@ -62,6 +67,7 @@ export default function Login() {
 
       <Box sx={{ display: 'grid', rowGap: 4.5 }}>
         <Button
+          onClick={handleGoogleLogin}
           variant="outlined"
           size="medium"
           color="inherit"
