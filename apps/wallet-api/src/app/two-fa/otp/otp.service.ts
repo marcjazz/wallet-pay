@@ -1,22 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { ITwoFAService, TWoFAUsage } from '../two-fa.interface';
+import { ITwoFAService, TwoFAUsage } from '../two-fa.interface';
 import { generateOtp } from '../../../helpers/otp-generator';
+import { OTP } from '@prisma/client';
 
 @Injectable()
-export class OTPService implements ITwoFAService<string> {
+export class OTPService implements ITwoFAService<OTP> {
   constructor(private prismaService: PrismaService) {}
 
-  async request(userId: string, usage: TWoFAUsage): Promise<string> {
+  async request(userId: string, usage: TwoFAUsage): Promise<OTP> {
     const otp = await this.prismaService.oTP.create({
       data: {
-        code: generateOtp(5),
         usage,
+        code: generateOtp(5),
         PersonHasRole: { connect: { person_has_role_id: userId } },
       },
     });
 
-    return otp.code;
+    return otp;
   }
 
   async verify(id: string, otpCode: string): Promise<boolean> {

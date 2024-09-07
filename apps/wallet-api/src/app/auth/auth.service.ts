@@ -11,8 +11,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { IJWTPayload, TokenType } from './auth';
 import { AuthTokensDto, SignUpDto } from './auth.dto';
 import { MailerService } from '../../mailer/mailer.service';
-import { OTPService } from '../two-fa/services/otp.service';
-import { TWoFAUsage } from '../two-fa/two-fa.interface';
+import { OTPService } from '../two-fa/otp/otp.service';
+import { TwoFAUsage } from '../two-fa/two-fa.interface';
 
 @Injectable()
 export class AuthService {
@@ -104,7 +104,7 @@ export class AuthService {
     if (!user.isVerified) {
       const otpCode = await this.otpService.request(
         user.id,
-        TWoFAUsage.VERIFY_EMAIL
+        TwoFAUsage.VERIFY_EMAIL
       );
       await this.mailerService.sendText({
         to: `${user.first_name} <${user.email}>`,
