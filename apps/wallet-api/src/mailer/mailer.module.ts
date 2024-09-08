@@ -4,6 +4,7 @@ import { MailerOptions } from './mailer.interface';
 import { MailerService } from './mailer.service';
 import { BullModule } from '@nestjs/bull';
 import { mailerConstants } from './constant';
+import { MailerProcessor } from './mailer.processor';
 
 @Global()
 @Module({})
@@ -37,8 +38,9 @@ export class MailerModule {
         }),
       ],
       providers: [
-        { useValue: transporter, provide: mailerConstants.TRANSPOTER },
         MailerService,
+        MailerProcessor,
+        { useValue: transporter, provide: mailerConstants.TRANSPOTER },
       ],
       exports: [MailerService],
     };

@@ -57,7 +57,7 @@ export class AuthService {
   }
 
   async registerUser(
-    { password, ...payload }: SignUpDto,
+    { password, country, ...payload }: SignUpDto,
     roleId: string,
     createdBy?: string
   ): Promise<Express.User> {
@@ -97,20 +97,26 @@ export class AuthService {
         },
       },
     });
+
     return { ...person, id: person_has_role_id, subdomain, is_active };
   }
 
   async login(user: Express.User): Promise<AuthTokensDto> {
     if (!user.is_verified) {
+      this.logger.debug(`Request otp for user...`);
+
       const otpCode = await this.otpService.request(
         user.id,
         TwoFAUsage.VERIFY_EMAIL
       );
+
       await this.mailerService.sendText({
         to: `${user.first_name} <${user.email}>`,
         subject: 'Email Verification',
         text: `Your One time password is ${otpCode}`,
       });
+
+      this.logger.debug(`Successfully sent requested otp user!`);
     }
     return this.generateTokens(user);
   }
