@@ -28,4 +28,8 @@ export const website = {
   accessAccountBy: 'Access your account by',
   loggingIn: ' logging in',
   or: 'or',
+  forgotPasswordDescription:
+    'Enter your email address to receive a password reset link',
+  sendCode: 'Send code',
+  backTo: 'Back to ',
 };
