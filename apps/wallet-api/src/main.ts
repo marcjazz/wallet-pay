@@ -17,12 +17,12 @@ async function bootstrap() {
       credentials: true,
     },
   });
-
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   app.enableShutdownHooks();
 
+  // global configurations
+  const globalPrefix = 'api';
+  app.setGlobalPrefix(globalPrefix);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   // swagger setup
