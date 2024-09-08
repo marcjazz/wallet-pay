@@ -6,17 +6,6 @@
   ],
   "projectType": "application",
   "targets": {
-    "prisma-reset": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "npm run migrate-reset"
-      },
-      "configurations": {
-        "test": {
-          "envFile": ".env.test"
-        }
-      }
-    },
     "e2e": {
       "executor": "@nx/jest:jest",
       "outputs": [
@@ -25,13 +14,7 @@
       "options": {
         "jestConfig": "apps/wallet-api-e2e/jest.config.ts",
         "passWithNoTests": true
-      },
-      "dependsOn": [
-        {
-          "target": "prisma-reset:test",
-          "projects": "self"
-        }
-      ]
+      }
     },
     "lint": {
       "executor": "@nx/eslint:lint",
