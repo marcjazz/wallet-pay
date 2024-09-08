@@ -32,4 +32,10 @@ export const website = {
     'Enter your email address to receive a password reset link',
   sendCode: 'Send code',
   backTo: 'Back to ',
+  enterYourOTP: 'Enter your OTP',
+  otpDescription: 'Enter the one-time password sent to your email address',
+  otp: 'OTP',
+  enterOtp: 'Enter OTP',
+  submit: 'Submit',
+  cancel: 'Cancel',
 };
