@@ -67,7 +67,7 @@ export default function Login() {
 
   return (
     <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
-      <Box sx={{ display: 'grid', rowGap: 2.5 }}>
+      <Box sx={{ display: 'grid', rowGap: 2.25 }}>
         <Typography variant="h1">
           {formatMessage({ id: 'accessAccountBy' })}
           <Typography

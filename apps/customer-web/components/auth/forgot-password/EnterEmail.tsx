@@ -15,9 +15,9 @@ import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Mail } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import { Mail } from 'react-feather';
 
 export default function EnterEmail() {
   const { formatMessage } = useIntl();
@@ -57,7 +57,7 @@ export default function EnterEmail() {
 
   return (
     <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
-      <Box sx={{ display: 'grid', rowGap: 2.5 }}>
+      <Box sx={{ display: 'grid', rowGap: 2.25 }}>
         <Typography variant="h1">
           {formatMessage({ id: 'forgotYourPassword' })}
         </Typography>
