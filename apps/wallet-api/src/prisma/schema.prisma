@@ -146,7 +146,7 @@ model Log {
   login_at           DateTime      @default(now()) @db.DateTime(0)
   logout_at          DateTime?     @db.DateTime(0)
   method             String        @default("local") @db.VarChar(45)
-  refresh_token      String        @db.VarChar(45)
+  refresh_token      String        @db.VarChar(255)
   person_has_role_id String
   PersonHasRole      PersonHasRole @relation(fields: [person_has_role_id], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Log_Person1")
 
@@ -179,14 +179,15 @@ model Person {
   username           String            @unique @db.VarChar(45)
   is_verified        Boolean           @default(false) @db.TinyInt
   phone_number       String            @db.VarChar(45)
-  password           String            @db.VarChar(45)
+  password           String            @db.VarChar(255)
   created_at         DateTime          @default(now()) @db.DateTime(0)
-  preferred_language PreferredLanguage
+  preferred_language PreferredLanguage @default(EN_US)
   CybridCustomers    CybridCustomer[]
   LocalCustomers     LocalCustomer[]
   PersonAudits       PersonAudit[]
   PersonHasRoles     PersonHasRole[]
   RoleAudits         RoleAudit[]
+  Roles              Role[]
 
   @@map("persons")
 }
@@ -223,7 +224,6 @@ model PersonHasRole {
   CreatedBy                    PersonHasRole?           @relation("personhasroleTopersonhasrole", fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_PersonHasRole1")
   Logs                         Log[]
   OTPs                         OTP[]
-  Roles                        Role[]                   @relation("personhasroleTorole_created_by")
   CustomerAudits               CybridCustomerAudit[]
   Localtransactions            LocalTransaction[]
   PersonAudits                 PersonAudit[]
@@ -269,11 +269,11 @@ model ReceiverPayoutInfo {
 model Role {
   role_id        String          @id @default(uuid()) @db.VarChar(36)
   title          String          @unique @db.VarChar(45)
-  is_active      Boolean         @db.TinyInt
+  is_active      Boolean         @default(true) @db.TinyInt
   subdomain      String?         @db.VarChar(45)
   created_at     DateTime        @default(now()) @db.DateTime(0)
   created_by     String
-  CreatedBy      PersonHasRole   @relation("personhasroleTorole_created_by", fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Role_Person1")
+  CreatedBy      Person          @relation(fields: [created_by], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Role_Person1")
   PersonHasRoles PersonHasRole[] @relation("roleTopersonhasrole_role_id")
   RoleAudits     RoleAudit[]
 

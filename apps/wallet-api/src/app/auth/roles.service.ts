@@ -13,7 +13,7 @@ export class RolesService {
     return this.prismaService.role.create({
       data: {
         ...payload,
-        CreatedBy: { connect: { person_has_role_id: created_by } },
+        CreatedBy: { connect: { person_id: created_by } },
       },
     });
   }
