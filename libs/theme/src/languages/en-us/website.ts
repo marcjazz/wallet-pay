@@ -38,4 +38,9 @@ export const website = {
   enterOtp: 'Enter OTP',
   submit: 'Submit',
   cancel: 'Cancel',
+  resetYourPasswordDescription: 'Enter your new password to reset your account',
+  resetYourPassword: 'Reset your password',
+  enterNewPassword: 'Enter new password',
+  confirmPassword: 'Confirm Password',
+  reset: 'Reset',
 };
