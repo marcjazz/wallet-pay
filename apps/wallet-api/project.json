@@ -23,7 +23,8 @@
       },
       "configurations": {
         "development": {},
-        "production": {}
+        "production": {},
+        "test": {}
       }
     },
     "serve": {
@@ -35,6 +36,9 @@
       "configurations": {
         "development": {
           "buildTarget": "wallet-api:build:development"
+        },
+        "test": {
+          "buildTarget": "wallet-api:build:test"
         },
         "production": {
           "buildTarget": "wallet-api:build:production"

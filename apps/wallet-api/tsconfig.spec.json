@@ -10,8 +10,6 @@
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
-    "src/mailer/mailer.interface.ts",
-    "jest.setup.ts",
-    "src/types/"
+    "jest.setup.ts"
   ]
 }

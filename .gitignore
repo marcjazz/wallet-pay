@@ -10,6 +10,8 @@ node_modules
 
 # IDEs and editors
 /.idea
+.env
+.env.*
 .project
 .classpath
 .c9/
