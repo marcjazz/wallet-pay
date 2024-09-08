@@ -349,6 +349,13 @@ export function useTheme() {
           },
         },
       },
+      MuiInputAdornment: {
+        styleOverrides: {
+          root: {
+            marginRight: '10px',
+          },
+        },
+      },
       MuiOutlinedInput: {
         defaultProps: {
           size: 'medium',
@@ -356,13 +363,18 @@ export function useTheme() {
         styleOverrides: {
           root: {
             borderRadius: '10px',
+            padding: '16px',
           },
           input: {
+            '&::placeholder': {
+              color: '#415058',
+            },
+            borderRadius: '0 !important',
             fontSize: '14px',
             fontWeight: '400',
             fontFamily: 'DM Sans',
             lineHeight: 21 / 14,
-            padding: '16px',
+            padding: 0,
           },
           adornedEnd: {
             paddingRight: '10px',
