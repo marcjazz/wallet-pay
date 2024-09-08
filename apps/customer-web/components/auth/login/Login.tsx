@@ -18,13 +18,17 @@ import Link from 'next/link';
 import { useState } from 'react';
 import * as Yup from 'yup';
 import styles from './login.module.css';
+import { useIntl } from 'react-intl';
 
 export default function Login() {
+  const { formatMessage } = useIntl();
   const validationSchema = Yup.object({
-    email: Yup.string().email('Invalid email address').required('Required'),
+    email: Yup.string()
+      .email(formatMessage({ id: 'invalidEmail' }))
+      .required(formatMessage({ id: 'requiredField' })),
     password: Yup.string()
-      .required('Required')
-      .min(3, 'Must be at least 3 characters'),
+      .required(formatMessage({ id: 'requiredField' }))
+      .min(3, formatMessage({ id: 'minPasswordCharacters' })),
   });
 
   const initialValues = {
@@ -65,19 +69,18 @@ export default function Login() {
     <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
       <Box sx={{ display: 'grid', rowGap: 2.5 }}>
         <Typography variant="h1">
-          Access your account by
+          {formatMessage({ id: 'accessAccountBy' })}
           <Typography
             variant="h1"
             component="span"
             sx={{ color: theme.palette.primary.main }}
           >
-            {' '}
-            logging in
+            {formatMessage({ id: 'loggingIn' })}
           </Typography>
           .
         </Typography>
         <Typography variant="p1r">
-          Enter your credentials to login and enjoy your offers{' '}
+          {formatMessage({ id: 'loginDescription' })}
         </Typography>
       </Box>
 
@@ -100,7 +103,7 @@ export default function Login() {
             />
           }
         >
-          Continue with Google
+          {formatMessage({ id: 'continueWithGoogle' })}
         </Button>
 
         <Box
@@ -113,7 +116,7 @@ export default function Login() {
         >
           <Divider />
           <Typography variant="l1r" sx={{ color: theme.palette.grey[200] }}>
-            or
+            {formatMessage({ id: 'or' })}
           </Typography>
           <Divider />
         </Box>
@@ -128,11 +131,13 @@ export default function Login() {
             required
             error={!!(touched.email && errors.email)}
           >
-            <FormLabel htmlFor="email">Email</FormLabel>
+            <FormLabel htmlFor="email">
+              {formatMessage({ id: 'email' })}
+            </FormLabel>
             <OutlinedInput
               id="email"
               {...formik.getFieldProps('email')}
-              placeholder="Enter your email"
+              placeholder={formatMessage({ id: 'enterEmail' })}
               autoFocus
             />
             <FormHelperText>{touched.email && errors.email}</FormHelperText>
@@ -143,12 +148,14 @@ export default function Login() {
               required
               error={!!(touched.password && errors.password)}
             >
-              <FormLabel htmlFor="password">Password</FormLabel>
+              <FormLabel htmlFor="password">
+                {formatMessage({ id: 'password' })}
+              </FormLabel>
               <OutlinedInput
                 id="password"
                 type="password"
                 {...formik.getFieldProps('password')}
-                placeholder="Enter your password"
+                placeholder={formatMessage({ id: 'enterPassword' })}
               />
               <FormHelperText>
                 {touched.password && errors.password}
@@ -166,7 +173,7 @@ export default function Login() {
               href="/forgot-password"
               onClick={preventRouteWhenSubmitting}
             >
-              Forgot your password?
+              {formatMessage({ id: 'forgotYourPassword' })}
             </Typography>
           </Box>
           <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1.5 }}>
@@ -179,10 +186,10 @@ export default function Login() {
                 isSubmitting && <CircularProgress size={20} thickness={23} />
               }
             >
-              Login
+              {formatMessage({ id: 'login' })}
             </Button>
             <Typography variant="p2r">
-              Don&rsquo;t have an account?{' '}
+              {formatMessage({ id: 'dontHaveAnAccount' })}
               <Typography
                 variant="p2r"
                 sx={{
@@ -195,7 +202,7 @@ export default function Login() {
                 component={Link}
                 onClick={preventRouteWhenSubmitting}
               >
-                Register
+                {formatMessage({ id: 'register' })}
               </Typography>
             </Typography>
           </Box>
