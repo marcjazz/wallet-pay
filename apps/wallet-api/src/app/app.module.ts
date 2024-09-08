@@ -14,10 +14,15 @@ import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.fil
 
 @Module({
   imports: [
-    BullModule.forRoot({}),
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     PrismaModule,
     MailerModule.forRoot({
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       host: process.env.EMAIL_HOST as string,
       pass: process.env.EMAIL_PASS as string,
       user: process.env.APP_EMAIL as string,
