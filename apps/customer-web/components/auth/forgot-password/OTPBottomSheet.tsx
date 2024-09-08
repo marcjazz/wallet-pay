@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -10,6 +11,8 @@ import {
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Key } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
@@ -25,6 +28,8 @@ export default function OTPBottomSheet({
   closeBottomSheet,
 }: OTPBottomSheetProps) {
   const { formatMessage } = useIntl();
+  const { push } = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validationSchema = Yup.object({
     otp: Yup.string()
@@ -40,7 +45,15 @@ export default function OTPBottomSheet({
     initialValues,
     validationSchema,
     onSubmit: (values, { resetForm }) => {
-      console.log('hello');
+      //TODO: CALL API HERE TO SUBMIT OTP
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        closeBottomSheet();
+        resetForm();
+        push('/reset-password');
+        console.log(values);
+      }, 3000);
     },
   });
   const { errors, touched } = formik;
@@ -69,6 +82,7 @@ export default function OTPBottomSheet({
           error={Boolean(touched.otp && errors.otp)}
           required
           fullWidth
+          disabled={isSubmitting}
         >
           <FormLabel htmlFor="otp">{formatMessage({ id: 'otp' })}</FormLabel>
           <OutlinedInput
@@ -87,10 +101,22 @@ export default function OTPBottomSheet({
         </FormControl>
 
         <Box sx={{ display: 'grid', rowGap: 2 }}>
-          <Button type="submit" size="medium">
+          <Button
+            type="submit"
+            size="medium"
+            disabled={isSubmitting}
+            endIcon={
+              isSubmitting && <CircularProgress size={20} thickness={23} />
+            }
+          >
             {formatMessage({ id: 'submit' })}
           </Button>
-          <Button size="small" variant="text" onClick={closeBottomSheet}>
+          <Button
+            size="small"
+            variant="text"
+            disabled={isSubmitting}
+            onClick={closeBottomSheet}
+          >
             {formatMessage({ id: 'cancel' })}
           </Button>
         </Box>
