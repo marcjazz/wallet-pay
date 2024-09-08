@@ -40,6 +40,8 @@ export class AuthService {
     if (person && bcrypt.compareSync(password, person.password)) {
       const origin = request.headers.origin;
 
+      this.logger.debug(`Authenticating user from origin ${origin}...`);
+
       const personHasRole = await this.prismaService.personHasRole.findFirst({
         where: { Role: { subdomain: origin }, person_id: person.person_id },
       });
