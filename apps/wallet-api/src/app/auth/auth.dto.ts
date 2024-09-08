@@ -55,19 +55,16 @@ export class SignUpDto extends SignInDto {
   })
   last_name: string;
 
-  @IsOptional()
   @IsPhoneNumber()
   @ApiProperty({
     description: 'Valid user phone number',
   })
   phone_number: string;
 
-  @IsOptional()
   @IsDateString()
   @ApiProperty({ description: 'User date of birth' })
   birthdate: Date;
 
-  @IsOptional()
   @IsEnum(PersonGender)
   @ApiProperty({
     description: 'User gender',
