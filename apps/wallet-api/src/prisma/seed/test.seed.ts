@@ -19,6 +19,7 @@ async function main() {
       username: 'xafpay_alic1',
     },
   });
+
   await prisma.role.createMany({
     data: [
       {
@@ -33,9 +34,17 @@ async function main() {
       },
     ],
   });
+
   await prisma.personHasRole.create({
     data: {
       Role: { connect: { title: 'admin', subdomain: 'admin.xafpay.com' } },
+      Person: { connect: { email: alice.email } },
+    },
+  });
+
+  await prisma.personHasRole.create({
+    data: {
+      Role: { connect: { title: 'client', subdomain: 'app.xafpay.com' } },
       Person: { connect: { email: alice.email } },
     },
   });

@@ -60,6 +60,9 @@ ALTER TABLE `person_audits` DROP PRIMARY KEY,
     ADD PRIMARY KEY (`person_audit_id`);
 
 -- AlterTable
+ALTER TABLE `person_has_roles` MODIFY `is_active` BOOLEAN NOT NULL DEFAULT true;
+
+-- AlterTable
 ALTER TABLE `persons` ADD COLUMN `birthdate` DATETIME(3) NOT NULL,
     ADD COLUMN `gender` ENUM('male', 'female', 'other') NOT NULL,
     ADD COLUMN `is_verified` BOOLEAN NOT NULL DEFAULT false,
