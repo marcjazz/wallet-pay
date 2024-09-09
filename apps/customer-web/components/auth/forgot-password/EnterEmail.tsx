@@ -88,6 +88,7 @@ export default function EnterEmail() {
             </FormLabel>
             <OutlinedInput
               id="email"
+              type="email"
               startAdornment={
                 <InputAdornment position="start">
                   <Mail color={theme.palette.grey[200]} size={18} />

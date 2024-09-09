@@ -136,6 +136,7 @@ export default function Login() {
             </FormLabel>
             <OutlinedInput
               id="email"
+              type="email"
               {...formik.getFieldProps('email')}
               placeholder={formatMessage({ id: 'enterEmail' })}
               autoFocus
