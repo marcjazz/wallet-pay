@@ -43,4 +43,59 @@ describe('/auth', () => {
       password: 'password',
     });
   });
+
+  async function handleForgotPassword() {
+    let axiosResp: AxiosResponse;
+    try {
+      axiosResp = await axios.post(
+        '/auth/forgot-password',
+        { email: 'alice@prisma.io' },
+        {
+          headers: { origin: 'app.xafpay.com' },
+        }
+      );
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+    return axiosResp;
+  }
+
+  it('POST /forgot-password', async () => {
+    const axiosResp = await handleForgotPassword();
+
+    expect(axiosResp.status).toBe(HttpStatusCode.Created);
+    expect(axiosResp.data).toEqual({
+      created_at: expect.any(String),
+      expires_at: expect.any(String),
+      is_verified: false,
+      otp_id: expect.any(String),
+      person_has_role_id: expect.any(String),
+      updated_at: null,
+      usage: 'reset_password',
+    });
+
+    const { code, created_at, expires_at } = axiosResp.data;
+    expect(() => Number(code)).not.toThrow();
+    expect(() => new Date(created_at)).not.toThrow();
+    expect(() => new Date(expires_at)).not.toThrow();
+  });
+
+  it('POST /reset-password', async () => {
+    const {
+      data: { otp_id },
+    } = await handleForgotPassword();
+
+    let axiosResp: AxiosResponse;
+    try {
+      axiosResp = await axios.post(
+        '/auth/reset-password',
+        { otp_id, otp_code: '55555', password: 'passworD237!' },
+        { headers: { origin: 'app.xafpay.com' } }
+      );
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+
+    expect(axiosResp.status).toBe(HttpStatusCode.NoContent);
+  });
 });
