@@ -8,7 +8,7 @@ datasource db {
 }
 
 model BankPayoutInfo {
-  bank_payout_info_id String              @id @default(uuid()) @db.VarChar(36)
+  bank_payout_info_id String              @id @default(cuid()) @db.VarChar(36)
   holder_name         String              @db.VarChar(45)
   bank_name           String              @db.VarChar(45)
   iban_number         String              @db.VarChar(45)
@@ -19,7 +19,7 @@ model BankPayoutInfo {
 }
 
 model CybridCustomerAudit {
-  cybrid_customer_audit_id String         @id @default(uuid()) @db.VarChar(36)
+  cybrid_customer_audit_id String         @id @default(cuid()) @db.VarChar(36)
   is_active                Boolean        @default(true) @db.TinyInt
   cybrid_customer_id       String         @db.VarChar(36)
   CybridCustomer           CybridCustomer @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CustomerAudit_Customer1")
@@ -32,7 +32,7 @@ model CybridCustomerAudit {
 }
 
 model CybridAccount {
-  cybrid_account_id           String                  @id @default(uuid()) @db.VarChar(36)
+  cybrid_account_id           String                  @id @default(cuid()) @db.VarChar(36)
   cybrid_account_guid         String                  @db.VarChar(45)
   currency                    CybridSupportedCurrency
   is_active                   Boolean                 @default(true) @db.TinyInt
@@ -47,7 +47,7 @@ model CybridAccount {
 }
 
 model CybridCustomer {
-  cybrid_customer_id         String                  @id @default(uuid()) @db.VarChar(36)
+  cybrid_customer_id         String                  @id @default(cuid()) @db.VarChar(36)
   cybrid_customer_guid       String                  @db.VarChar(45)
   country                    CybridSupportedCountry?
   identity_verification_guid String                  @db.VarChar(45)
@@ -62,7 +62,7 @@ model CybridCustomer {
 }
 
 model CybridExternalAccount {
-  cybrid_external_account_id   String              @id @default(uuid()) @db.VarChar(36)
+  cybrid_external_account_id   String              @id @default(cuid()) @db.VarChar(36)
   identity_verification_guid   String              @db.VarChar(45)
   cybrid_external_account_guid String              @db.VarChar(45)
   cybrid_customer_id           String
@@ -74,7 +74,7 @@ model CybridExternalAccount {
 }
 
 model CybridTransaction {
-  cybrid_transaction_id      String                  @id @default(uuid()) @db.VarChar(36)
+  cybrid_transaction_id      String                  @id @default(cuid()) @db.VarChar(36)
   cybrid_transaction_guid    String                  @unique(map: "cybrid_transaction_guid_UNIQUE") @db.VarChar(45)
   amount_sent                Int
   initial_currency           CybridSupportedCurrency
@@ -107,7 +107,7 @@ model CybridTransaction {
 }
 
 model LocalCustomer {
-  local_customer_id           String                           @id @default(uuid()) @db.VarChar(36)
+  local_customer_id           String                           @id @default(cuid()) @db.VarChar(36)
   currency                    SupportedLocalCurrency?
   account_number              String                           @db.VarChar(45)
   verification_status         LocalCustomerVerificationStatus?
@@ -125,7 +125,7 @@ model LocalCustomer {
 }
 
 model LocalTransaction {
-  local_transaction_id String        @id @default(uuid()) @db.VarChar(36)
+  local_transaction_id String        @id @default(cuid()) @db.VarChar(36)
   amount               Int
   initiated_at         DateTime?     @default(now()) @db.DateTime(0)
   sent_by              String
@@ -142,7 +142,7 @@ model LocalTransaction {
 }
 
 model Log {
-  log_id             String        @id @default(uuid()) @db.VarChar(36)
+  log_id             String        @id @default(cuid()) @db.VarChar(36)
   login_at           DateTime      @default(now()) @db.DateTime(0)
   logout_at          DateTime?     @db.DateTime(0)
   method             String        @default("local") @db.VarChar(45)
@@ -155,7 +155,7 @@ model Log {
 }
 
 model OTP {
-  otp_id             String        @id @default(uuid()) @db.VarChar(36)
+  otp_id             String        @id @default(cuid()) @db.VarChar(36)
   code               String        @db.VarChar(45)
   usage              String        @db.VarChar(45) //resset password, validate transaction, etc...
   is_verified        Boolean       @default(false) @db.TinyInt
@@ -170,7 +170,7 @@ model OTP {
 }
 
 model Person {
-  person_id          String            @id @default(uuid()) @db.VarChar(36)
+  person_id          String            @id @default(cuid()) @db.VarChar(36)
   gender             PersonGender
   birthdate          DateTime
   first_name         String            @db.VarChar(45)
@@ -193,19 +193,22 @@ model Person {
 }
 
 model PersonAudit {
-  person_audit_id String        @id @default(cuid())
-  first_name      String        @db.VarChar(45)
-  last_name       String        @db.VarChar(45)
-  email           String        @db.VarChar(45)
-  username        String        @db.VarChar(45)
-  phone_number    String        @db.VarChar(45)
-  password        String        @db.VarChar(45)
-  is_verified     Boolean       @db.TinyInt
-  audited_at      DateTime      @default(now()) @db.DateTime(0)
-  person_id       String
-  Person          Person        @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_Person2")
-  audited_by      String
-  AuditedBy       PersonHasRole @relation(fields: [audited_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_PersonHasRole1")
+  person_audit_id    String            @id @default(cuid())
+  gender             PersonGender
+  preferred_language PreferredLanguage @default(EN_US)
+  birthdate          DateTime
+  first_name         String            @db.VarChar(45)
+  last_name          String            @db.VarChar(45)
+  email              String            @db.VarChar(45)
+  username           String            @db.VarChar(45)
+  phone_number       String            @db.VarChar(45)
+  password           String            @db.VarChar(255)
+  is_verified        Boolean           @db.TinyInt
+  audited_at         DateTime          @default(now()) @db.DateTime(0)
+  person_id          String
+  Person             Person            @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_Person2")
+  audited_by         String
+  AuditedBy          PersonHasRole     @relation(fields: [audited_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_PersonHasRole1")
 
   @@index([person_id], map: "fk_PersonAudit_Person2_idx")
   @@index([audited_by], map: "fk_PersonAudit_PersonHasRole1_idx")
@@ -255,7 +258,7 @@ model PersonHasRoleAudit {
 }
 
 model ReceiverPayoutInfo {
-  receiver_payout_info_id String              @id @default(uuid()) @db.VarChar(36)
+  receiver_payout_info_id String              @id @default(cuid()) @db.VarChar(36)
   fullname                String              @db.VarChar(45)
   phone_number            String              @db.VarChar(45)
   national_id_number      String?             @db.VarChar(45)
@@ -267,7 +270,7 @@ model ReceiverPayoutInfo {
 }
 
 model Role {
-  role_id        String          @id @default(uuid()) @db.VarChar(36)
+  role_id        String          @id @default(cuid()) @db.VarChar(36)
   title          String          @unique @db.VarChar(45)
   is_active      Boolean         @default(true) @db.TinyInt
   subdomain      String?         @db.VarChar(45)
@@ -283,7 +286,7 @@ model Role {
 }
 
 model RoleAudit {
-  role_audit_id String   @id @default(uuid()) @db.VarChar(36)
+  role_audit_id String   @id @default(cuid()) @db.VarChar(36)
   is_active     Boolean  @db.TinyInt
   title         String   @db.VarChar(45)
   audited_at    DateTime @default(now()) @db.DateTime(0)
@@ -298,7 +301,7 @@ model RoleAudit {
 }
 
 model StripeTransaction {
-  stripe_transaction_id   String              @id @default(uuid()) @db.VarChar(36)
+  stripe_transaction_id   String              @id @default(cuid()) @db.VarChar(36)
   amount_sent             Int
   fees                    Int
   converstion_rate        Int
@@ -326,7 +329,7 @@ model StripeTransaction {
 }
 
 model SupportedCurrency {
-  supported_currency_id   String                   @id @default(uuid()) @db.VarChar(36)
+  supported_currency_id   String                   @id @default(cuid()) @db.VarChar(36)
   currency                String                   @db.VarChar(3)
   is_active               Boolean                  @default(true) @db.TinyInt
   xaf_rate                Int
@@ -342,7 +345,7 @@ model SupportedCurrency {
 }
 
 model SupportedCurrencyAudit {
-  supported_currency_audit_id String            @id @default(uuid()) @db.VarChar(36)
+  supported_currency_audit_id String            @id @default(cuid()) @db.VarChar(36)
   is_active                   Boolean           @db.TinyInt
   audited_at                  DateTime          @db.DateTime(0)
   supported_currency_id       String

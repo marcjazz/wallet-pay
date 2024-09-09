@@ -15,6 +15,8 @@
   - Added the required column `person_has_role_id` to the `logs` table without a default value. This is not possible if the table is not empty.
   - Added the required column `expires_at` to the `otps` table without a default value. This is not possible if the table is not empty.
   - Added the required column `person_has_role_id` to the `otps` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `birthdate` to the `person_audits` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `gender` to the `person_audits` table without a default value. This is not possible if the table is not empty.
   - Added the required column `is_verified` to the `person_audits` table without a default value. This is not possible if the table is not empty.
   - Made the column `first_name` on table `person_audits` required. This step will fail if there are existing NULL values in that column.
   - Made the column `last_name` on table `person_audits` required. This step will fail if there are existing NULL values in that column.
@@ -49,14 +51,17 @@ ALTER TABLE `otps` DROP COLUMN `is_used`,
 
 -- AlterTable
 ALTER TABLE `person_audits` DROP PRIMARY KEY,
+    ADD COLUMN `birthdate` DATETIME(3) NOT NULL,
+    ADD COLUMN `gender` ENUM('male', 'female', 'other') NOT NULL,
     ADD COLUMN `is_verified` BOOLEAN NOT NULL,
+    ADD COLUMN `preferred_language` ENUM('en-US', 'fr') NOT NULL DEFAULT 'en-US',
     MODIFY `person_audit_id` VARCHAR(191) NOT NULL,
     MODIFY `first_name` VARCHAR(45) NOT NULL,
     MODIFY `last_name` VARCHAR(45) NOT NULL,
     MODIFY `email` VARCHAR(45) NOT NULL,
     MODIFY `username` VARCHAR(45) NOT NULL,
     MODIFY `phone_number` VARCHAR(45) NOT NULL,
-    MODIFY `password` VARCHAR(45) NOT NULL,
+    MODIFY `password` VARCHAR(255) NOT NULL,
     ADD PRIMARY KEY (`person_audit_id`);
 
 -- AlterTable
