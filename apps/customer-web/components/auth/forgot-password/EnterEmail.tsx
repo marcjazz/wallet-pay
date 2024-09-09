@@ -15,7 +15,7 @@ import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Mail } from 'react-feather';
+import { Mail as MailIcon } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import OTPBottomSheet from './OTPBottomSheet';
@@ -91,7 +91,7 @@ export default function EnterEmail() {
               type="email"
               startAdornment={
                 <InputAdornment position="start">
-                  <Mail color={theme.palette.grey[200]} size={18} />
+                  <MailIcon color={theme.palette.grey[200]} size={18} />
                 </InputAdornment>
               }
               {...formik.getFieldProps('email')}
