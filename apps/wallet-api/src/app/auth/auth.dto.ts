@@ -8,11 +8,13 @@ import {
   IsDateString,
   IsEmail,
   IsEnum,
+  IsNumberString,
   IsOptional,
   IsPhoneNumber,
   IsString,
   IsStrongPassword,
   IsUUID,
+  Length,
 } from 'class-validator';
 
 export class SignInDto {
@@ -84,7 +86,25 @@ export class SignUpDto extends SignInDto {
   }
 }
 
-export class RequestOTPDto extends PickType(SignInDto, ['email']) {}
+export class ForgotPasswordDto extends PickType(SignInDto, ['email']) {}
+export class ResetPasswordDto {
+  @IsString()
+  @ApiProperty()
+  otp_id: string;
+
+  @Length(5)
+  @ApiProperty()
+  @IsNumberString()
+  otp_code: string;
+
+  @ApiProperty()
+  @IsStrongPassword()
+  password: string;
+
+  constructor(props: ResetPasswordDto) {
+    Object.assign(this, props);
+  }
+}
 
 export class ChangePasswordDto {
   @IsUUID()

@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  HttpCode,
+  HttpStatus,
   Post,
   PreconditionFailedException,
   Req,
@@ -10,7 +12,9 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiConflictResponse,
+  ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiNoContentResponse,
   ApiOperation,
   ApiPreconditionFailedResponse,
   ApiResponse,
@@ -18,8 +22,15 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Request } from 'express';
+import { OTPEntity } from '../two-fa/dto/two-fa.dto';
 import { RoleEnum, SkipAuth } from './auth.decorator';
-import { AuthTokensDto, SignInDto, SignUpDto } from './auth.dto';
+import {
+  AuthTokensDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  SignInDto,
+  SignUpDto,
+} from './auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './local/local.guard';
 import { RolesService } from './roles.service';
@@ -78,5 +89,22 @@ export class AuthController {
 
     const user = await this.authService.registerUser(newUser, role.role_id);
     return this.authService.login(user);
+  }
+
+  @Post('forgot-password')
+  @ApiCreatedResponse({ type: OTPEntity })
+  async requestTwoFA(@Req() req: Request, @Body() payload: ForgotPasswordDto) {
+    const otp = await this.authService.requestForgotPasswordOTP(
+      req,
+      payload.email
+    );
+    return new OTPEntity(otp);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse()
+  async resetPassword(@Body() payload: ResetPasswordDto) {
+    await this.authService.resetPassword(payload);
   }
 }

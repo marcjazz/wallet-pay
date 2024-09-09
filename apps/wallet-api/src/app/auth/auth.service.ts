@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -12,7 +13,7 @@ import { MailerService } from '../../mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OTPService } from '../two-fa/otp/otp.service';
 import { TwoFAUsage } from '../two-fa/two-fa.interface';
-import { AuthTokensDto, SignUpDto } from './auth.dto';
+import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
 
 @Injectable()
@@ -167,5 +168,70 @@ export class AuthService {
     } = personHasRole;
 
     return { ...person, subdomain, is_active, id: payload.sub };
+  }
+
+  async requestForgotPasswordOTP(request: Request, username: string) {
+    const user = await this.prismaService.personHasRole.findFirst({
+      include: { Person: true },
+      where: {
+        Role: { subdomain: request.headers.origin },
+        Person: { OR: [{ email: username }, { username }] },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('No such email or username!');
+    }
+
+    const otp = await this.otpService.request(
+      user.person_has_role_id,
+      TwoFAUsage.RESET_PASSWORD
+    );
+
+    const person = user.Person;
+    await this.mailerService.sendText({
+      to: `${person.first_name} <${person.email}>`,
+      subject: 'Forgot password OTP',
+      text: `Your verification code is ${otp.code}. Use OTP to sign-in and change your password`,
+    });
+
+    return otp;
+  }
+
+  async resetPassword({ otp_code, otp_id, password }: ResetPasswordDto) {
+    const user = await this.prismaService.personHasRole.findFirst({
+      include: { Person: true },
+      where: { OTPs: { some: { otp_id } } },
+    });
+    if (!user) {
+      throw new NotFoundException('OTP request not found!');
+    }
+
+    const {
+      person_has_role_id,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      Person: { created_at, person_id, ...personAudit },
+    } = user;
+
+    const isVerified = await this.otpService.verify(otp_id, otp_code);
+    if (!isVerified) {
+      throw new UnauthorizedException('Invalid otp code!');
+    }
+
+    await this.prismaService.person.update({
+      data: {
+        password: bcrypt.hashSync(
+          password,
+          bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS))
+        ),
+        PersonAudits: {
+          create: {
+            ...personAudit,
+            AuditedBy: { connect: { person_has_role_id } },
+          },
+        },
+      },
+      where: { email: personAudit.email },
+    });
   }
 }
