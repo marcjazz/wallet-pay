@@ -46,4 +46,6 @@ async function bootstrap() {
   );
 }
 
+global.XMLHttpRequest = require('xhr2');
+
 bootstrap();
