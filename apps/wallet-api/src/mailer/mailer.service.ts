@@ -19,10 +19,6 @@ export class MailerService {
   }: ISendTextMail) {
     this.logger.debug('Add text-mailer job to queue...');
 
-    await this.mailerQueue.add(
-      'text-mailer',
-      { ...payload, from },
-      { backoff: { type: 'fixed', delay: 5000 } }
-    );
+    await this.mailerQueue.add('text-mailer', { ...payload, from });
   }
 }

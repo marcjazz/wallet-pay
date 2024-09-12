@@ -35,6 +35,13 @@ export class MailerModule {
       imports: [
         BullModule.registerQueue({
           name: mailerConstants.QUEUE,
+          defaultJobOptions: {
+            attempts: 5,
+            backoff: {
+              type: 'exponential',
+              delay: 5000,
+            },
+          },
         }),
       ],
       providers: [

@@ -19,8 +19,8 @@ export class MailerProcessor {
 
     const info = await this.transpoter.sendMail(job.data);
 
-    this.logger.debug(
-      `Successfully ✅ processed text-mailer job: ${info.messageId}`
+    this.logger.log(
+      `Successfully processed text-mailer job: ${info.messageId}`
     );
     return info.messageId;
   }
