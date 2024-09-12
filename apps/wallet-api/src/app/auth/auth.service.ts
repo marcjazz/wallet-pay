@@ -7,8 +7,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import {
+  CybridAccountType,
+  CybridSupportedCurrency,
+  SupportedLocalCurrency,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
+import { CybridService } from '../../cybrid/cybrid.service';
+import { generateAccountNumber } from '../../helpers/otp-generator';
 import { MailerService } from '../../mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OTPService } from '../two-fa/otp/otp.service';
@@ -27,7 +34,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
-    private readonly otpService: OTPService
+    private readonly otpService: OTPService,
+    private readonly cybridService: CybridService
   ) {}
 
   async validateUser(
@@ -64,6 +72,8 @@ export class AuthService {
     roleId: string,
     createdBy?: string
   ): Promise<Express.User> {
+    const { cybrid_account_guid, cybrid_customer_guid } =
+      await this.cybridService.createCustomer(CybridSupportedCurrency.USD);
     const user = await this.prismaService.person.findUnique({
       where: { email: payload.email },
     });
@@ -96,6 +106,26 @@ export class AuthService {
             CreatedBy: createdBy
               ? { connect: { person_has_role_id: createdBy } }
               : undefined,
+          },
+        },
+        LocalCustomers: {
+          create: {
+            balance: 0,
+            currency: SupportedLocalCurrency.XAF,
+            account_number: generateAccountNumber(),
+          },
+        },
+        CybridCustomers: {
+          create: {
+            country,
+            cybrid_customer_guid,
+            CybridAccounts: {
+              create: {
+                cybrid_account_guid,
+                account_type: CybridAccountType.FIAT,
+                currency: CybridSupportedCurrency.USD,
+              },
+            },
           },
         },
       },

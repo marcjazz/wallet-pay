@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt/jwt.strategy';
 import { LocalStrategy } from './local/local.strategy';
 import { RolesService } from './roles.service';
+import { CybridModule } from '../../cybrid/cybrid.module';
 
 @Module({
   imports: [
@@ -15,6 +16,10 @@ import { RolesService } from './roles.service';
       secret: process.env.JWT_SECRET,
     }),
     TwoFAModule,
+    CybridModule.forRoot({
+      username: process.env.CYBRID_CLIENT_ID,
+      password: process.env.CYBRID_CLIENT_SECRET,
+    }),
   ],
   providers: [AuthService, RolesService, JwtStrategy, LocalStrategy],
   controllers: [AuthController],
