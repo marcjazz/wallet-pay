@@ -9,6 +9,9 @@ import {
 import { DynamicModule, Module } from '@nestjs/common';
 import { CybridConfig } from './cybrid.config';
 import { CybridService } from './cybrid.service';
+import { BullModule } from '@nestjs/bull';
+import { cybridConstants } from './constants';
+import { CybridProcessor } from './cybrid.processor';
 
 @Module({})
 export class CybridModule {
@@ -23,8 +26,21 @@ export class CybridModule {
 
     return {
       module: CybridModule,
+      imports: [
+        BullModule.registerQueue({
+          name: cybridConstants.QUEUE,
+          defaultJobOptions: {
+            attempts: 5,
+            backoff: {
+              type: 'exponential',
+              delay: 5000,
+            },
+          },
+        }),
+      ],
       providers: [
         CybridService,
+        CybridProcessor,
         {
           provide: CustomersBankApi,
           useFactory: () =>

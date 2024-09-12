@@ -1,21 +1,28 @@
 import {
   AccountBankModel,
   AccountsBankApi,
+  CustomerBankModel,
   CustomersBankApi,
   IdentityVerificationBankModel,
   IdentityVerificationsBankApi,
+  IdentityVerificationWithDetailsBankModel,
   PostAccountBankModelTypeEnum,
   PostCustomerBankModelTypeEnum,
   PostIdentityVerificationBankModelMethodEnum,
   PostIdentityVerificationBankModelTypeEnum,
 } from '@cybrid/cybrid-api-bank-typescript';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
+import { Queue } from 'bull';
 import { NewCybridCustomerType } from '../types/cybrid';
+import { cybridConstants } from './constants';
 
 @Injectable({})
 export class CybridService {
   constructor(
+    @InjectQueue(cybridConstants.QUEUE)
+    private cybridQueue: Queue,
     private readonly customersBankApi: CustomersBankApi,
     private readonly accountsBankApi: AccountsBankApi,
     private readonly identityVerificationsApi: IdentityVerificationsBankApi // private readonly externalBankAccountsApi: ExternalBankAccountsBankApi,
@@ -24,6 +31,15 @@ export class CybridService {
   async getCustomers() {
     const observable = this.customersBankApi.listCustomers({});
     return new Promise((resolve) => observable.subscribe(resolve));
+  }
+
+  async getCustomer(guid: string) {
+    const observable = this.customersBankApi.getCustomer({
+      customerGuid: guid,
+    });
+    return new Promise<CustomerBankModel>((resolve) =>
+      observable.subscribe(resolve)
+    );
   }
 
   async createCustomer(
@@ -47,12 +63,25 @@ export class CybridService {
           newAccountObservable.subscribe(resolve)
         );
 
+        // add a job to queue that would look up until customer is completly create and initiate identity verification
+        await this.cybridQueue.add('identity-verification-init', customer.guid);
+
         resolve({
           cybrid_account_guid: account.guid as string,
           cybrid_customer_guid: customer.guid as string,
         });
       });
     });
+  }
+
+  async getIdentityVerification(guid: string) {
+    const getIdentityVerificationObservable =
+      this.identityVerificationsApi.getIdentityVerification({
+        identityVerificationGuid: guid,
+      });
+    return new Promise<IdentityVerificationWithDetailsBankModel>((resolve) =>
+      getIdentityVerificationObservable.subscribe(resolve)
+    );
   }
 
   async createIdentityVerification(customerGuid: string) {
