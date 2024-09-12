@@ -1,14 +1,18 @@
 import { Configuration } from '@cybrid/cybrid-api-bank-typescript';
 import { HttpService } from '@nestjs/axios';
-import { CybridConfigParams } from '../types/cybrid';
+import { CybridAuthResponse, CybridConfigParams } from '../types/cybrid';
 import {
   HttpException,
   HttpStatus,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
+import { AsyncLocalStorage } from 'async_hooks';
 
 export class CybridConfig {
+  private static readonly logger = new Logger(CybridConfig.name);
   private static readonly httpService: HttpService = new HttpService();
+  private static readonly als = new AsyncLocalStorage<CybridAuthResponse>();
 
   static async getInstance({
     scope,
@@ -22,34 +26,46 @@ export class CybridConfig {
       );
     }
 
-    const {
-      data: { access_token: accessToken },
-    } = await this.httpService.axiosRef
-      .post(
-        process.env.CYBRID_TOKEN_ENDPOINT ||
-          `https://id.sandbox.cybrid.app/oauth/token`,
-        {
-          scope,
-          grant_type: 'client_credentials',
-        },
-        {
-          headers: {
-            Authorization: `${this.generateBasicAuthToken(username, password)}`,
+    // Get stored value if available
+    let authResp = this.als.getStore();
+
+    if (!authResp) {
+      const resp = await this.httpService.axiosRef
+        .post<CybridAuthResponse>(
+          process.env.CYBRID_TOKEN_ENDPOINT ||
+            `https://id.sandbox.cybrid.app/oauth/token`,
+          {
+            scope,
+            grant_type: 'client_credentials',
           },
-        }
-      )
-      .catch((error) => {
-        console.log(error);
-        throw new HttpException(
-          'Could not obtain cybrid access token',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-          { cause: error }
-        );
-      });
+          {
+            headers: {
+              Authorization: `${this.generateBasicAuthToken(
+                username,
+                password
+              )}`,
+            },
+          }
+        )
+        .catch((error) => {
+          throw new HttpException(
+            'Could not obtain cybrid access token',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            { cause: error }
+          );
+        });
+
+      authResp = resp.data;
+      this.als.run(authResp, () =>
+        this.logger.debug(
+          'Cybrid access token was successfully retrieve and cached'
+        )
+      );
+    }
 
     return new Configuration({
       ...configParams,
-      accessToken: `Bearer ${accessToken}`,
+      accessToken: `Bearer ${authResp?.access_token}`,
     });
   }
 

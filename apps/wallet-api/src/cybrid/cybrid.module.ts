@@ -1,28 +1,26 @@
 import {
   AccountsBankApi,
-  BaseAPI,
   ConfigurationParameters,
   CustomersBankApi,
   ExternalBankAccountsBankApi,
-  IdentityVerificationsBankApi,
+  IdentityVerificationsBankApi
 } from '@cybrid/cybrid-api-bank-typescript';
-import { DynamicModule, Module } from '@nestjs/common';
-import { CybridConfig } from './cybrid.config';
-import { CybridService } from './cybrid.service';
 import { BullModule } from '@nestjs/bull';
+import { DynamicModule, Module } from '@nestjs/common';
 import { cybridConstants } from './constants';
+import { CybridConfig } from './cybrid.config';
 import { CybridProcessor } from './cybrid.processor';
+import { CybridService } from './cybrid.service';
 
 @Module({})
 export class CybridModule {
-  static forRoot(configParams: ConfigurationParameters): DynamicModule {
-    const getBaseApiInstance = async (Model: typeof BaseAPI, scope: string) => {
-      const configuration = await CybridConfig.getInstance({
-        scope,
-        ...configParams,
-      });
-      return new Model(configuration);
-    };
+  static async forRoot(
+    configParams: ConfigurationParameters
+  ): Promise<DynamicModule> {
+    const configuration = await CybridConfig.getInstance({
+      scope: cybridConstants.SCOPE,
+      ...configParams,
+    });
 
     return {
       module: CybridModule,
@@ -43,35 +41,19 @@ export class CybridModule {
         CybridProcessor,
         {
           provide: CustomersBankApi,
-          useFactory: () =>
-            getBaseApiInstance(
-              CustomersBankApi,
-              'customers:read customers:write customers:execute'
-            ),
+          useValue: new CustomersBankApi(configuration),
         },
         {
           provide: AccountsBankApi,
-          useFactory: () =>
-            getBaseApiInstance(
-              AccountsBankApi,
-              'accounts:read accounts:execute'
-            ),
+          useValue: new AccountsBankApi(configuration),
         },
         {
           provide: IdentityVerificationsBankApi,
-          useFactory: () =>
-            getBaseApiInstance(
-              IdentityVerificationsBankApi,
-              'identity_verifications:read identity_verifications:write identity_verifications:execute'
-            ),
+          useValue: new IdentityVerificationsBankApi(configuration),
         },
         {
           provide: ExternalBankAccountsBankApi,
-          useFactory: () =>
-            getBaseApiInstance(
-              ExternalBankAccountsBankApi,
-              'external_bank_accounts:read external_bank_accounts:write external_bank_accounts:execute'
-            ),
+          useValue: new ExternalBankAccountsBankApi(configuration),
         },
       ],
       exports: [CybridService],
