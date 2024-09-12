@@ -54,14 +54,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/profile": {
+    "/api/v1/auth/forgot-password": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["AuthController_getProfile"];
+        get?: never;
+        put?: never;
+        post: operations["AuthController_requestTwoFA"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/two-fa/otp/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OTPController_requestTwoFA"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/two-fa/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OTPController_verifyOTP"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UsersController_getProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UsersController_verifyEmail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -106,14 +186,38 @@ export interface components {
              * @enum {string}
              */
             gender: "MALE" | "FEMALE" | "OTHER";
-            /** @enum {string} */
+            /**
+             * @default EN_US
+             * @enum {string}
+             */
             preferred_language: "EN_US" | "FR";
         };
-        PersonEntity: {
+        ForgotPasswordDto: {
             /** @description Valid user email */
             email: string;
+        };
+        OTPEntity: {
+            otp_id: string;
             /** @enum {string} */
-            country: "USA" | "CANADA";
+            usage: "verify_email" | "reset_password";
+            is_verified: boolean;
+            /** Format: date-time */
+            expires_at: string;
+            updated_at: Record<string, never>;
+            /** Format: date-time */
+            created_at: string;
+            person_has_role_id: string;
+        };
+        ResetPasswordDto: {
+            otp_id: string;
+            otp_code: string;
+            password: string;
+        };
+        UserEntity: {
+            /** @description Valid user email */
+            email: string;
+            /** @description Strong password */
+            password: string;
             username: string;
             /** @description User first name */
             first_name: string;
@@ -133,21 +237,13 @@ export interface components {
              */
             gender: "MALE" | "FEMALE" | "OTHER";
             /**
-             * @description User preffered language.
-             * @default en
+             * @default EN_US
              * @enum {string}
              */
             preferred_language: "EN_US" | "FR";
-            /**
-             * @description User person id
-             * @example e34e5d06-0a1a-4114-94e3-a1c25c53407e
-             */
-            person_id: string;
-            /**
-             * @description Account creation datetime in milleseconds.
-             * @example 1725578969950
-             */
-            created_at: number;
+            user_id: string;
+            /** Format: date-time */
+            created_at: string;
         };
     };
     responses: never;
@@ -270,21 +366,25 @@ export interface operations {
             };
         };
     };
-    AuthController_getProfile: {
+    AuthController_requestTwoFA: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordDto"];
+            };
+        };
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PersonEntity"];
+                    "application/json": components["schemas"]["OTPEntity"];
                 };
             };
             /** @description Bad request. This often happens when the request payload it not respected. */
@@ -300,6 +400,119 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    AuthController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request. This often happens when the request payload it not respected. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. An unexpected exception was thrown */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OTPController_requestTwoFA: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OTPEntity"];
+                };
+            };
+        };
+    };
+    OTPController_verifyOTP: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        is_verified?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    UsersController_getProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserEntity"];
+                };
+            };
+        };
+    };
+    UsersController_verifyEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserEntity"];
+                };
             };
         };
     };
