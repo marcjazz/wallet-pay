@@ -42,8 +42,10 @@ async function bootstrap() {
   const port = process.env.PORT || 5000;
   await app.listen(port);
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Application is running on: http://localhost:${port}/${globalPrefix} (${process.env.NODE_ENV})`
   );
 }
+
+global.XMLHttpRequest = require('xhr2');
 
 bootstrap();

@@ -19,6 +19,7 @@
     "@emotion/styled": "^11.13.0",
     "@mui/material": "^5.16.7",
     "@mui/x-date-pickers": "^7.15.0",
+    "@nestjs/axios": "^3.0.3",
     "@nestjs/bull": "^10.2.1",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^3.2.3",
@@ -32,7 +33,7 @@
     "@tchakoumi/handy-components": "^0.0.1",
     "@prisma/client": "^5.19.0",
     "@wallet/source": "file:",
-    "axios": "^1.7.5",
+    "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "bull": "^4.16.2",
     "class-transformer": "^0.5.1",
@@ -54,7 +55,10 @@
     "react-lottie": "^1.2.4",
     "react-toastify": "^10.0.5",
     "tslib": "^2.3.0",
-    "yup": "^1.4.0"
+    "yup": "^1.4.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0",
+    "xhr2": "^0.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
