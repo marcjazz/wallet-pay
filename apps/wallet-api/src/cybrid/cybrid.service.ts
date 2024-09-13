@@ -1,5 +1,6 @@
 import {
   AccountBankModel,
+  AccountListBankModel,
   AccountsBankApi,
   CustomerBankModel,
   CustomersBankApi,
@@ -98,5 +99,16 @@ export class CybridService {
         newIndentityVerficationObservable.subscribe(resolve)
       );
     return identityVerfication;
+  }
+
+  async getAccounts(customerGuid: string) {
+    const accountObservable = this.accountsBankApi.listAccounts({
+      customerGuid,
+      type: PostAccountBankModelTypeEnum.Fiat,
+    });
+
+    return new Promise<AccountListBankModel>((resolve) =>
+      accountObservable.subscribe(resolve)
+    );
   }
 }

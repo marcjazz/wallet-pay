@@ -1,6 +1,5 @@
 import { Configuration } from '@cybrid/cybrid-api-bank-typescript';
 import { HttpService } from '@nestjs/axios';
-import { CybridAuthResponse, CybridConfigParams } from '../types/cybrid';
 import {
   HttpException,
   HttpStatus,
@@ -8,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { AsyncLocalStorage } from 'async_hooks';
+import { CybridAuthResponse, CybridConfigParams } from '../types/cybrid';
 
 export class CybridConfig {
   private static readonly logger = new Logger(CybridConfig.name);

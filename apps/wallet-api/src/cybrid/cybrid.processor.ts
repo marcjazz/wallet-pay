@@ -20,14 +20,16 @@ export class CybridProcessor {
     this.logger.debug('Processing identity-verification-init job...');
 
     try {
-      const info = await this.cybridService.createIdentityVerification(
-        customerGuid
-      );
+      const identityVerification =
+        await this.cybridService.createIdentityVerification(customerGuid);
       await this.prismaService.cybridCustomer.update({
-        data: { identity_verification_guid: info.guid as string },
+        data: {
+          identity_verification_guid: identityVerification.guid as string,
+        },
         where: { cybrid_customer_guid: customerGuid },
       });
     } catch (error) {
+      this.logger.error(error.message);
       throw new Error('Failed to create identity verification');
     }
 

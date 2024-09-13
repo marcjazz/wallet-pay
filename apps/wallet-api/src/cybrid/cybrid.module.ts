@@ -3,7 +3,7 @@ import {
   ConfigurationParameters,
   CustomersBankApi,
   ExternalBankAccountsBankApi,
-  IdentityVerificationsBankApi
+  IdentityVerificationsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { BullModule } from '@nestjs/bull';
 import { DynamicModule, Module } from '@nestjs/common';
@@ -60,3 +60,8 @@ export class CybridModule {
     };
   }
 }
+
+export const CybridDynamicModule = CybridModule.forRoot({
+  username: process.env.CYBRID_CLIENT_ID,
+  password: process.env.CYBRID_CLIENT_SECRET,
+});
