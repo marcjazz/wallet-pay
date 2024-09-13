@@ -46,16 +46,4 @@ async function bootstrap() {
   );
 }
 
-// providing ajax feature on server for cybrid dependency
-global.XMLHttpRequest = require('xhr2');
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error.message);
-  // Optionally perform cleanup and exit
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Optionally perform cleanup and exit
-});
-
 bootstrap();
