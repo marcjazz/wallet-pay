@@ -33,7 +33,7 @@ model CybridCustomerAudit {
 
 model CybridAccount {
   cybrid_account_id           String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_account_guid         String                  @db.VarChar(45)
+  cybrid_account_guid         String                  @unique @db.VarChar(45)
   currency                    CybridSupportedCurrency
   is_active                   Boolean                 @default(true) @db.TinyInt
   cybrid_customer_id          String
@@ -48,9 +48,9 @@ model CybridAccount {
 
 model CybridCustomer {
   cybrid_customer_id         String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_customer_guid       String                  @db.VarChar(45)
+  cybrid_customer_guid       String                  @unique @db.VarChar(45)
   country                    CybridSupportedCountry?
-  identity_verification_guid String                  @db.VarChar(45)
+  identity_verification_guid String?                 @db.VarChar(45)
   person_id                  String
   Person                     Person                  @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Customer_Person1")
   CustomerAudits             CybridCustomerAudit[]
