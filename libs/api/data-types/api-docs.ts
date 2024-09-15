@@ -166,6 +166,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/{id}/start-kyc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Initialize KYC process on a user account */
+        patch: operations["AccountsController_initiateKycProcess"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -260,6 +277,21 @@ export interface components {
             user_id: string;
             /** Format: date-time */
             created_at: string;
+        };
+        CybridAccountEntity: {
+            cybrid_account_id: string;
+            name: string;
+            balance: number;
+            /** @enum {string} */
+            state: " storing" | "waiting" | "pending" | "reviewing" | "expired" | "completed";
+            /** @enum {string} */
+            kyc_state: " storing" | "waiting" | "pending" | "reviewing" | "expired" | "completed";
+        };
+        IdentityVerificationEntity: {
+            identity_verification_guid: string;
+            customer_guid: string;
+            /** @enum {string} */
+            state: " storing" | "waiting" | "pending" | "reviewing" | "expired" | "completed";
         };
     };
     responses: never;
@@ -545,7 +577,30 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CybridAccountEntity"][];
+                };
+            };
+        };
+    };
+    AccountsController_initiateKycProcess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityVerificationEntity"];
+                };
             };
         };
     };
