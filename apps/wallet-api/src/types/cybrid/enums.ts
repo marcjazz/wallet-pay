@@ -6,3 +6,11 @@ export enum CybridKycState {
   EXPIRED = 'expired',
   COMPLETED = 'completed',
 }
+
+export enum CybridCustomerState {
+  STORING = 'storing',
+  UNVERIFIED = 'unverified',
+  VERIFIED = 'verified',
+  REJECTED = 'rejected',
+  FROZEN = 'frozen',
+}

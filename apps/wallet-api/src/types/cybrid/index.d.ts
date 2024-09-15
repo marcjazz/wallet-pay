@@ -22,5 +22,6 @@ export type CybridAuthResponse = {
 };
 
 export type CybridAccountWithKYC = AccountBankModel & {
+  cybrid_account_id: string;
   identity_verfication?: IdentityVerificationBankModel;
 };

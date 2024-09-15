@@ -2,7 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { CybridKycState } from '../../../types/cybrid/enums';
 
-export class AccountEntity {
+export class CybridAccountEntity {
+  @IsString()
+  @ApiProperty()
+  cybrid_account_id: string;
+
   @IsString()
   @ApiProperty()
   name: string;
@@ -14,9 +18,29 @@ export class AccountEntity {
   @IsOptional()
   @IsEnum(CybridKycState)
   @ApiProperty({ enum: CybridKycState })
-  state?: string;
+  state?: string = CybridKycState.WAITING;
 
-  constructor(props: AccountEntity) {
+  @IsOptional()
+  @IsEnum(CybridKycState)
+  @ApiProperty({ enum: CybridKycState })
+  kyc_state?: string = CybridKycState.WAITING;
+
+  constructor(props: CybridAccountEntity) {
+    Object.assign(this, props);
+  }
+}
+
+export class IdentityVerificationEntity {
+  @ApiProperty()
+  identity_verification_guid: string;
+
+  @ApiProperty()
+  customer_guid: string;
+
+  @ApiProperty({ enum: CybridKycState })
+  state: CybridKycState;
+
+  constructor(props: IdentityVerificationEntity) {
     Object.assign(this, props);
   }
 }

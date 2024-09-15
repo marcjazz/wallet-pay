@@ -12,18 +12,13 @@ import {
   PostIdentityVerificationBankModelMethodEnum,
   PostIdentityVerificationBankModelTypeEnum,
 } from '@cybrid/cybrid-api-bank-typescript';
-import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
-import { Queue } from 'bull';
 import { NewCybridCustomerType } from '../types/cybrid';
-import { cybridConstants } from './constants';
 
 @Injectable({})
 export class CybridService {
   constructor(
-    @InjectQueue(cybridConstants.QUEUE)
-    private cybridQueue: Queue,
     private readonly customersBankApi: CustomersBankApi,
     private readonly accountsBankApi: AccountsBankApi,
     private readonly identityVerificationsApi: IdentityVerificationsBankApi // private readonly externalBankAccountsApi: ExternalBankAccountsBankApi,
@@ -63,9 +58,6 @@ export class CybridService {
         const account = await new Promise<AccountBankModel>((resolve) =>
           newAccountObservable.subscribe(resolve)
         );
-
-        // add a job to queue that would look up until customer is completly create and initiate identity verification
-        await this.cybridQueue.add('identity-verification-init', customer.guid);
 
         resolve({
           cybrid_account_guid: account.guid as string,

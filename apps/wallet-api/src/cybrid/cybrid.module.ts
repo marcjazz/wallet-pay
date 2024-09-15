@@ -5,11 +5,9 @@ import {
   ExternalBankAccountsBankApi,
   IdentityVerificationsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
-import { BullModule } from '@nestjs/bull';
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 import { cybridConstants } from './constants';
 import { CybridConfig } from './cybrid.config';
-import { CybridProcessor } from './cybrid.processor';
 import { CybridService } from './cybrid.service';
 
 @Module({})
@@ -38,21 +36,8 @@ export class CybridModule {
 
     return {
       module: CybridModule,
-      imports: [
-        BullModule.registerQueue({
-          name: cybridConstants.QUEUE,
-          defaultJobOptions: {
-            attempts: 5,
-            backoff: {
-              type: 'exponential',
-              delay: 5000,
-            },
-          },
-        }),
-      ],
       providers: [
         CybridService,
-        CybridProcessor,
         {
           provide: CustomersBankApi,
           useValue: new CustomersBankApi(configuration),
