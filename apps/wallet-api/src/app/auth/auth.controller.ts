@@ -79,9 +79,11 @@ export class AuthController {
       'Conflict, user email is already registered with another account.',
   })
   async signUp(@Req() req: Request, @Body() newUser: SignUpDto) {
+    const subdomain = new URL(req.headers.origin as string).host;
+
     const role = await this.rolesService.findByTitleAndSubdomain(
       RoleEnum.CLIENT,
-      req.headers.origin as string
+      subdomain
     );
     if (!role) {
       throw new PreconditionFailedException('Could not resolve user role');

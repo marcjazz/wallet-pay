@@ -47,18 +47,18 @@ export class AuthService {
       where: { OR: [{ email: username }, { username }] },
     });
     if (person && bcrypt.compareSync(password, person.password)) {
-      const origin = request.headers.origin;
+      const subdomain = new URL(request.headers.origin as string).host;
 
-      this.logger.debug(`Authenticating user from origin ${origin}...`);
+      this.logger.debug(`Authenticating user from origin ${subdomain}...`);
 
       const personHasRole = await this.prismaService.personHasRole.findFirst({
-        where: { Role: { subdomain: origin }, person_id: person.person_id },
+        where: { Role: { subdomain }, person_id: person.person_id },
       });
 
-      if (origin && personHasRole?.is_active) {
+      if (subdomain && personHasRole?.is_active) {
         return {
           ...person,
-          subdomain: origin,
+          subdomain,
           is_active: personHasRole.is_active,
           id: personHasRole.person_has_role_id,
         };
@@ -201,10 +201,12 @@ export class AuthService {
   }
 
   async requestForgotPasswordOTP(request: Request, username: string) {
+    const subdomain = new URL(request.headers.origin as string).host;
+
     const user = await this.prismaService.personHasRole.findFirst({
       include: { Person: true },
       where: {
-        Role: { subdomain: request.headers.origin },
+        Role: { subdomain },
         Person: { OR: [{ email: username }, { username }] },
       },
     });

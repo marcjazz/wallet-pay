@@ -29,7 +29,11 @@ export class CybridConfig {
     // Get stored value if available
     let authResp = this.als.getStore();
 
-    if (!authResp) {
+    if (
+      !authResp ||
+      new Date(authResp.created_at).getTime() + authResp.expires_in <=
+        Date.now()
+    ) {
       const resp = await this.httpService.axiosRef
         .post<CybridAuthResponse>(
           process.env.CYBRID_TOKEN_ENDPOINT ||
@@ -61,11 +65,11 @@ export class CybridConfig {
           'Cybrid access token was successfully retrieve and cached'
         )
       );
-    }
+    } else this.logger.log('Loaded cybrid bearer token from cache!');
 
     return new Configuration({
       ...configParams,
-      accessToken: `Bearer ${authResp?.access_token}`,
+      accessToken: `Bearer ${authResp.access_token}`,
     });
   }
 

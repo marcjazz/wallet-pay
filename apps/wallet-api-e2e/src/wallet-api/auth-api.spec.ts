@@ -6,7 +6,7 @@ describe('/auth', () => {
     let axiosResp: AxiosResponse;
     try {
       axiosResp = await axios.post(endpoint, data, {
-        headers: { origin: 'app.xafpay.com' },
+        headers: { origin: 'https://app.xafpay.com' },
       });
     } catch (error) {
       throw new Error(error.response?.data?.message || error.message);
@@ -51,7 +51,7 @@ describe('/auth', () => {
         '/auth/forgot-password',
         { email: 'alice@prisma.io' },
         {
-          headers: { origin: 'app.xafpay.com' },
+          headers: { origin: 'https://app.xafpay.com' },
         }
       );
     } catch (error) {
@@ -90,7 +90,7 @@ describe('/auth', () => {
       axiosResp = await axios.post(
         '/auth/reset-password',
         { otp_id, otp_code: '55555', password: 'passworD237!' },
-        { headers: { origin: 'app.xafpay.com' } }
+        { headers: { origin: 'https://app.xafpay.com' } }
       );
     } catch (error) {
       throw new Error(error.response?.data?.message || error.message);

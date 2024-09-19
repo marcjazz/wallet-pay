@@ -9,8 +9,7 @@
   "scripts": {
     "migrate": "prisma migrate dev",
     "migrate:test": "npx dotenv -e .env.test -- prisma migrate dev",
-    "migrate-reset": "npx dotenv -e .env.test -- npx prisma migrate reset --force",
-    "wallet-api-e2e": "npm run migrate-reset && nx e2e wallet-api-e2e"
+    "migrate-reset": "npx dotenv -e .env.test -- npx prisma migrate reset --force"
   },
   "private": true,
   "dependencies": {

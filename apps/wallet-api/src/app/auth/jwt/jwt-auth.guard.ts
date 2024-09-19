@@ -2,6 +2,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  PreconditionFailedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
@@ -15,10 +16,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest<Request>();
     const isPublic = this.reflector.getAllAndOverride<boolean>(
       MetadataEnum.IS_PUBLIC,
       [context.getHandler(), context.getClass()]
     );
+
+    const origin = request.headers.origin;
+    if (!origin) {
+      throw new PreconditionFailedException('Unknown request origin!');
+    }
 
     if (isPublic) return isPublic;
     return super.canActivate(context);
