@@ -13,7 +13,7 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
     }, 3000);
   }, []);
 
-  return !isSplashScreenVisible ? (
+  return isSplashScreenVisible ? (
     <SplashScreen />
   ) : (
     <XafpayThemeProvider>{children}</XafpayThemeProvider>
