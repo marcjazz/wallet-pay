@@ -9,6 +9,7 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material';
+import { BottomSheet } from '@tchakoumi/handy-components';
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import { useRouter } from 'next/navigation';
@@ -16,7 +17,6 @@ import { useState } from 'react';
 import { Key } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import BottomSheet from '../../shared/BottomSheet';
 
 interface OTPBottomSheetProps {
   isOpen: boolean;
@@ -63,6 +63,9 @@ export default function OTPBottomSheet({
       open={isOpen}
       closeBottomSheet={closeBottomSheet}
       disableSwipeToClose
+      sx={{
+        backgroundColor: 'green',
+      }}
     >
       <Box sx={{ display: 'grid', rowGap: 2.25 }}>
         <Typography variant="h1">
