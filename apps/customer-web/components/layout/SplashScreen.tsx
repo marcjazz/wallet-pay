@@ -7,7 +7,7 @@ export default function SplashScreen() {
       sx={{
         background: 'url(/assets/splash_bg.png)',
         height: '100%',
-        widht: '100%',
+        width: '100%',
         display: 'grid',
         justifyItems: 'center',
         alignItems: 'center',
