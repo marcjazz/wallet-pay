@@ -2,13 +2,13 @@ import { Box, Dialog, IconButton, Tooltip, Typography } from '@mui/material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
-  ChevronLeft,
-  CreditCard,
-  ExternalLink,
-  Globe,
-  Grid,
-  Layers,
-  Lock,
+  ChevronLeft as ChevronLeftIcon,
+  CreditCard as CreditCardIcon,
+  ExternalLink as ExternalLinkIcon,
+  Globe as GlobeIcon,
+  Grid as GridIcon,
+  Layers as LayersIcon,
+  Lock as LockIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 import { DialogTransition } from '../../shared/dialog-transition';
@@ -28,29 +28,29 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
     '1': [
       {
         title: formatMessage({ id: 'manageAccounts' }),
-        icon: <Grid size={22} />,
+        icon: <GridIcon size={22} />,
         action: () => push('/accounts'),
       },
       {
         title: formatMessage({ id: 'manageExternalBankAccounts' }),
-        icon: <Layers size={22} />,
+        icon: <LayersIcon size={22} />,
         action: () => push('/external-accounts'),
       },
       {
         title: formatMessage({ id: 'depositMethods' }),
-        icon: <CreditCard size={22} />,
+        icon: <CreditCardIcon size={22} />,
         action: () => push('/deposit-methods'),
       },
     ],
     '2': [
       {
         title: formatMessage({ id: '2FactorAuthentication' }),
-        icon: <Lock size={22} />,
+        icon: <LockIcon size={22} />,
         action: () => push('/2fa'),
       },
       {
         title: formatMessage({ id: 'language' }),
-        icon: <Globe size={22} />,
+        icon: <GlobeIcon size={22} />,
         action: () => push('/language'),
       },
     ],
@@ -69,12 +69,12 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
       },
       {
         title: formatMessage({ id: 'aboutXafpay' }),
-        icon: <ExternalLink size={22} />,
+        icon: <ExternalLinkIcon size={22} />,
         action: () => open('https://about.xafpay.com', '_blank'),
       },
       {
         title: formatMessage({ id: 'termsAndConditions' }),
-        icon: <ExternalLink size={22} />,
+        icon: <ExternalLinkIcon size={22} />,
         action: () => open('https://terms.xafpay.com', '_blank'),
       },
     ],
@@ -103,7 +103,7 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
         >
           <Tooltip title={formatMessage({ id: 'close' })} arrow>
             <IconButton onClick={handleClose} size="small">
-              <ChevronLeft size={24} fontWeight={900} />
+              <ChevronLeftIcon size={24} fontWeight={900} />
             </IconButton>
           </Tooltip>
           <Typography variant="h3">{formatMessage({ id: 'menu' })}</Typography>
