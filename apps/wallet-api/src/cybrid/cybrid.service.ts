@@ -4,11 +4,15 @@ import {
   AccountsBankApi,
   CustomerBankModel,
   CustomersBankApi,
+  ExternalBankAccountBankModel,
+  ExternalBankAccountListBankModel,
+  ExternalBankAccountsBankApi,
   IdentityVerificationBankModel,
   IdentityVerificationsBankApi,
   IdentityVerificationWithDetailsBankModel,
   PostAccountBankModelTypeEnum,
   PostCustomerBankModelTypeEnum,
+  PostExternalBankAccountBankModelAccountKindEnum,
   PostIdentityVerificationBankModelMethodEnum,
   PostIdentityVerificationBankModelTypeEnum,
   PostWorkflowBankModelKindEnum,
@@ -26,7 +30,8 @@ export class CybridService {
     private readonly customersBankApi: CustomersBankApi,
     private readonly accountsBankApi: AccountsBankApi,
     private readonly identityVerificationsApi: IdentityVerificationsBankApi,
-    private readonly workflowsBankApi: WorkflowsBankApi // private readonly externalBankAccountsApi: ExternalBankAccountsBankApi
+    private readonly workflowsBankApi: WorkflowsBankApi,
+    private readonly externalBankAccountsApi: ExternalBankAccountsBankApi
   ) {}
 
   async getCustomers() {
@@ -129,6 +134,41 @@ export class CybridService {
     });
     return new Promise<WorkflowBankModel>((resolve) =>
       workflowObservable.subscribe(resolve)
+    );
+  }
+
+  async createExternalBankAccount(
+    plaidAccountId: string,
+    plaidPublicToken: string,
+    asset: CybridSupportedCurrency
+  ) {
+    const externalBankAccountObservable =
+      this.externalBankAccountsApi.createExternalBankAccount({
+        postExternalBankAccountBankModel: {
+          asset,
+          name: `${asset} Funding Account`,
+          plaid_account_id: plaidAccountId,
+          plaid_public_token: plaidPublicToken,
+          account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
+        },
+      });
+
+    return new Promise<ExternalBankAccountBankModel>((resolve) =>
+      externalBankAccountObservable.subscribe(resolve)
+    );
+  }
+
+  async getExternalBankAccounts(
+    customerGuid: string,
+    asset: CybridSupportedCurrency
+  ) {
+    const externalBankAccountObservable =
+      this.externalBankAccountsApi.listExternalBankAccounts({
+        asset,
+        customerGuid,
+      });
+    return new Promise<ExternalBankAccountListBankModel>((resolve) =>
+      externalBankAccountObservable.subscribe(resolve)
     );
   }
 }
