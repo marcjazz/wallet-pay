@@ -11,7 +11,7 @@ import {
   Lock,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { DialogTransition } from '../shared/dialog-transition';
+import { DialogTransition } from '../../shared/dialog-transition';
 import MenuItem, { MenuItemProps } from './MenuItem';
 
 type MenuItemGroup = Record<string, MenuItemProps[]>;

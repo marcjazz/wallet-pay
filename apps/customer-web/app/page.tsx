@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Button } from '@mui/material';
-import Header from '../components/layout/Header';
+import Header from '../components/layout/header/Header';
 
 export default function Index() {
   return (
