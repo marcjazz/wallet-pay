@@ -42,14 +42,7 @@ const TempApp = ({ children }: { children: React.ReactNode }) => {
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <UserContextProvider>
-          <ThemeProvider
-            theme={responsiveFontSizes(useTheme(), {
-              factor: 50,
-              breakpoints: ['mobile', 'tablet', 'laptop', 'desktop'],
-            })}
-          >
-            {children}
-          </ThemeProvider>
+          <ThemeProvider theme={useTheme()}>{children}</ThemeProvider>
         </UserContextProvider>
       </LocalizationProvider>
     </IntlProvider>
