@@ -4,6 +4,7 @@ import {
   CustomersBankApi,
   ExternalBankAccountsBankApi,
   IdentityVerificationsBankApi,
+  WorkflowsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 import { cybridConstants } from './constants';
@@ -53,6 +54,10 @@ export class CybridModule {
         {
           provide: ExternalBankAccountsBankApi,
           useValue: new ExternalBankAccountsBankApi(configuration),
+        },
+        {
+          provide: WorkflowsBankApi,
+          useValue: new WorkflowsBankApi(configuration),
         },
       ],
       exports: [CybridService],

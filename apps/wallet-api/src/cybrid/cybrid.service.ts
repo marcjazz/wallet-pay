@@ -11,6 +11,10 @@ import {
   PostCustomerBankModelTypeEnum,
   PostIdentityVerificationBankModelMethodEnum,
   PostIdentityVerificationBankModelTypeEnum,
+  PostWorkflowBankModelKindEnum,
+  PostWorkflowBankModelTypeEnum,
+  WorkflowBankModel,
+  WorkflowsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { Injectable } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
@@ -21,7 +25,8 @@ export class CybridService {
   constructor(
     private readonly customersBankApi: CustomersBankApi,
     private readonly accountsBankApi: AccountsBankApi,
-    private readonly identityVerificationsApi: IdentityVerificationsBankApi // private readonly externalBankAccountsApi: ExternalBankAccountsBankApi,
+    private readonly identityVerificationsApi: IdentityVerificationsBankApi,
+    private readonly workflowsBankApi: WorkflowsBankApi // private readonly externalBankAccountsApi: ExternalBankAccountsBankApi
   ) {}
 
   async getCustomers() {
@@ -101,6 +106,29 @@ export class CybridService {
 
     return new Promise<AccountListBankModel>((resolve) =>
       accountObservable.subscribe(resolve)
+    );
+  }
+
+  async createWorkflow(customerGuid: string) {
+    const workflowObservable = this.workflowsBankApi.createWorkflow({
+      postWorkflowBankModel: {
+        customer_guid: customerGuid,
+        type: PostWorkflowBankModelTypeEnum.Plaid,
+        kind: PostWorkflowBankModelKindEnum.Create,
+      },
+    });
+
+    return new Promise<WorkflowBankModel>((resolve) =>
+      workflowObservable.subscribe(resolve)
+    );
+  }
+
+  async getWorkflow(workflowGuid: string) {
+    const workflowObservable = this.workflowsBankApi.getWorkflow({
+      workflowGuid,
+    });
+    return new Promise<WorkflowBankModel>((resolve) =>
+      workflowObservable.subscribe(resolve)
     );
   }
 }
