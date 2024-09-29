@@ -158,13 +158,9 @@ export class CybridService {
     );
   }
 
-  async getExternalBankAccounts(
-    customerGuid: string,
-    asset: CybridSupportedCurrency
-  ) {
+  async getExternalBankAccounts(customerGuid: string) {
     const externalBankAccountObservable =
       this.externalBankAccountsApi.listExternalBankAccounts({
-        asset,
         customerGuid,
       });
     return new Promise<ExternalBankAccountListBankModel>((resolve) =>
