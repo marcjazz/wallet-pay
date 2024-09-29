@@ -1,16 +1,22 @@
-import { Button } from '@mui/material';
+'use client';
 
-export default async function Index() {
+import { Box, Button } from '@mui/material';
+import Header from '../components/layout/Header';
+
+export default function Index() {
   return (
-    <Button
-      variant="contained"
-      size="medium"
-      fullWidth
-      color="primary"
-      // disabled
-      // startIcon={'s'}
-    >
-      Hello
-    </Button>
+    <Box sx={{ padding: 2 }}>
+      <Header />
+      <Button
+        variant="contained"
+        size="medium"
+        fullWidth
+        color="primary"
+        // disabled
+        // startIcon={'s'}
+      >
+        Hello
+      </Button>
+    </Box>
   );
 }
