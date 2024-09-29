@@ -10,6 +10,7 @@ import { DynamicModule, Logger, Module } from '@nestjs/common';
 import { cybridConstants } from './constants';
 import { CybridConfig } from './cybrid.config';
 import { CybridService } from './cybrid.service';
+import { BullModule } from '@nestjs/bull';
 
 @Module({})
 export class CybridModule {
@@ -37,6 +38,11 @@ export class CybridModule {
 
     return {
       module: CybridModule,
+      imports: [
+        BullModule.registerQueue({
+          name: cybridConstants.QUEUE,
+        }),
+      ],
       providers: [
         CybridService,
         {

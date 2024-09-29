@@ -20,13 +20,18 @@ import {
   WorkflowBankModel,
   WorkflowsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
+import { Queue } from 'bull';
 import { NewCybridCustomerType } from '../types/cybrid';
+import { cybridConstants, cybridJobs } from './constants';
 
-@Injectable({})
+@Injectable()
 export class CybridService {
   constructor(
+    @InjectQueue(cybridConstants.QUEUE)
+    private cybridQueue: Queue,
     private readonly customersBankApi: CustomersBankApi,
     private readonly accountsBankApi: AccountsBankApi,
     private readonly identityVerificationsApi: IdentityVerificationsBankApi,
@@ -56,6 +61,13 @@ export class CybridService {
     });
     return new Promise<NewCybridCustomerType>((resolve) => {
       return newCustomerObservable.subscribe(async (customer) => {
+        // Pulling customer creation status from cybrid to update database
+        this.cybridQueue.add(
+          cybridJobs.PULLING_CYBRID_CUSTOMER,
+          customer.guid,
+          { backoff: { type: 'exponential', delay: 3000 } }
+        );
+
         const newAccountObservable = this.accountsBankApi.createAccount({
           postAccountBankModel: {
             asset,
@@ -100,6 +112,15 @@ export class CybridService {
       await new Promise<IdentityVerificationBankModel>((resolve) =>
         newIndentityVerficationObservable.subscribe(resolve)
       );
+
+    // Pulling identity verification status from cybrid to update database
+    this.cybridQueue.add(
+      cybridJobs.PULLING_CUSTOMER_IDENTITY_VERIFICATION,
+      identityVerfication.guid,
+      {
+        backoff: { type: 'exponential', delay: 5000 },
+      }
+    );
     return identityVerfication;
   }
 
@@ -138,6 +159,7 @@ export class CybridService {
   }
 
   async createExternalBankAccount(
+    customerGuid: string,
     plaidAccountId: string,
     plaidPublicToken: string,
     asset: CybridSupportedCurrency
@@ -146,13 +168,42 @@ export class CybridService {
       this.externalBankAccountsApi.createExternalBankAccount({
         postExternalBankAccountBankModel: {
           asset,
+          customer_guid: customerGuid,
           name: `${asset} Funding Account`,
           plaid_account_id: plaidAccountId,
           plaid_public_token: plaidPublicToken,
           account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
         },
       });
+    return new Promise<ExternalBankAccountBankModel>((resolve) => {
+      externalBankAccountObservable.subscribe(async (externalAccount) => {
+        const identityVerificationObservable =
+          this.identityVerificationsApi.createIdentityVerification({
+            postIdentityVerificationBankModel: {
+              type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
+              method:
+                PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
+              customer_guid: customerGuid,
+              external_bank_account_guid: externalAccount.guid,
+            },
+          });
+        identityVerificationObservable.subscribe((identityVerfication) => {
+          this.cybridQueue.add(
+            cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
+            identityVerfication,
+            { backoff: { type: 'exponential', delay: 3000 } }
+          );
+        });
+        resolve(externalAccount);
+      });
+    });
+  }
 
+  async getExternalBankAccount(externalBankAccountGuid: string) {
+    const externalBankAccountObservable =
+      this.externalBankAccountsApi.getExternalBankAccount({
+        externalBankAccountGuid,
+      });
     return new Promise<ExternalBankAccountBankModel>((resolve) =>
       externalBankAccountObservable.subscribe(resolve)
     );

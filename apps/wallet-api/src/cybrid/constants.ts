@@ -19,13 +19,13 @@ export const cybridConstants = {
     // 'trades:read',
     // 'transfers:execute',
     // 'transfers:read',
-    // 'external_bank_accounts:read',
-    // 'external_bank_accounts:write',
-    // 'external_bank_accounts:execute',
+    'external_bank_accounts:read',
+    'external_bank_accounts:write',
+    'external_bank_accounts:execute',
     // 'external_wallets:read',
     // 'external_wallets:execute',
-    // 'workflows:read',
-    // 'workflows:execute',
+    'workflows:read',
+    'workflows:execute',
     // 'deposit_addresses:read',
     // 'deposit_addresses:execute',
     // 'deposit_bank_accounts:read',
@@ -37,4 +37,11 @@ export const cybridConstants = {
     'identity_verifications:write',
     'identity_verifications:execute',
   ].join(' '),
+};
+
+export const cybridJobs = {
+  PULLING_CYBRID_CUSTOMER: 'pulling-cybrid-customer',
+  PULLING_CUSTOMER_IDENTITY_VERIFICATION: 'pulling-identity-verification',
+  PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION:
+    'pulling-external-account-identity-verification',
 };

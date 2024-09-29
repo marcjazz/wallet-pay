@@ -47,12 +47,14 @@ model CybridAccount {
 }
 
 model CybridCustomer {
-  cybrid_customer_id         String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_customer_guid       String                  @unique @db.VarChar(45)
+  cybrid_customer_id         String                      @id @default(cuid()) @db.VarChar(36)
+  cybrid_customer_guid       String                      @unique @db.VarChar(45)
   country                    CybridSupportedCountry?
-  identity_verification_guid String?                 @db.VarChar(45)
+  status                     CybridCustomerStatus
+  identity_verification_guid String?                     @db.VarChar(45)
+  verification_status        IdentityVerificationStatus?
   person_id                  String
-  Person                     Person                  @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Customer_Person1")
+  Person                     Person                      @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Customer_Person1")
   CustomerAudits             CybridCustomerAudit[]
   CybridAccounts             CybridAccount[]
   CybridExternalAccounts     CybridExternalAccount[]
@@ -62,11 +64,13 @@ model CybridCustomer {
 }
 
 model CybridExternalAccount {
-  cybrid_external_account_id   String              @id @default(cuid()) @db.VarChar(36)
-  identity_verification_guid   String              @db.VarChar(45)
-  cybrid_external_account_guid String              @db.VarChar(45)
-  cybrid_customer_id           String
-  CybridCustomer               CybridCustomer      @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ExternalAccount_CybridCustomer1")
+  cybrid_external_account_id   String                      @id @default(cuid()) @db.VarChar(36)
+  cybrid_external_account_guid String                      @unique @db.VarChar(45)
+  status                       CybridExternalAccountStatus
+  identity_verification_guid   String?                     @db.VarChar(45)
+  verification_status          IdentityVerificationStatus?
+  cybrid_customer_id           String                      @db.VarChar(36)
+  CybridCustomer               CybridCustomer              @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ExternalAccount_CybridCustomer1")
   CybridTransactions           CybridTransaction[]
 
   @@index([cybrid_customer_id], map: "fk_ExternalAccount_CybridCustomer1_idx")
@@ -75,13 +79,14 @@ model CybridExternalAccount {
 
 model CybridTransaction {
   cybrid_transaction_id      String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_transaction_guid    String                  @unique(map: "cybrid_transaction_guid_UNIQUE") @db.VarChar(45)
+  cybrid_transaction_guid    String                  @unique @db.VarChar(45)
   amount_sent                Int
   initial_currency           CybridSupportedCurrency
   converstion_rate           Int
   fees                       Int
   transaction_id             String                  @db.VarChar(45)
   transaction_type           CybridTransactionType
+  status                     CybridTransactionStatus
   initiated_at               DateTime                @default(now()) @db.DateTime(0)
   settled_at                 DateTime?               @db.DateTime(0)
   local_customer_id          String?
@@ -416,4 +421,47 @@ enum CybridTransactionType {
   XAF        @map("xaf")
 
   @@map("cybrid_transaction_type")
+}
+
+enum CybridCustomerStatus {
+  STORING    @map("storing")
+  UNVERIFIED @map("unverified")
+  VERIFIED   @map("verified")
+  REJECTED   @map("rejected")
+  FROZEN     @map("frozen")
+
+  @@map("cybrid_account_status")
+}
+
+enum CybridExternalAccountStatus {
+  STORING          @map("storing")
+  COMPLETED        @map("completed")
+  UNVERIFIED       @map("unverified")
+  FAILED           @map("failed")
+  REFRESH_REQUIRED @map("refresh_required")
+  DELETING         @map("deleting")
+  DELETED          @map("deleted")
+
+  @@map("cybrid_external_acccount_status")
+}
+
+enum IdentityVerificationStatus {
+  STORING   @map("storing")
+  WAITING   @map("waiting")
+  PENDING   @map("pending")
+  REVIEWING @map("reviewing")
+  EXPIRED   @map("expired")
+  COMPLETED @map("completed")
+
+  @@map("identity_verification_status")
+}
+
+enum CybridTransactionStatus {
+  STORING   @map("storing")
+  REVIEWING @map("reviewing")
+  PENDING   @map("pending")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+
+  @@map("cybrid_transfer_status")
 }
