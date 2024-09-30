@@ -9,4 +9,7 @@ export const website = {
   contactSupport: 'Contact Support',
   aboutXafpay: 'About Xafpay',
   termsAndConditions: 'Terms and Conditions',
+  home: 'Home',
+  send: 'Send',
+  profile: 'Profile',
 };

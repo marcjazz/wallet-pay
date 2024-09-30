@@ -2,10 +2,20 @@
 
 import { Box, Button } from '@mui/material';
 import Header from '../components/layout/header/Header';
+import Footer from '../components/layout/Footer';
 
 export default function Index() {
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box
+      sx={{
+        padding: 2,
+        height: '100%',
+        display: 'grid',
+        gridTemplateRows: 'auto 1fr auto',
+        alignItems: 'start',
+        rowGap: 3,
+      }}
+    >
       <Header />
       <Button
         variant="contained"
@@ -17,6 +27,7 @@ export default function Index() {
       >
         Hello
       </Button>
+      <Footer />
     </Box>
   );
 }
