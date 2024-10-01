@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Home as HomeIcon, User as UserIcon } from 'react-feather';
 import { useIntl } from 'react-intl';
 import ArrowSwap from './ArrowSwap';
-import { MenuItemProps } from './header/MenuItem';
+import { MenuItemProps } from '../header/MenuItem';
 
 interface FooterItem extends MenuItemProps {
   route: string;

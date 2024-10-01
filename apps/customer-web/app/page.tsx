@@ -2,7 +2,7 @@
 
 import { Box, Button } from '@mui/material';
 import Header from '../components/layout/header/Header';
-import Footer from '../components/layout/Footer';
+import Footer from '../components/layout/footer/Footer';
 
 export default function Index() {
   return (
