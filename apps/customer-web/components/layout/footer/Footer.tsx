@@ -3,10 +3,10 @@ import { useTheme } from '@xafpay/theme';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home as HomeIcon, User as UserIcon } from 'react-feather';
 import { useIntl } from 'react-intl';
-import ArrowSwap from './ArrowSwap';
 import { MenuItemProps } from '../header/MenuItem';
+import ArrowSwap from './ArrowSwap';
 
-interface FooterItem extends MenuItemProps {
+interface FooterItem extends Omit<MenuItemProps, 'action'> {
   route: string;
 }
 
@@ -26,7 +26,6 @@ export default function Footer() {
           color={isActiveRoute('/') ? theme.palette.primary.main : 'black'}
         />
       ),
-      action: () => push('/'),
       route: '/',
     },
     {
@@ -40,7 +39,6 @@ export default function Footer() {
           }
         />
       ),
-      action: () => push('/transactions'),
       route: '/transactions',
     },
     {
@@ -53,7 +51,6 @@ export default function Footer() {
           }
         />
       ),
-      action: () => push('/profile'),
       route: '/profile',
     },
   ];
@@ -79,7 +76,7 @@ export default function Footer() {
         borderTop: '1px solid #E0E0E0',
       }}
     >
-      {menuItems.map((item, index) => (
+      {menuItems.map(({ icon, route, title }, index) => (
         <Box
           component={IconButton}
           size="small"
@@ -89,18 +86,18 @@ export default function Footer() {
             rowGap: 1,
             justifyItems: 'center',
           }}
-          onClick={item.action}
+          onClick={() => push(route)}
         >
-          {item.icon}
+          {icon}
           <Typography
             variant="p3r"
             sx={{
-              color: isActiveRoute(item.route)
+              color: isActiveRoute(route)
                 ? theme.palette.primary.main
                 : 'black',
             }}
           >
-            {item.title}
+            {title}
           </Typography>
         </Box>
       ))}
