@@ -153,7 +153,7 @@ export class CybridConfiguration {
       const resp = await this.httpService.axiosRef
         .post<CybridAuthResponse>(
           process.env.CYBRID_TOKEN_ENDPOINT ||
-            `https://id.sandbox.cybrid.app/oauth/token`,
+            `https://id.sandbox.cybrid.app/api/customer_tokens`,
           {
             grant_type: 'client_credentials',
             scope: 'customers:write customers:execute customers:read',
