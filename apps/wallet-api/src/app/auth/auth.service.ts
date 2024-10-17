@@ -9,6 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import {
   CybridAccountType,
+  CybridCustomerStatus,
   CybridSupportedCurrency,
   SupportedLocalCurrency,
 } from '@prisma/client';
@@ -72,8 +73,9 @@ export class AuthService {
     roleId: string,
     createdBy?: string
   ): Promise<Express.User> {
-    const { cybrid_account_guid, cybrid_customer_guid } =
-      await this.cybridService.createCustomer(CybridSupportedCurrency.USD);
+    const { account, customer } = await this.cybridService.createCustomer(
+      CybridSupportedCurrency.USD
+    );
     const user = await this.prismaService.person.findUnique({
       where: { email: payload.email },
     });
@@ -118,10 +120,13 @@ export class AuthService {
         CybridCustomers: {
           create: {
             country,
-            cybrid_customer_guid,
+            status: customer.state as CybridCustomerStatus,
+            cybrid_customer_guid: customer.guid as string,
             CybridAccounts: {
               create: {
-                cybrid_account_guid,
+                cybrid_account_guid: account.guid as string,
+                name: account.name as string,
+                balance: account.platform_available as number,
                 account_type: CybridAccountType.FIAT,
                 currency: CybridSupportedCurrency.USD,
               },

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -20,7 +20,7 @@ model BankPayoutInfo {
 
 model CybridCustomerAudit {
   cybrid_customer_audit_id String         @id @default(cuid()) @db.VarChar(36)
-  is_active                Boolean        @default(true) @db.TinyInt
+  is_active                Boolean        @default(true) @db.Boolean
   cybrid_customer_id       String         @db.VarChar(36)
   CybridCustomer           CybridCustomer @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CustomerAudit_Customer1")
   audited_by               String         @db.VarChar(36)
@@ -32,15 +32,19 @@ model CybridCustomerAudit {
 }
 
 model CybridAccount {
-  cybrid_account_id           String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_account_guid         String                  @unique @db.VarChar(45)
+  cybrid_account_id           String                      @id @default(cuid()) @db.VarChar(36)
+  cybrid_account_guid         String                      @unique @db.VarChar(45)
+  name                        String
+  balance                     Float
+  identity_verification_guid  String?                     @db.VarChar(45)
+  verification_status         IdentityVerificationStatus?
   currency                    CybridSupportedCurrency
-  is_active                   Boolean                 @default(true) @db.TinyInt
+  is_active                   Boolean                     @default(true) @db.Boolean
   cybrid_customer_id          String
-  CybridCustomer              CybridCustomer          @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CybridAccount_CybridCustomer1")
+  CybridCustomer              CybridCustomer              @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CybridAccount_CybridCustomer1")
   account_type                CybridAccountType
-  CreatedByCybridTransactions CybridTransaction[]     @relation("cybridaccountTocybridtransaction_created_by")
-  CybridTransactions          CybridTransaction[]     @relation("cybridaccountTocybridtransaction_cybrid_account_id")
+  CreatedByCybridTransactions CybridTransaction[]         @relation("cybridaccountTocybridtransaction_created_by")
+  CybridTransactions          CybridTransaction[]         @relation("cybridaccountTocybridtransaction_cybrid_account_id")
 
   @@index([cybrid_customer_id], map: "fk_CybridAccount_CybridCustomer1_idx")
   @@map("cybrid_accounts")
@@ -66,6 +70,8 @@ model CybridCustomer {
 model CybridExternalAccount {
   cybrid_external_account_id   String                      @id @default(cuid()) @db.VarChar(36)
   cybrid_external_account_guid String                      @unique @db.VarChar(45)
+  name                         String
+  balance                      Float
   status                       CybridExternalAccountStatus
   identity_verification_guid   String?                     @db.VarChar(45)
   verification_status          IdentityVerificationStatus?
@@ -80,15 +86,15 @@ model CybridExternalAccount {
 model CybridTransaction {
   cybrid_transaction_id      String                  @id @default(cuid()) @db.VarChar(36)
   cybrid_transaction_guid    String                  @unique @db.VarChar(45)
-  amount_sent                Int
+  amount_sent                Float
   initial_currency           CybridSupportedCurrency
-  converstion_rate           Int
-  fees                       Int
+  converstion_rate           Float
+  fees                       Float
   transaction_id             String                  @db.VarChar(45)
   transaction_type           CybridTransactionType
   status                     CybridTransactionStatus
-  initiated_at               DateTime                @default(now()) @db.DateTime(0)
-  settled_at                 DateTime?               @db.DateTime(0)
+  initiated_at               DateTime                @default(now()) @db.Timestamp()
+  settled_at                 DateTime?               @db.Timestamp()
   local_customer_id          String?
   LocalCustomer              LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
   payout_info_id             String?
@@ -116,8 +122,8 @@ model LocalCustomer {
   currency                    SupportedLocalCurrency?
   account_number              String                           @db.VarChar(45)
   verification_status         LocalCustomerVerificationStatus?
-  balance                     Int
-  created_at                  DateTime                         @default(now()) @db.DateTime(0)
+  balance                     Float
+  created_at                  DateTime                         @default(now()) @db.Timestamp()
   person_id                   String
   Person                      Person                           @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_LocalCustomer_Person1")
   CybridTransactions          CybridTransaction[]
@@ -131,8 +137,8 @@ model LocalCustomer {
 
 model LocalTransaction {
   local_transaction_id String        @id @default(cuid()) @db.VarChar(36)
-  amount               Int
-  initiated_at         DateTime?     @default(now()) @db.DateTime(0)
+  amount               Float
+  initiated_at         DateTime?     @default(now()) @db.Timestamp()
   sent_by              String
   SendBy               LocalCustomer @relation("localcustomerTolocaltransaction_sent_by", fields: [sent_by], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_LocalTransaction_LocalCustomer1")
   received_by          String
@@ -148,8 +154,8 @@ model LocalTransaction {
 
 model Log {
   log_id             String        @id @default(cuid()) @db.VarChar(36)
-  login_at           DateTime      @default(now()) @db.DateTime(0)
-  logout_at          DateTime?     @db.DateTime(0)
+  login_at           DateTime      @default(now()) @db.Timestamp()
+  logout_at          DateTime?     @db.Timestamp()
   method             String        @default("local") @db.VarChar(45)
   refresh_token      String        @db.VarChar(255)
   person_has_role_id String
@@ -163,10 +169,10 @@ model OTP {
   otp_id             String        @id @default(cuid()) @db.VarChar(36)
   code               String        @db.VarChar(45)
   usage              String        @db.VarChar(45) //resset password, validate transaction, etc...
-  is_verified        Boolean       @default(false) @db.TinyInt
-  expires_at         DateTime      @db.DateTime(0)
-  updated_at         DateTime?     @db.DateTime(0)
-  created_at         DateTime      @default(now()) @db.DateTime(0)
+  is_verified        Boolean       @default(false) @db.Boolean
+  expires_at         DateTime      @db.Timestamp()
+  updated_at         DateTime?     @db.Timestamp()
+  created_at         DateTime      @default(now()) @db.Timestamp()
   person_has_role_id String
   PersonHasRole      PersonHasRole @relation(fields: [person_has_role_id], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_OTP_PersonHasRole1")
 
@@ -182,10 +188,10 @@ model Person {
   last_name          String            @db.VarChar(45)
   email              String            @unique @db.VarChar(45)
   username           String            @unique @db.VarChar(45)
-  is_verified        Boolean           @default(false) @db.TinyInt
+  is_verified        Boolean           @default(false) @db.Boolean
   phone_number       String            @db.VarChar(45)
   password           String            @db.VarChar(255)
-  created_at         DateTime          @default(now()) @db.DateTime(0)
+  created_at         DateTime          @default(now()) @db.Timestamp()
   preferred_language PreferredLanguage @default(EN_US)
   CybridCustomers    CybridCustomer[]
   LocalCustomers     LocalCustomer[]
@@ -208,8 +214,8 @@ model PersonAudit {
   username           String            @db.VarChar(45)
   phone_number       String            @db.VarChar(45)
   password           String            @db.VarChar(255)
-  is_verified        Boolean           @db.TinyInt
-  audited_at         DateTime          @default(now()) @db.DateTime(0)
+  is_verified        Boolean           @db.Boolean
+  audited_at         DateTime          @default(now()) @db.Timestamp()
   person_id          String
   Person             Person            @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonAudit_Person2")
   audited_by         String
@@ -222,8 +228,8 @@ model PersonAudit {
 
 model PersonHasRole {
   person_has_role_id           String                   @id @default(cuid()) @db.VarChar(36)
-  created_at                   DateTime                 @default(now()) @db.DateTime(0)
-  is_active                    Boolean                  @default(true) @db.TinyInt
+  created_at                   DateTime                 @default(now()) @db.Timestamp()
+  is_active                    Boolean                  @default(true) @db.Boolean
   person_id                    String                   @db.VarChar(36)
   Person                       Person                   @relation(fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRole_Person1")
   role_id                      String                   @db.VarChar(36)
@@ -250,8 +256,8 @@ model PersonHasRole {
 
 model PersonHasRoleAudit {
   person_has_role_audit_id String        @id @default(cuid()) @db.VarChar(36)
-  is_active                Boolean       @db.TinyInt
-  audited_at               DateTime      @default(now()) @db.DateTime(0)
+  is_active                Boolean       @db.Boolean
+  audited_at               DateTime      @default(now()) @db.Timestamp()
   person_has_role_id       String
   PersonHasRole            PersonHasRole @relation("personhasroleTopersonhasroleaudit_person_has_role_id", fields: [person_has_role_id], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_PersonHasRoleAudit_PersonHasRole1")
   audited_by               String
@@ -267,7 +273,7 @@ model ReceiverPayoutInfo {
   fullname                String              @db.VarChar(45)
   phone_number            String              @db.VarChar(45)
   national_id_number      String?             @db.VarChar(45)
-  created_at              DateTime            @default(now()) @db.DateTime(0)
+  created_at              DateTime            @default(now()) @db.Timestamp()
   CybridTransactions      CybridTransaction[]
   StripeTransactions      StripeTransaction[]
 
@@ -277,9 +283,9 @@ model ReceiverPayoutInfo {
 model Role {
   role_id        String          @id @default(cuid()) @db.VarChar(36)
   title          String          @unique @db.VarChar(45)
-  is_active      Boolean         @default(true) @db.TinyInt
+  is_active      Boolean         @default(true) @db.Boolean
   subdomain      String?         @db.VarChar(45)
-  created_at     DateTime        @default(now()) @db.DateTime(0)
+  created_at     DateTime        @default(now()) @db.Timestamp()
   created_by     String
   CreatedBy      Person          @relation(fields: [created_by], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Role_Person1")
   PersonHasRoles PersonHasRole[] @relation("roleTopersonhasrole_role_id")
@@ -292,9 +298,9 @@ model Role {
 
 model RoleAudit {
   role_audit_id String   @id @default(cuid()) @db.VarChar(36)
-  is_active     Boolean  @db.TinyInt
+  is_active     Boolean  @db.Boolean
   title         String   @db.VarChar(45)
-  audited_at    DateTime @default(now()) @db.DateTime(0)
+  audited_at    DateTime @default(now()) @db.Timestamp()
   role_id       String
   role          Role     @relation(fields: [role_id], references: [role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_RoleAudit_Role1")
   audited_by    String
@@ -307,13 +313,13 @@ model RoleAudit {
 
 model StripeTransaction {
   stripe_transaction_id   String              @id @default(cuid()) @db.VarChar(36)
-  amount_sent             Int
-  fees                    Int
-  converstion_rate        Int
+  amount_sent             Float
+  fees                    Float
+  converstion_rate        Float
   transaction_id          String              @db.VarChar(45)
   stripe_transaction_guid String              @db.VarChar(45)
-  created_at              DateTime            @default(now()) @db.DateTime(0)
-  settled_at              DateTime?           @db.DateTime(0)
+  created_at              DateTime            @default(now()) @db.Timestamp()
+  settled_at              DateTime?           @db.Timestamp()
   initial_currency        String              @db.VarChar(36)
   InitialCurrency         SupportedCurrency   @relation(fields: [initial_currency], references: [supported_currency_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_SupportedCurrency1")
   created_by              String              @db.VarChar(36)
@@ -336,10 +342,10 @@ model StripeTransaction {
 model SupportedCurrency {
   supported_currency_id   String                   @id @default(cuid()) @db.VarChar(36)
   currency                String                   @db.VarChar(3)
-  is_active               Boolean                  @default(true) @db.TinyInt
-  xaf_rate                Int
-  last_updated            DateTime                 @db.DateTime(0)
-  created_at              DateTime                 @default(now()) @db.DateTime(0)
+  is_active               Boolean                  @default(true) @db.Boolean
+  xaf_rate                Float
+  last_updated            DateTime                 @db.Timestamp()
+  created_at              DateTime                 @default(now()) @db.Timestamp()
   created_by              String
   CreatedBy               PersonHasRole            @relation(fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrency_PersonHasRole1")
   StripeTransactions      StripeTransaction[]
@@ -351,15 +357,15 @@ model SupportedCurrency {
 
 model SupportedCurrencyAudit {
   supported_currency_audit_id String            @id @default(cuid()) @db.VarChar(36)
-  is_active                   Boolean           @db.TinyInt
-  audited_at                  DateTime          @db.DateTime(0)
+  is_active                   Boolean           @db.Boolean
+  audited_at                  DateTime          @db.Timestamp()
   supported_currency_id       String
   SupportedCurrency           SupportedCurrency @relation(fields: [supported_currency_id], references: [supported_currency_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrencyAudit_SupportedCurrency1")
   audited_by                  String
   AuditedBy                   PersonHasRole     @relation(fields: [audited_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrency_PersonHasRole10")
 
   @@index([supported_currency_id], map: "fk_SupportedCurrencyAudit_SupportedCurrency1_idx")
-  @@index([audited_by], map: "fk_SupportedCurrency_PersonHasRole1_idx")
+  @@index([audited_by], map: "fk_SupportedCurrencyAudit_PersonHasRole1_idx")
   @@map("supported_currency_audits")
 }
 

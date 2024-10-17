@@ -79,6 +79,7 @@ export class CybridProcessor {
     }
 
     const externalAccount = await this.cybridService.getExternalBankAccount(
+      identityVerification.customer_guid as string,
       identityVerification.external_bank_account_guid
     );
 

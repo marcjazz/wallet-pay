@@ -25,19 +25,10 @@ export class AccountsController {
     const accounts = await this.accountsService.findAccounts(
       request.user?.person_id as string
     );
-    return accounts.map(
-      (account) =>
-        new CybridAccountEntity({
-          state: account.state,
-          name: account.name as string,
-          balance: account.platform_available as number,
-          kyc_state: account.identity_verfication?.state,
-          cybrid_account_id: account.cybrid_account_id,
-        })
-    );
+    return accounts.map((account) => new CybridAccountEntity(account));
   }
 
-  @Patch(':id/start-kyc')
+  @Patch(':id/verify')
   @ApiOkResponse({ type: IdentityVerificationEntity })
   @ApiOperation({ summary: 'Initialize KYC process on a user account' })
   async initiateKycProcess(@Param('id') accountId: string) {

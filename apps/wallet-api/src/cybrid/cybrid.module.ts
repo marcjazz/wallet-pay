@@ -1,16 +1,14 @@
 import {
-  AccountsBankApi,
+  Configuration,
   ConfigurationParameters,
-  CustomersBankApi,
-  ExternalBankAccountsBankApi,
-  IdentityVerificationsBankApi,
-  WorkflowsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
+import { BullModule } from '@nestjs/bull';
+import { CacheModule } from '@nestjs/cache-manager';
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 import { cybridConstants } from './constants';
-import { CybridConfig } from './cybrid.config';
 import { CybridService } from './cybrid.service';
-import { BullModule } from '@nestjs/bull';
+import { CybridConfiguration } from './cybrid.config';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({})
 export class CybridModule {
@@ -31,39 +29,21 @@ export class CybridModule {
       // Optionally perform cleanup and exit
     });
 
-    const configuration = await CybridConfig.getInstance({
-      scope: cybridConstants.SCOPE,
-      ...configParams,
-    });
-
     return {
       module: CybridModule,
       imports: [
+        HttpModule.register({}),
+        CacheModule.register(),
         BullModule.registerQueue({
           name: cybridConstants.QUEUE,
         }),
       ],
       providers: [
         CybridService,
+        CybridConfiguration,
         {
-          provide: CustomersBankApi,
-          useValue: new CustomersBankApi(configuration),
-        },
-        {
-          provide: AccountsBankApi,
-          useValue: new AccountsBankApi(configuration),
-        },
-        {
-          provide: IdentityVerificationsBankApi,
-          useValue: new IdentityVerificationsBankApi(configuration),
-        },
-        {
-          provide: ExternalBankAccountsBankApi,
-          useValue: new ExternalBankAccountsBankApi(configuration),
-        },
-        {
-          provide: WorkflowsBankApi,
-          useValue: new WorkflowsBankApi(configuration),
+          provide: Configuration,
+          useValue: new Configuration(configParams),
         },
       ],
       exports: [CybridService],

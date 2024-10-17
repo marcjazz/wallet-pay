@@ -3,7 +3,6 @@ import {
   AccountListBankModel,
   AccountsBankApi,
   CustomerBankModel,
-  CustomersBankApi,
   ExternalBankAccountBankModel,
   ExternalBankAccountListBankModel,
   ExternalBankAccountsBankApi,
@@ -18,7 +17,7 @@ import {
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelTypeEnum,
   WorkflowBankModel,
-  WorkflowsBankApi,
+  WorkflowsBankApi
 } from '@cybrid/cybrid-api-bank-typescript';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
@@ -26,26 +25,28 @@ import { CybridSupportedCurrency } from '@prisma/client';
 import { Queue } from 'bull';
 import { NewCybridCustomerType } from '../types/cybrid';
 import { cybridConstants, cybridJobs } from './constants';
+import { CybridConfiguration } from './cybrid.config';
 
 @Injectable()
 export class CybridService {
   constructor(
     @InjectQueue(cybridConstants.QUEUE)
     private cybridQueue: Queue,
-    private readonly customersBankApi: CustomersBankApi,
-    private readonly accountsBankApi: AccountsBankApi,
-    private readonly identityVerificationsApi: IdentityVerificationsBankApi,
-    private readonly workflowsBankApi: WorkflowsBankApi,
-    private readonly externalBankAccountsApi: ExternalBankAccountsBankApi
+    private readonly cybridConfiguration: CybridConfiguration
   ) {}
 
   async getCustomers() {
-    const observable = this.customersBankApi.listCustomers({});
+    const customersBankApi = await this.cybridConfiguration.getCustomersApi();
+    const observable = customersBankApi.listCustomers({});
     return new Promise((resolve) => observable.subscribe(resolve));
   }
 
   async getCustomer(guid: string) {
-    const observable = this.customersBankApi.getCustomer({
+    const customersBankApi = await this.cybridConfiguration.getCustomersApi(
+      guid,
+      ['customers:read']
+    );
+    const observable = customersBankApi.getCustomer({
       customerGuid: guid,
     });
     return new Promise<CustomerBankModel>((resolve) =>
@@ -56,7 +57,9 @@ export class CybridService {
   async createCustomer(
     asset: CybridSupportedCurrency
   ): Promise<NewCybridCustomerType> {
-    const newCustomerObservable = this.customersBankApi.createCustomer({
+    const customersBankApi = await this.cybridConfiguration.getCustomersApi();
+
+    const newCustomerObservable = customersBankApi.createCustomer({
       postCustomerBankModel: { type: PostCustomerBankModelTypeEnum.Individual },
     });
     return new Promise<NewCybridCustomerType>((resolve) => {
@@ -68,7 +71,13 @@ export class CybridService {
           { backoff: { type: 'exponential', delay: 3000 } }
         );
 
-        const newAccountObservable = this.accountsBankApi.createAccount({
+        const accountsBankApi = await this.cybridConfiguration.getInstance(
+          AccountsBankApi,
+          customer.guid as string,
+          ['accounts:execute', 'accounts:read']
+        );
+
+        const newAccountObservable = accountsBankApi.createAccount({
           postAccountBankModel: {
             asset,
             name: `${asset} Account`,
@@ -81,18 +90,21 @@ export class CybridService {
           newAccountObservable.subscribe(resolve)
         );
 
-        resolve({
-          cybrid_account_guid: account.guid as string,
-          cybrid_customer_guid: customer.guid as string,
-        });
+        resolve({ account, customer });
       });
     });
   }
 
-  async getIdentityVerification(guid: string) {
+  async getIdentityVerification(customerGuid: string) {
+    const identityVerificationsApi = await this.cybridConfiguration.getInstance(
+      IdentityVerificationsBankApi,
+      customerGuid,
+      ['identity_verifications:read']
+    );
+
     const getIdentityVerificationObservable =
-      this.identityVerificationsApi.getIdentityVerification({
-        identityVerificationGuid: guid,
+      identityVerificationsApi.getIdentityVerification({
+        identityVerificationGuid: customerGuid,
       });
     return new Promise<IdentityVerificationWithDetailsBankModel>((resolve) =>
       getIdentityVerificationObservable.subscribe(resolve)
@@ -100,8 +112,14 @@ export class CybridService {
   }
 
   async createIdentityVerification(customerGuid: string) {
+    const identityVerificationsApi = await this.cybridConfiguration.getInstance(
+      IdentityVerificationsBankApi,
+      customerGuid,
+      ['identity_verifications:write', 'identity_verifications:read']
+    );
+
     const newIndentityVerficationObservable =
-      this.identityVerificationsApi.createIdentityVerification({
+      identityVerificationsApi.createIdentityVerification({
         postIdentityVerificationBankModel: {
           customer_guid: customerGuid,
           type: PostIdentityVerificationBankModelTypeEnum.Kyc,
@@ -125,7 +143,13 @@ export class CybridService {
   }
 
   async getAccounts(customerGuid: string) {
-    const accountObservable = this.accountsBankApi.listAccounts({
+    const accountsBankApi = await this.cybridConfiguration.getInstance(
+      AccountsBankApi,
+      customerGuid,
+      ['accounts:read']
+    );
+
+    const accountObservable = accountsBankApi.listAccounts({
       customerGuid,
       type: PostAccountBankModelTypeEnum.Fiat,
     });
@@ -136,7 +160,12 @@ export class CybridService {
   }
 
   async createWorkflow(customerGuid: string) {
-    const workflowObservable = this.workflowsBankApi.createWorkflow({
+    const workflowsBankApi = await this.cybridConfiguration.getInstance(
+      WorkflowsBankApi,
+      customerGuid,
+      ['workflows:execute']
+    );
+    const workflowObservable = workflowsBankApi.createWorkflow({
       postWorkflowBankModel: {
         customer_guid: customerGuid,
         type: PostWorkflowBankModelTypeEnum.Plaid,
@@ -149,8 +178,13 @@ export class CybridService {
     );
   }
 
-  async getWorkflow(workflowGuid: string) {
-    const workflowObservable = this.workflowsBankApi.getWorkflow({
+  async getWorkflow(customerGuid: string, workflowGuid: string) {
+    const workflowsBankApi = await this.cybridConfiguration.getInstance(
+      WorkflowsBankApi,
+      customerGuid,
+      ['workflows:read']
+    );
+    const workflowObservable = workflowsBankApi.getWorkflow({
       workflowGuid,
     });
     return new Promise<WorkflowBankModel>((resolve) =>
@@ -164,8 +198,13 @@ export class CybridService {
     plaidPublicToken: string,
     asset: CybridSupportedCurrency
   ) {
+    const externalBankAccountsApi = await this.cybridConfiguration.getInstance(
+      ExternalBankAccountsBankApi,
+      customerGuid,
+      ['external_bank_accounts:write']
+    );
     const externalBankAccountObservable =
-      this.externalBankAccountsApi.createExternalBankAccount({
+      externalBankAccountsApi.createExternalBankAccount({
         postExternalBankAccountBankModel: {
           asset,
           customer_guid: customerGuid,
@@ -177,8 +216,15 @@ export class CybridService {
       });
     return new Promise<ExternalBankAccountBankModel>((resolve) => {
       externalBankAccountObservable.subscribe(async (externalAccount) => {
+        const identityVerificationsApi =
+          await this.cybridConfiguration.getInstance(
+            IdentityVerificationsBankApi,
+            customerGuid,
+            ['identity_verifications:write']
+          );
+
         const identityVerificationObservable =
-          this.identityVerificationsApi.createIdentityVerification({
+          identityVerificationsApi.createIdentityVerification({
             postIdentityVerificationBankModel: {
               type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
               method:
@@ -199,9 +245,18 @@ export class CybridService {
     });
   }
 
-  async getExternalBankAccount(externalBankAccountGuid: string) {
+  async getExternalBankAccount(
+    customerGuid: string,
+    externalBankAccountGuid: string
+  ) {
+    const externalBankAccountsApi = await this.cybridConfiguration.getInstance(
+      ExternalBankAccountsBankApi,
+      customerGuid,
+      ['external_bank_accounts:read']
+    );
+
     const externalBankAccountObservable =
-      this.externalBankAccountsApi.getExternalBankAccount({
+      externalBankAccountsApi.getExternalBankAccount({
         externalBankAccountGuid,
       });
     return new Promise<ExternalBankAccountBankModel>((resolve) =>
@@ -210,8 +265,14 @@ export class CybridService {
   }
 
   async getExternalBankAccounts(customerGuid: string) {
+    const externalBankAccountsApi = await this.cybridConfiguration.getInstance(
+      ExternalBankAccountsBankApi,
+      customerGuid,
+      ['external_bank_accounts:read']
+    );
+
     const externalBankAccountObservable =
-      this.externalBankAccountsApi.listExternalBankAccounts({
+      externalBankAccountsApi.listExternalBankAccounts({
         customerGuid,
       });
     return new Promise<ExternalBankAccountListBankModel>((resolve) =>

@@ -1,29 +1,38 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { $Enums, CybridAccount } from '@prisma/client';
 import { CybridKycState } from '../../../types/cybrid/enums';
 
-export class CybridAccountEntity {
-  @IsString()
+export class CybridAccountEntity implements CybridAccount {
   @ApiProperty()
   cybrid_account_id: string;
 
-  @IsString()
   @ApiProperty()
   name: string;
 
-  @IsString()
   @ApiProperty()
   balance: number;
 
-  @IsOptional()
-  @IsEnum(CybridKycState)
-  @ApiProperty({ enum: CybridKycState })
-  state?: string = CybridKycState.WAITING;
+  @ApiProperty({ enum: $Enums.IdentityVerificationStatus, nullable: true })
+  verification_status: $Enums.IdentityVerificationStatus | null =
+    $Enums.IdentityVerificationStatus.WAITING;
 
-  @IsOptional()
-  @IsEnum(CybridKycState)
-  @ApiProperty({ enum: CybridKycState })
-  kyc_state?: string = CybridKycState.WAITING;
+  @ApiProperty()
+  cybrid_account_guid: string;
+
+  @ApiProperty({ nullable: true })
+  identity_verification_guid: string | null;
+
+  @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
+  currency: $Enums.CybridSupportedCurrency;
+
+  @ApiProperty()
+  is_active: boolean;
+
+  @ApiProperty()
+  cybrid_customer_id: string;
+
+  @ApiProperty({ enum: $Enums.CybridAccountType })
+  account_type: $Enums.CybridAccountType;
 
   constructor(props: CybridAccountEntity) {
     Object.assign(this, props);
