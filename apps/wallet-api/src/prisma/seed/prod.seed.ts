@@ -30,8 +30,8 @@ async function main() {
     },
   });
 
-  const clientSubdomain = process.env.CLIENT_SUBDOMAIN || 'app.xafpay.com';
-  const adminSubdomain = process.env.CLIENT_SUBDOMAIN || 'admin.xafpay.com';
+  const clientSubdomain = process.env.CLIENT_SUBDOMAIN ;
+  const adminSubdomain = process.env.CLIENT_SUBDOMAIN;
   await prisma.role.createMany({
     data: [
       {

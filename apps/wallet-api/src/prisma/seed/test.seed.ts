@@ -9,27 +9,29 @@ async function main() {
   );
   const alice = await prisma.person.create({
     data: {
-      email: 'alice@prisma.io',
+      email: 'marco@xafpay.com',
       birthdate: new Date(),
-      first_name: 'Alice',
-      last_name: 'Ngamba',
-      gender: 'FEMALE',
+      first_name: 'Marco',
+      last_name: 'Kuidja',
+      gender: 'MALE',
       password,
       phone_number: '+1 643 012 75',
       username: 'xafpay_alic1',
     },
   });
 
+  const clientSubdomain = process.env.CLIENT_SUBDOMAIN;
+  const adminSubdomain = process.env.CLIENT_SUBDOMAIN;
   await prisma.role.createMany({
     data: [
       {
         title: 'client',
-        subdomain: 'app.xafpay.com',
+        subdomain: clientSubdomain,
         created_by: alice.person_id,
       },
       {
         title: 'admin',
-        subdomain: 'admin.xafpay.com',
+        subdomain: adminSubdomain,
         created_by: alice.person_id,
       },
     ],
@@ -37,14 +39,24 @@ async function main() {
 
   await prisma.personHasRole.create({
     data: {
-      Role: { connect: { title: 'admin', subdomain: 'admin.xafpay.com' } },
+      Role: {
+        connect: {
+          title: 'admin',
+          // subdomain: 'admin.xafpay.com'
+        },
+      },
       Person: { connect: { email: alice.email } },
     },
   });
 
   await prisma.personHasRole.create({
     data: {
-      Role: { connect: { title: 'client', subdomain: 'app.xafpay.com' } },
+      Role: {
+        connect: {
+          title: 'client',
+          // subdomain: 'app.xafpay.com'
+        },
+      },
       Person: { connect: { email: alice.email } },
     },
   });
