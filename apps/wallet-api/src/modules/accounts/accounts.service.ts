@@ -1,9 +1,8 @@
-import {
-  Injectable,
-  NotFoundException
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateExternalAccountDto } from './dto/account.dto';
 
 @Injectable()
 export class AccountsService {
@@ -19,7 +18,7 @@ export class AccountsService {
     return cybridAccounts;
   }
 
-  async initiateKycProcess(accountId: string) {
+  async initiateVerificationProcess(accountId: string) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
       where: { CybridAccounts: { some: { cybrid_account_id: accountId } } },
     });
@@ -48,5 +47,60 @@ export class AccountsService {
         where: { CybridCustomer: { person_id: personId } },
       });
     return cybridCustomers;
+  }
+
+  async createWorkflow(personId: string) {
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { person_id: personId },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found!');
+    }
+    return this.cybridService.createWorkflow(customer.cybrid_customer_guid);
+  }
+
+  async getWorkflow(personId: string, workflowGuid: string) {
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { person_id: personId },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found!');
+    }
+
+    return this.cybridService.getWorkflow(
+      customer.cybrid_customer_guid,
+      workflowGuid
+    );
+  }
+
+  async createExternalAccount(
+    payload: CreateExternalAccountDto,
+    personId: string
+  ) {
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { person_id: personId },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found!');
+    }
+
+    const externalAccount = await this.cybridService.createExternalBankAccount(
+      customer.cybrid_customer_guid,
+      payload.plaid_account_id,
+      payload.plaid_link_token,
+      payload.currency
+    );
+
+    return this.prismaService.cybridExternalAccount.create({
+      data: {
+        name: externalAccount.name ?? '',
+        balance: externalAccount.balances?.available ?? 0,
+        cybrid_external_account_guid: externalAccount.guid as string,
+        status: externalAccount.state as $Enums.CybridExternalAccountStatus,
+        CybridCustomer: {
+          connect: { cybrid_customer_id: customer.cybrid_customer_id },
+        },
+      },
+    });
   }
 }

@@ -86,7 +86,7 @@ export class CybridProcessor {
     await this.prismaService.cybridExternalAccount.update({
       data: {
         verification_status:
-          identityVerification.state as IdentityVerificationStatus,
+          identityVerification.state?.toLocaleUpperCase() as IdentityVerificationStatus,
         status:
           externalAccount.state?.toLocaleUpperCase() as CybridExternalAccountStatus,
       },

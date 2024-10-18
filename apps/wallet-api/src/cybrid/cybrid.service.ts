@@ -17,7 +17,8 @@ import {
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelTypeEnum,
   WorkflowBankModel,
-  WorkflowsBankApi
+  WorkflowsBankApi,
+  WorkflowWithDetailsBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
@@ -187,7 +188,7 @@ export class CybridService {
     const workflowObservable = workflowsBankApi.getWorkflow({
       workflowGuid,
     });
-    return new Promise<WorkflowBankModel>((resolve) =>
+    return new Promise<WorkflowWithDetailsBankModel>((resolve) =>
       workflowObservable.subscribe(resolve)
     );
   }

@@ -23,9 +23,9 @@ import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.fil
     PrismaModule,
     MailerModule.forRoot({
       secure: process.env.NODE_ENV === 'production',
-      host: process.env.EMAIL_HOST as string,
-      pass: process.env.EMAIL_PASS as string,
-      user: process.env.APP_EMAIL as string,
+      host: process.env.EMAIL_HOST,
+      pass: process.env.EMAIL_PASS,
+      user: process.env.APP_EMAIL,
     }),
     AuthModule,
     UsersModule,

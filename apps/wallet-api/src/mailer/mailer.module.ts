@@ -1,4 +1,10 @@
-import { DynamicModule, Global, Logger, Module } from '@nestjs/common';
+import {
+  DynamicModule,
+  Global,
+  InternalServerErrorException,
+  Logger,
+  Module,
+} from '@nestjs/common';
 import { createTransport } from 'nodemailer';
 import { MailerOptions } from './mailer.interface';
 import { MailerService } from './mailer.service';
@@ -15,6 +21,12 @@ export class MailerModule {
     pass: authPass,
     user: authUser,
   }: MailerOptions): DynamicModule {
+    if (!host || !authUser || !authPass) {
+      throw new InternalServerErrorException(
+        'Mailer host, user and pass not configured!'
+      );
+    }
+
     const transporter = createTransport({
       host,
       secure, // true for port 465, false for other ports
