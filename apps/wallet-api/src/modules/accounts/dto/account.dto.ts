@@ -1,9 +1,17 @@
 import {
-  WorkflowBankModel
+  PostTransferBankModelTransferTypeEnum,
+  WorkflowBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { $Enums, CybridAccount, CybridExternalAccount } from '@prisma/client';
+import {
+  $Enums,
+  CybridAccount,
+  CybridExternalAccount,
+  CybridTransaction,
+} from '@prisma/client';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
 import { CybridKycState } from '../../../types/cybrid/enums';
+import { Exclude } from 'class-transformer';
 
 export class CybridAccountEntity implements CybridAccount {
   @ApiProperty()
@@ -33,9 +41,6 @@ export class CybridAccountEntity implements CybridAccount {
 
   @ApiProperty()
   cybrid_customer_id: string;
-
-  @ApiProperty({ enum: $Enums.CybridAccountType })
-  account_type: $Enums.CybridAccountType;
 
   constructor(props: CybridAccountEntity) {
     Object.assign(this, props);
@@ -125,19 +130,98 @@ export class ExternalBankAccountEntity implements CybridExternalAccount {
   @ApiProperty()
   balance: number;
 
-  @ApiProperty()
+  @ApiProperty({ enum: $Enums.CybridExternalAccountStatus })
   status: $Enums.CybridExternalAccountStatus;
 
   @ApiProperty({ nullable: true })
   identity_verification_guid: string | null;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ nullable: true, enum: $Enums.IdentityVerificationStatus })
   verification_status: $Enums.IdentityVerificationStatus | null;
 
   @ApiProperty()
   cybrid_customer_id: string;
 
   constructor(props: ExternalBankAccountEntity) {
+    Object.assign(this, props);
+  }
+}
+
+export class InitiateFundingTransferDto {
+  @IsString()
+  @ApiProperty()
+  cybrid_external_account_id: string;
+
+  @IsEnum(PostTransferBankModelTransferTypeEnum)
+  @ApiProperty({ enum: PostTransferBankModelTransferTypeEnum })
+  transfer_type: PostTransferBankModelTransferTypeEnum;
+
+  @IsEnum($Enums.CybridSupportedCurrency)
+  @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
+  currency: $Enums.CybridSupportedCurrency;
+
+  @IsNumber()
+  @ApiProperty({ description: 'Amount in currency base unit' })
+  amount: number;
+
+  constructor(props: InitiateFundingTransferDto) {
+    Object.assign(this, props);
+  }
+}
+
+export class CybridTransactionEntity implements CybridTransaction {
+  @ApiProperty()
+  cybrid_transaction_id: string;
+
+  @ApiProperty()
+  cybrid_transaction_guid: string;
+
+  @ApiProperty()
+  amount: number;
+
+  @ApiProperty()
+  initial_currency: $Enums.CybridSupportedCurrency;
+
+  @ApiProperty()
+  converstion_rate: number | null;
+
+  @ApiProperty()
+  fees: number;
+
+  @ApiProperty()
+  transaction_id: string;
+
+  @ApiProperty({ enum: $Enums.CybridTransactionType })
+  transaction_type: $Enums.CybridTransactionType;
+
+  @ApiProperty({ enum: $Enums.CybridTransactionStatus })
+  status: $Enums.CybridTransactionStatus;
+
+  @ApiProperty({ type: Date })
+  initiated_at: Date;
+
+  @ApiProperty({ type: Date })
+  settled_at: Date | null;
+
+  @ApiProperty({ description: 'Provided for local transactions' })
+  local_customer_id: string | null;
+
+  @ApiProperty()
+  payout_info_id: string | null;
+
+  @ApiProperty()
+  bank_info_id: string | null;
+
+  @ApiProperty()
+  cybrid_account_id: string | null;
+
+  @ApiProperty()
+  cybrid_external_account_id: string | null;
+
+  @Exclude()
+  initiated_by: string;
+
+  constructor(props: CybridTransactionEntity) {
     Object.assign(this, props);
   }
 }

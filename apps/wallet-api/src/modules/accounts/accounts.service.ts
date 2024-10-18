@@ -1,8 +1,12 @@
+import { PostQuoteBankModelProductTypeEnum } from '@cybrid/cybrid-api-bank-typescript';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateExternalAccountDto } from './dto/account.dto';
+import {
+  CreateExternalAccountDto,
+  InitiateFundingTransferDto,
+} from './dto/account.dto';
 
 @Injectable()
 export class AccountsService {
@@ -37,6 +41,7 @@ export class AccountsService {
     });
 
     return this.cybridService.getIdentityVerification(
+      customer.cybrid_customer_guid,
       identityVerification.guid as string
     );
   }
@@ -93,7 +98,7 @@ export class AccountsService {
 
     return this.prismaService.cybridExternalAccount.create({
       data: {
-        name: externalAccount.name ?? '',
+        name: externalAccount.name as string,
         balance: externalAccount.balances?.available ?? 0,
         cybrid_external_account_guid: externalAccount.guid as string,
         status: externalAccount.state as $Enums.CybridExternalAccountStatus,
@@ -102,5 +107,77 @@ export class AccountsService {
         },
       },
     });
+  }
+
+  async initiateFundingTransfer(
+    personId: string,
+    payload: InitiateFundingTransferDto
+  ) {
+    const cybridExternalAccount =
+      await this.prismaService.cybridExternalAccount.findFirst({
+        include: { CybridCustomer: { include: { CybridAccounts: true } } },
+        where: {
+          cybrid_external_account_id: payload.cybrid_external_account_id,
+          CybridCustomer: { person_id: personId },
+        },
+      });
+
+    if (!cybridExternalAccount) {
+      throw new NotFoundException('External bank account not found!');
+    }
+
+    const {
+      CybridCustomer: {
+        CybridAccounts: [cybridAccount],
+        ...customer
+      },
+    } = cybridExternalAccount;
+
+    const fundingTransferQuote = await this.cybridService.createQuote(
+      customer.cybrid_customer_guid,
+      PostQuoteBankModelProductTypeEnum.Funding,
+      payload.amount,
+      payload.currency
+    );
+
+    const fundingTransfer = await this.cybridService.initiateTransfer(
+      customer.cybrid_customer_guid,
+      cybridAccount.cybrid_account_guid,
+      cybridExternalAccount.cybrid_external_account_guid,
+      fundingTransferQuote.guid as string,
+      payload.transfer_type
+    );
+
+    const customerFiatAccount = await this.cybridService.getAccount(
+      customer.cybrid_customer_guid,
+      cybridAccount.cybrid_account_guid
+    );
+
+    const [cybridTransaction] = await this.prismaService.$transaction([
+      this.prismaService.cybridTransaction.create({
+        data: {
+          fees: 0,
+          initial_currency: payload.currency,
+          amount: fundingTransfer.amount as number,
+          transaction_type: $Enums.CybridTransactionType.FUNDING,
+          cybrid_transaction_guid: fundingTransfer.guid as string,
+          status: fundingTransfer.state as $Enums.CybridTransactionStatus,
+          InitiatedBy: {
+            connect: { cybrid_account_id: cybridAccount.cybrid_account_id },
+          },
+          CybridExternalAccount: {
+            connect: {
+              cybrid_external_account_id: payload.cybrid_external_account_id,
+            },
+          },
+        },
+      }),
+      this.prismaService.cybridAccount.update({
+        data: { balance: customerFiatAccount.platform_available as number },
+        where: { cybrid_account_id: cybridAccount.cybrid_account_id },
+      }),
+    ]);
+
+    return cybridTransaction;
   }
 }

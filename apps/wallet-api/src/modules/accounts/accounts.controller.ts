@@ -11,10 +11,12 @@ import { AccountsService } from './accounts.service';
 import {
   CreatedWorkFlowDto,
   CreateExternalAccountDto,
+  InitiateFundingTransferDto,
   CybridAccountEntity,
   ExternalBankAccountEntity,
   IdentityVerificationEntity,
   WorkflowEntity,
+  CybridTransactionEntity,
 } from './dto/account.dto';
 
 @ApiBearerAuth()
@@ -77,5 +79,18 @@ export class AccountsController {
       req.user?.person_id as string
     );
     return new ExternalBankAccountEntity(externalAccount);
+  }
+
+  @Post('id:/fund')
+  async initiateFundingTransfer(
+    @Req() req: Request,
+    @Body() payload: InitiateFundingTransferDto
+  ) {
+    const transaction = await this.accountsService.initiateFundingTransfer(
+      req.user?.person_id as string,
+      payload
+    );
+
+    return new CybridTransactionEntity(transaction);
   }
 }
