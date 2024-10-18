@@ -56,7 +56,7 @@ export class CybridConfiguration {
     return new ModelBankApi(
       new Configuration({
         ...this.configuration,
-        accessToken: token,
+        accessToken: `Bearer ${token}`,
       })
     ) as InstanceType<T>;
   }
@@ -73,7 +73,7 @@ export class CybridConfiguration {
     return new CustomersBankApi(
       new Configuration({
         ...this.configuration,
-        accessToken: authResp.access_token,
+        accessToken: `Bearer ${authResp.access_token}`,
       })
     );
   }
@@ -150,10 +150,10 @@ export class CybridConfiguration {
       const resp = await this.httpService.axiosRef
         .post<CybridAuthResponse>(
           process.env.CYBRID_TOKEN_ENDPOINT ||
-            `https://id.sandbox.cybrid.app/api/customer_tokens`,
+            `https://id.sandbox.cybrid.app/oauth/token`,
           {
             grant_type: 'client_credentials',
-            scope: 'customers:write customers:read',
+            scope: 'customers:write customers:execute customers:read',
           },
           {
             headers: {

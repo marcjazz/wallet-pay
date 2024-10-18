@@ -126,7 +126,7 @@ export class CybridService {
     const identityVerificationsApi = await this.cybridConfiguration.getInstance(
       IdentityVerificationsBankApi,
       customerGuid,
-      ['identity_verifications:write', 'identity_verifications:read']
+      ['identity_verifications:write', 'identity_verifications:execute']
     );
 
     const newIndentityVerficationObservable =
