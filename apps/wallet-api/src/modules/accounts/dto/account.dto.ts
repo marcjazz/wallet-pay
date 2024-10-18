@@ -57,6 +57,11 @@ export class IdentityVerificationEntity {
   @ApiProperty({ enum: CybridKycState })
   state: CybridKycState;
 
+  @ApiProperty({
+    description: 'Persona SDK link id for identity verification completion',
+  })
+  persona_inquiry_id: string;
+
   constructor(props: IdentityVerificationEntity) {
     Object.assign(this, props);
   }

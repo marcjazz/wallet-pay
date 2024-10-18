@@ -31,7 +31,7 @@ async function bootstrap() {
       .setTitle('Squoolr APIs')
       .setDescription('Detailed description of Squoolr internal APIs.')
       .setVersion('1.0')
-      .addCookieAuth(process.env.SESSION_NAME)
+      .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('docs', app, document, {

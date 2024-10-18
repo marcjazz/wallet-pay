@@ -18,6 +18,7 @@ import {
   PostTransferBankModel,
   PostTransferBankModelTransferTypeEnum,
   PostWorkflowBankModelKindEnum,
+  PostWorkflowBankModelLanguageEnum,
   PostWorkflowBankModelTypeEnum,
   QuoteBankModel,
   QuotesBankApi,
@@ -195,6 +196,8 @@ export class CybridService {
         customer_guid: customerGuid,
         type: PostWorkflowBankModelTypeEnum.Plaid,
         kind: PostWorkflowBankModelKindEnum.Create,
+        language: PostWorkflowBankModelLanguageEnum.En,
+        link_customization_name: 'Xafpay connect workflow',
       },
     });
 

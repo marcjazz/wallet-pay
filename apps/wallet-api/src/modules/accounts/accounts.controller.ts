@@ -46,11 +46,12 @@ export class AccountsController {
       state: identityVerfication.state as CybridKycState,
       customer_guid: identityVerfication.customer_guid as string,
       identity_verification_guid: identityVerfication.guid as string,
+      persona_inquiry_id: identityVerfication.persona_inquiry_id as string,
     });
   }
 
   @Post('workflows/new')
-  @ApiOkResponse({ type: ExternalBankAccountEntity })
+  @ApiOkResponse({ type: CreatedWorkFlowDto })
   @ApiOperation({
     summary: 'Connect customer external bank account by starting a flow.',
   })
@@ -61,8 +62,8 @@ export class AccountsController {
     return new CreatedWorkFlowDto(workflow);
   }
 
-  @Get('workflows/:id')
-  @ApiOkResponse({ type: ExternalBankAccountEntity })
+  @Get('workflows/:guid')
+  @ApiOkResponse({ type: WorkflowEntity })
   @ApiOperation({ summary: 'Fetch a created workflow.' })
   async getWorkflow(@Req() req: Request, @Param('id') workflowGuid: string) {
     const workflow = await this.accountsService.getWorkflow(

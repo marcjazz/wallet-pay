@@ -19,6 +19,6 @@ export class MailerService {
   }: ISendTextMail) {
     this.logger.debug('Add text-mailer job to queue...');
 
-    await this.mailerQueue.add('text-mailer', { ...payload, from });
+    this.mailerQueue.add('text-mailer', { ...payload, from });
   }
 }
