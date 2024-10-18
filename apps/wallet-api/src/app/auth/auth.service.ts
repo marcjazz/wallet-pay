@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
-  CybridAccountType,
   CybridCustomerStatus,
   CybridSupportedCurrency,
   SupportedLocalCurrency,
@@ -127,7 +126,6 @@ export class AuthService {
                 cybrid_account_guid: account.guid as string,
                 name: account.name as string,
                 balance: account.platform_available as number,
-                account_type: CybridAccountType.FIAT,
                 currency: CybridSupportedCurrency.USD,
               },
             },

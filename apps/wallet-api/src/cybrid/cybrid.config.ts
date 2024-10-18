@@ -5,6 +5,7 @@ import {
   CustomersBankApi,
   ExternalBankAccountsBankApi,
   IdentityVerificationsBankApi,
+  QuotesBankApi,
   TransfersBankApi,
   WorkflowsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
@@ -26,8 +27,8 @@ export class CybridConfiguration {
   private readonly CUSTOMER_BANK_LEVEL_TOKEN = 'customer_bank_level_token';
 
   constructor(
-    readonly configuration: Configuration,
     private readonly httpService: HttpService,
+    private readonly configuration: Configuration,
     @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
@@ -43,6 +44,7 @@ export class CybridConfiguration {
       [IdentityVerificationsBankApi.name]: IdentityVerificationsBankApi,
       [WorkflowsBankApi.name]: WorkflowsBankApi,
       [TransfersBankApi.name]: TransfersBankApi,
+      [QuotesBankApi.name]: QuotesBankApi,
     };
     const ModelBankApi = BankApiModelsMap[modelName.name];
     if (!ModelBankApi) {
