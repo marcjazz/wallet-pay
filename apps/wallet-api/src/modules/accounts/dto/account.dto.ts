@@ -147,10 +147,13 @@ export class ExternalBankAccountEntity implements CybridExternalAccount {
   }
 }
 
-export class InitiateFundingTransferDto {
+export class InitiateTransferDto {
   @IsString()
-  @ApiProperty()
-  cybrid_external_account_id: string;
+  @ApiProperty({
+    description:
+      'customer internal or external account unique identifier in our database',
+  })
+  cybrid_source_account_id: string;
 
   @IsEnum(PostTransferBankModelTransferTypeEnum)
   @ApiProperty({ enum: PostTransferBankModelTransferTypeEnum })
@@ -164,7 +167,7 @@ export class InitiateFundingTransferDto {
   @ApiProperty({ description: 'Amount in currency base unit' })
   amount: number;
 
-  constructor(props: InitiateFundingTransferDto) {
+  constructor(props: InitiateTransferDto) {
     Object.assign(this, props);
   }
 }

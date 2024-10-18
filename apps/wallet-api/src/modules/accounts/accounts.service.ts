@@ -1,11 +1,18 @@
-import { PostQuoteBankModelProductTypeEnum } from '@cybrid/cybrid-api-bank-typescript';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  PostQuoteBankModelProductTypeEnum,
+  PostTransferBankModelTransferTypeEnum,
+} from '@cybrid/cybrid-api-bank-typescript';
+import {
+  Injectable,
+  NotFoundException,
+  NotImplementedException
+} from '@nestjs/common';
 import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CreateExternalAccountDto,
-  InitiateFundingTransferDto,
+  InitiateTransferDto,
 } from './dto/account.dto';
 
 @Injectable()
@@ -109,18 +116,38 @@ export class AccountsService {
     });
   }
 
-  async initiateFundingTransfer(
+  async initiateTransfer(
     personId: string,
-    payload: InitiateFundingTransferDto
+    { transfer_type: transferType, ...payload }: InitiateTransferDto
   ) {
-    const cybridExternalAccount =
-      await this.prismaService.cybridExternalAccount.findFirst({
+    const isBookTransfer =
+      transferType == PostTransferBankModelTransferTypeEnum.Book;
+    const isFundingTransfer =
+      transferType == PostTransferBankModelTransferTypeEnum.InstantFunding ||
+      transferType == PostTransferBankModelTransferTypeEnum.Funding;
+
+    let cybridExternalAccount = null;
+    if (isBookTransfer) {
+      cybridExternalAccount = await this.prismaService.cybridAccount.findFirst({
         include: { CybridCustomer: { include: { CybridAccounts: true } } },
         where: {
-          cybrid_external_account_id: payload.cybrid_external_account_id,
+          cybrid_account_id: payload.cybrid_source_account_id,
           CybridCustomer: { person_id: personId },
         },
       });
+    } else if (isFundingTransfer) {
+      cybridExternalAccount =
+        await this.prismaService.cybridExternalAccount.findFirst({
+          include: { CybridCustomer: { include: { CybridAccounts: true } } },
+          where: {
+            cybrid_external_account_id: payload.cybrid_source_account_id,
+            CybridCustomer: { person_id: personId },
+          },
+        });
+    } else
+      throw new NotImplementedException(
+        `${transferType} transfers not implemented yet!`
+      );
 
     if (!cybridExternalAccount) {
       throw new NotFoundException('External bank account not found!');
@@ -135,7 +162,10 @@ export class AccountsService {
 
     const fundingTransferQuote = await this.cybridService.createQuote(
       customer.cybrid_customer_guid,
-      PostQuoteBankModelProductTypeEnum.Funding,
+      // adjusting product type based on our transfer type
+      isBookTransfer
+        ? PostQuoteBankModelProductTypeEnum.BookTransfer
+        : PostQuoteBankModelProductTypeEnum.Funding,
       payload.amount,
       payload.currency
     );
@@ -143,11 +173,18 @@ export class AccountsService {
     const fundingTransfer = await this.cybridService.initiateTransfer(
       customer.cybrid_customer_guid,
       {
-        transfer_type: payload.transfer_type,
+        transfer_type: transferType,
         quote_guid: fundingTransferQuote.guid as string,
-        fiat_account_guid: cybridAccount.cybrid_account_guid,
-        external_bank_account_guid:
-          cybridExternalAccount.cybrid_external_account_guid,
+        // adjusting transfer payload accordingly
+        ...(isBookTransfer
+          ? {
+              source_account_guid: payload.cybrid_source_account_id,
+              destination_account_guid: process.env.CYBRID_BANK_ACCOUNT_ID,
+            }
+          : {
+              fiat_account_guid: cybridAccount.cybrid_account_guid,
+              external_bank_account_guid: payload.cybrid_source_account_id,
+            }),
       }
     );
 
@@ -168,11 +205,23 @@ export class AccountsService {
           InitiatedBy: {
             connect: { cybrid_account_id: cybridAccount.cybrid_account_id },
           },
-          CybridExternalAccount: {
-            connect: {
-              cybrid_external_account_id: payload.cybrid_external_account_id,
-            },
-          },
+          // adjusting our database transaction payload accordingly
+          ...(isBookTransfer
+            ? {
+                CybridAccount: {
+                  connect: {
+                    cybrid_account_id: payload.cybrid_source_account_id,
+                  },
+                },
+              }
+            : {
+                CybridExternalAccount: {
+                  connect: {
+                    cybrid_external_account_id:
+                      payload.cybrid_source_account_id,
+                  },
+                },
+              }),
         },
       }),
       this.prismaService.cybridAccount.update({

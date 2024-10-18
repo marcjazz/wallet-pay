@@ -16,6 +16,7 @@ import {
   PostIdentityVerificationBankModelTypeEnum,
   PostQuoteBankModelProductTypeEnum,
   PostTransferBankModel,
+  PostTransferBankModelTransferTypeEnum,
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelTypeEnum,
   QuoteBankModel,
@@ -322,6 +323,10 @@ export class CybridService {
         product_type,
         customer_guid: customerGuid,
         receive_amount: amount,
+        side:
+          product_type == PostQuoteBankModelProductTypeEnum.Funding
+            ? 'deposit'
+            : undefined,
       },
     });
 
@@ -343,11 +348,17 @@ export class CybridService {
 
     return new Promise<TransferBankModel>((resolve) =>
       transfersObservable.subscribe((transfer) => {
-        this.cybridQueue.add(
-          cybridJobs.PULLING_CYBRID_TRANSFER,
-          [customerGuid, payload.fiat_account_guid, transfer.guid],
-          { backoff: { type: 'exponential', delay: 3000 } } // should be set to 24 hour in production
-        );
+        // Book transfers are nearly instant and there by don't need to be pulled
+        if (
+          payload.transfer_type != PostTransferBankModelTransferTypeEnum.Book
+        ) {
+          this.cybridQueue.add(
+            cybridJobs.PULLING_CYBRID_TRANSFER,
+            [customerGuid, payload.fiat_account_guid, transfer.guid],
+            { backoff: { type: 'exponential', delay: 3000 } } // should be set to 24 hour in production
+          );
+        }
+
         resolve(transfer);
       })
     );

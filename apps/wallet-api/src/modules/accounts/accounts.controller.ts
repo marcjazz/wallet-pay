@@ -11,7 +11,7 @@ import { AccountsService } from './accounts.service';
 import {
   CreatedWorkFlowDto,
   CreateExternalAccountDto,
-  InitiateFundingTransferDto,
+  InitiateTransferDto,
   CybridAccountEntity,
   ExternalBankAccountEntity,
   IdentityVerificationEntity,
@@ -50,6 +50,10 @@ export class AccountsController {
   }
 
   @Post('workflows/new')
+  @ApiOkResponse({ type: ExternalBankAccountEntity })
+  @ApiOperation({
+    summary: 'Connect customer external bank account by starting a flow.',
+  })
   async createWorkflow(@Req() req: Request) {
     const workflow = await this.accountsService.createWorkflow(
       req.user?.person_id as string
@@ -57,7 +61,9 @@ export class AccountsController {
     return new CreatedWorkFlowDto(workflow);
   }
 
-  @Post('workflows/:id')
+  @Get('workflows/:id')
+  @ApiOkResponse({ type: ExternalBankAccountEntity })
+  @ApiOperation({ summary: 'Fetch a created workflow.' })
   async getWorkflow(@Req() req: Request, @Param('id') workflowGuid: string) {
     const workflow = await this.accountsService.getWorkflow(
       req.user?.person_id as string,
@@ -68,7 +74,7 @@ export class AccountsController {
   }
 
   @Patch('new-external-account')
-  @ApiOkResponse({ type: IdentityVerificationEntity })
+  @ApiOkResponse({ type: ExternalBankAccountEntity })
   @ApiOperation({ summary: 'Initialize KYC process on a user account' })
   async startExternalPlaidLink(
     @Req() req: Request,
@@ -81,12 +87,18 @@ export class AccountsController {
     return new ExternalBankAccountEntity(externalAccount);
   }
 
-  @Post('id:/fund')
-  async initiateFundingTransfer(
+  @Post(':id/initiate-transfer')
+  @ApiOkResponse({ type: CybridTransactionEntity })
+  @ApiOperation({
+    summary: 'Initialize a transfer on a given account.',
+    description:
+      'Initialize a transfer on a given account. Only book, funding or instant funding are currently supported',
+  })
+  async initiateTransfer(
     @Req() req: Request,
-    @Body() payload: InitiateFundingTransferDto
+    @Body() payload: InitiateTransferDto
   ) {
-    const transaction = await this.accountsService.initiateFundingTransfer(
+    const transaction = await this.accountsService.initiateTransfer(
       req.user?.person_id as string,
       payload
     );
