@@ -15,7 +15,7 @@ import {
   PostIdentityVerificationBankModelMethodEnum,
   PostIdentityVerificationBankModelTypeEnum,
   PostQuoteBankModelProductTypeEnum,
-  PostTransferBankModelTransferTypeEnum,
+  PostTransferBankModel,
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelTypeEnum,
   QuoteBankModel,
@@ -330,13 +330,7 @@ export class CybridService {
     );
   }
 
-  async initiateTransfer(
-    customerGuid: string,
-    accountGuid: string,
-    externalBankAccountGuid: string,
-    quoteGuid: string,
-    transfer_type: PostTransferBankModelTransferTypeEnum
-  ) {
+  async initiateTransfer(customerGuid: string, payload: PostTransferBankModel) {
     const transfersBankApi = await this.cybridConfiguration.getInstance(
       TransfersBankApi,
       customerGuid,
@@ -344,19 +338,14 @@ export class CybridService {
     );
 
     const transfersObservable = transfersBankApi.createTransfer({
-      postTransferBankModel: {
-        transfer_type,
-        quote_guid: quoteGuid,
-        fiat_account_guid: accountGuid,
-        external_bank_account_guid: externalBankAccountGuid,
-      },
+      postTransferBankModel: payload,
     });
 
     return new Promise<TransferBankModel>((resolve) =>
       transfersObservable.subscribe((transfer) => {
         this.cybridQueue.add(
           cybridJobs.PULLING_CYBRID_TRANSFER,
-          [customerGuid, accountGuid, transfer.guid],
+          [customerGuid, payload.fiat_account_guid, transfer.guid],
           { backoff: { type: 'exponential', delay: 3000 } } // should be set to 24 hour in production
         );
         resolve(transfer);

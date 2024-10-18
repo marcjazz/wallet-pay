@@ -142,10 +142,13 @@ export class AccountsService {
 
     const fundingTransfer = await this.cybridService.initiateTransfer(
       customer.cybrid_customer_guid,
-      cybridAccount.cybrid_account_guid,
-      cybridExternalAccount.cybrid_external_account_guid,
-      fundingTransferQuote.guid as string,
-      payload.transfer_type
+      {
+        transfer_type: payload.transfer_type,
+        quote_guid: fundingTransferQuote.guid as string,
+        fiat_account_guid: cybridAccount.cybrid_account_guid,
+        external_bank_account_guid:
+          cybridExternalAccount.cybrid_external_account_guid,
+      }
     );
 
     const customerFiatAccount = await this.cybridService.getAccount(
