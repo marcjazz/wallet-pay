@@ -3,6 +3,7 @@ import {
   AccountListBankModel,
   AccountsBankApi,
   CustomerBankModel,
+  CustomerListBankModel,
   ExternalBankAccountBankModel,
   ExternalBankAccountListBankModel,
   ExternalBankAccountsBankApi,
@@ -47,7 +48,9 @@ export class CybridService {
   async getCustomers() {
     const customersBankApi = await this.cybridConfiguration.getCustomersApi();
     const observable = customersBankApi.listCustomers({});
-    return new Promise((resolve) => observable.subscribe(resolve));
+    return new Promise<CustomerListBankModel>((next, error) =>
+      observable.subscribe({ next, error })
+    );
   }
 
   async getCustomer(guid: string) {
@@ -58,8 +61,8 @@ export class CybridService {
     const observable = customersBankApi.getCustomer({
       customerGuid: guid,
     });
-    return new Promise<CustomerBankModel>((resolve) =>
-      observable.subscribe(resolve)
+    return new Promise<CustomerBankModel>((next, error) =>
+      observable.subscribe({ next, error })
     );
   }
 
@@ -71,35 +74,38 @@ export class CybridService {
     const newCustomerObservable = customersBankApi.createCustomer({
       postCustomerBankModel: { type: PostCustomerBankModelTypeEnum.Individual },
     });
-    return new Promise<NewCybridCustomerType>((resolve) => {
-      return newCustomerObservable.subscribe(async (customer) => {
-        // Pulling customer creation status from cybrid to update database
-        this.cybridQueue.add(
-          cybridJobs.PULLING_CYBRID_CUSTOMER,
-          customer.guid,
-          { backoff: { type: 'exponential', delay: 3000 } }
-        );
+    return new Promise<NewCybridCustomerType>((resolve, error) => {
+      return newCustomerObservable.subscribe({
+        error,
+        next: async (customer) => {
+          // Pulling customer creation status from cybrid to update database
+          this.cybridQueue.add(
+            cybridJobs.PULLING_CYBRID_CUSTOMER,
+            customer.guid,
+            { backoff: { type: 'exponential', delay: 3000 } }
+          );
 
-        const accountsBankApi = await this.cybridConfiguration.getInstance(
-          AccountsBankApi,
-          customer.guid as string,
-          ['accounts:execute', 'accounts:read']
-        );
+          const accountsBankApi = await this.cybridConfiguration.getInstance(
+            AccountsBankApi,
+            customer.guid as string,
+            ['accounts:execute', 'accounts:read']
+          );
 
-        const newAccountObservable = accountsBankApi.createAccount({
-          postAccountBankModel: {
-            asset,
-            name: `${asset} Account`,
-            customer_guid: customer.guid,
-            type: PostAccountBankModelTypeEnum.Fiat,
-          },
-        });
+          const newAccountObservable = accountsBankApi.createAccount({
+            postAccountBankModel: {
+              asset,
+              name: `${asset} Account`,
+              customer_guid: customer.guid,
+              type: PostAccountBankModelTypeEnum.Fiat,
+            },
+          });
 
-        const account = await new Promise<AccountBankModel>((resolve) =>
-          newAccountObservable.subscribe(resolve)
-        );
+          const account = await new Promise<AccountBankModel>((next, error) =>
+            newAccountObservable.subscribe({ next, error })
+          );
 
-        resolve({ account, customer });
+          resolve({ account, customer });
+        },
       });
     });
   }
@@ -118,8 +124,9 @@ export class CybridService {
       identityVerificationsApi.getIdentityVerification({
         identityVerificationGuid,
       });
-    return new Promise<IdentityVerificationWithDetailsBankModel>((resolve) =>
-      getIdentityVerificationObservable.subscribe(resolve)
+    return new Promise<IdentityVerificationWithDetailsBankModel>(
+      (next, error) =>
+        getIdentityVerificationObservable.subscribe({ next, error })
     );
   }
 
@@ -139,8 +146,8 @@ export class CybridService {
         },
       });
     const identityVerfication =
-      await new Promise<IdentityVerificationBankModel>((resolve) =>
-        newIndentityVerficationObservable.subscribe(resolve)
+      await new Promise<IdentityVerificationBankModel>((next, error) =>
+        newIndentityVerficationObservable.subscribe({ next, error })
       );
 
     // Pulling identity verification status from cybrid to update database
@@ -163,8 +170,8 @@ export class CybridService {
 
     const accountObservable = accountsBankApi.getAccount({ accountGuid });
 
-    return new Promise<AccountBankModel>((resolve) =>
-      accountObservable.subscribe(resolve)
+    return new Promise<AccountBankModel>((next, error) =>
+      accountObservable.subscribe({ next, error })
     );
   }
 
@@ -180,8 +187,8 @@ export class CybridService {
       type: PostAccountBankModelTypeEnum.Fiat,
     });
 
-    return new Promise<AccountListBankModel>((resolve) =>
-      accountObservable.subscribe(resolve)
+    return new Promise<AccountListBankModel>((next, error) =>
+      accountObservable.subscribe({ next, error })
     );
   }
 
@@ -201,8 +208,8 @@ export class CybridService {
       },
     });
 
-    return new Promise<WorkflowBankModel>((resolve) =>
-      workflowObservable.subscribe(resolve)
+    return new Promise<WorkflowBankModel>((next, error) =>
+      workflowObservable.subscribe({ next, error })
     );
   }
 
@@ -215,8 +222,8 @@ export class CybridService {
     const workflowObservable = workflowsBankApi.getWorkflow({
       workflowGuid,
     });
-    return new Promise<WorkflowWithDetailsBankModel>((resolve) =>
-      workflowObservable.subscribe(resolve)
+    return new Promise<WorkflowWithDetailsBankModel>((next, error) =>
+      workflowObservable.subscribe({ next, error })
     );
   }
 
@@ -242,35 +249,39 @@ export class CybridService {
           account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
         },
       });
-    return new Promise<ExternalBankAccountBankModel>((resolve) => {
-      externalBankAccountObservable.subscribe(async (externalAccount) => {
-        const identityVerificationsApi =
-          await this.cybridConfiguration.getInstance(
-            IdentityVerificationsBankApi,
-            customerGuid,
-            ['identity_verifications:write']
-          );
+    return new Promise<ExternalBankAccountBankModel>((resolve, error) =>
+      externalBankAccountObservable.subscribe({
+        error,
+        next: async (externalAccount) => {
+          const identityVerificationsApi =
+            await this.cybridConfiguration.getInstance(
+              IdentityVerificationsBankApi,
+              customerGuid,
+              ['identity_verifications:write']
+            );
 
-        const identityVerificationObservable =
-          identityVerificationsApi.createIdentityVerification({
-            postIdentityVerificationBankModel: {
-              type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
-              method:
-                PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
-              customer_guid: customerGuid,
-              external_bank_account_guid: externalAccount.guid,
-            },
+          const identityVerificationObservable =
+            identityVerificationsApi.createIdentityVerification({
+              postIdentityVerificationBankModel: {
+                type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
+                method:
+                  PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
+                customer_guid: customerGuid,
+                external_bank_account_guid: externalAccount.guid,
+              },
+            });
+
+          identityVerificationObservable.subscribe((identityVerfication) => {
+            this.cybridQueue.add(
+              cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
+              [customerGuid, identityVerfication.guid],
+              { backoff: { type: 'exponential', delay: 3000 } }
+            );
           });
-        identityVerificationObservable.subscribe((identityVerfication) => {
-          this.cybridQueue.add(
-            cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
-            [customerGuid, identityVerfication.guid],
-            { backoff: { type: 'exponential', delay: 3000 } }
-          );
-        });
-        resolve(externalAccount);
-      });
-    });
+          resolve(externalAccount);
+        },
+      })
+    );
   }
 
   async getExternalBankAccount(
@@ -287,8 +298,8 @@ export class CybridService {
       externalBankAccountsApi.getExternalBankAccount({
         externalBankAccountGuid,
       });
-    return new Promise<ExternalBankAccountBankModel>((resolve) =>
-      externalBankAccountObservable.subscribe(resolve)
+    return new Promise<ExternalBankAccountBankModel>((next, error) =>
+      externalBankAccountObservable.subscribe({ next, error })
     );
   }
 
@@ -303,8 +314,8 @@ export class CybridService {
       externalBankAccountsApi.listExternalBankAccounts({
         customerGuid,
       });
-    return new Promise<ExternalBankAccountListBankModel>((resolve) =>
-      externalBankAccountObservable.subscribe(resolve)
+    return new Promise<ExternalBankAccountListBankModel>((next, error) =>
+      externalBankAccountObservable.subscribe({ next, error })
     );
   }
 
@@ -333,8 +344,8 @@ export class CybridService {
       },
     });
 
-    return new Promise<QuoteBankModel>((resolve) =>
-      quotesBankObservable.subscribe(resolve)
+    return new Promise<QuoteBankModel>((next, error) =>
+      quotesBankObservable.subscribe({ next, error })
     );
   }
 
@@ -349,20 +360,23 @@ export class CybridService {
       postTransferBankModel: payload,
     });
 
-    return new Promise<TransferBankModel>((resolve) =>
-      transfersObservable.subscribe((transfer) => {
-        // Book transfers are nearly instant and there by don't need to be pulled
-        if (
-          payload.transfer_type != PostTransferBankModelTransferTypeEnum.Book
-        ) {
-          this.cybridQueue.add(
-            cybridJobs.PULLING_CYBRID_TRANSFER,
-            [customerGuid, payload.fiat_account_guid, transfer.guid],
-            { backoff: { type: 'exponential', delay: 3000 } } // should be set to 24 hour in production
-          );
-        }
+    return new Promise<TransferBankModel>((resolve, error) =>
+      transfersObservable.subscribe({
+        error,
+        next: (transfer) => {
+          // Book transfers are nearly instant and there by don't need to be pulled
+          if (
+            payload.transfer_type != PostTransferBankModelTransferTypeEnum.Book
+          ) {
+            this.cybridQueue.add(
+              cybridJobs.PULLING_CYBRID_TRANSFER,
+              [customerGuid, payload.fiat_account_guid, transfer.guid],
+              { backoff: { type: 'exponential', delay: 3000 } } // should be set to 24 hour in production
+            );
+          }
 
-        resolve(transfer);
+          resolve(transfer);
+        },
       })
     );
   }
@@ -378,8 +392,8 @@ export class CybridService {
       transferGuid,
     });
 
-    return new Promise<TransferBankModel>((resolve) =>
-      transfersObservable.subscribe(resolve)
+    return new Promise<TransferBankModel>((next, error) =>
+      transfersObservable.subscribe({ next, error })
     );
   }
 }

@@ -5,7 +5,7 @@ import {
 import {
   Injectable,
   NotFoundException,
-  NotImplementedException
+  NotImplementedException,
 } from '@nestjs/common';
 import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
