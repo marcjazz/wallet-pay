@@ -8,6 +8,7 @@ import {
   IsDateString,
   IsEmail,
   IsEnum,
+  IsJWT,
   IsNumberString,
   IsOptional,
   IsPhoneNumber,
@@ -138,13 +139,21 @@ export class VerifyOtpDto {
 }
 
 export class AuthTokensDto {
+  @IsJWT()
   @IsString()
+  @ApiProperty()
   access_token: string;
 
+  @IsJWT()
   @IsString()
+  @ApiProperty()
   refresh_token: string;
 
   constructor(props: AuthTokensDto) {
     Object.assign(this, props);
   }
 }
+
+export class RefreshTokenDto extends PickType(AuthTokensDto, [
+  'refresh_token',
+]) {}

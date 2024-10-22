@@ -27,6 +27,7 @@ import { RoleEnum, SkipAuth } from './auth.decorator';
 import {
   AuthTokensDto,
   ForgotPasswordDto,
+  RefreshTokenDto,
   ResetPasswordDto,
   SignInDto,
   SignUpDto,
@@ -108,5 +109,16 @@ export class AuthController {
   @ApiNoContentResponse()
   async resetPassword(@Body() payload: ResetPasswordDto) {
     await this.authService.resetPassword(payload);
+  }
+
+  @Post('refresh-token')
+  @ApiOperation({
+    summary: 'Request for new access token.',
+  })
+  @ApiCreatedResponse({ type: AuthTokensDto })
+  async requestAccessToken(
+    @Body() payload: RefreshTokenDto
+  ): Promise<AuthTokensDto> {
+    return await this.authService.refreshAuthTokens(payload.refresh_token);
   }
 }

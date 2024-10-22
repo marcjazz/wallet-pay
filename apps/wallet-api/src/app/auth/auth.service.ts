@@ -52,7 +52,10 @@ export class AuthService {
       this.logger.debug(`Authenticating user from origin ${subdomain}...`);
 
       const personHasRole = await this.prismaService.personHasRole.findFirst({
-        where: { Role: { subdomain }, person_id: person.person_id },
+        where: {
+          // Role: { subdomain },
+          person_id: person.person_id,
+        },
       });
 
       if (subdomain && personHasRole?.is_active) {
@@ -97,6 +100,7 @@ export class AuthService {
       },
       data: {
         ...payload,
+        birthdate: new Date(payload.birthdate),
         password: bcrypt.hashSync(
           password,
           bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS))
@@ -119,7 +123,7 @@ export class AuthService {
         CybridCustomers: {
           create: {
             country,
-            status: customer.state as CybridCustomerStatus,
+            status: customer.state?.toLocaleUpperCase() as CybridCustomerStatus,
             cybrid_customer_guid: customer.guid as string,
             CybridAccounts: {
               create: {
@@ -154,23 +158,23 @@ export class AuthService {
 
       this.logger.debug(`Successfully sent requested otp user!`);
     }
-    return this.generateTokens(user);
+    return this.generateTokens(user.id);
   }
 
-  private async generateTokens(user: Express.User) {
+  private async generateTokens(userId: string) {
     const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: AuthService.REFRESH_TOKEN_TYPE },
+      { sub: userId, type: AuthService.REFRESH_TOKEN_TYPE },
       { expiresIn: '7d' }
     );
     const accessToken = this.jwtService.sign(
-      { sub: user.id, type: AuthService.ACCESS_TOKEN_TYPE },
+      { sub: userId, type: AuthService.ACCESS_TOKEN_TYPE },
       { expiresIn: '1h' }
     );
 
     await this.prismaService.log.create({
       data: {
         refresh_token: refreshToken,
-        PersonHasRole: { connect: { person_has_role_id: user.id } },
+        PersonHasRole: { connect: { person_has_role_id: userId } },
       },
     });
     return new AuthTokensDto({
@@ -179,7 +183,7 @@ export class AuthService {
     });
   }
 
-  async validateToken(
+  async validateJwtPayload(
     payload: IJWTPayload,
     type: TokenType = AuthService.ACCESS_TOKEN_TYPE
   ): Promise<Express.User> {
@@ -268,5 +272,36 @@ export class AuthService {
       },
       where: { email: personAudit.email },
     });
+  }
+
+  async refreshAuthTokens(refreshToken: string) {
+    let payload: IJWTPayload;
+    const type = AuthService.REFRESH_TOKEN_TYPE;
+
+    try {
+      payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_SECRET,
+      });
+    } catch (error) {
+      throw new ForbiddenException(
+        `Error validating token (type: ${type}): ${error.message}`
+      );
+    }
+
+    // find lastest log
+    const log = await this.prismaService.log.findFirst({
+      orderBy: { login_at: 'desc' },
+      where: {
+        logout_at: null,
+        person_has_role_id: payload.sub,
+      },
+    });
+
+    if (!log) {
+      throw new NotFoundException('Invalid token payload!');
+    }
+
+    // Generate new tokens
+    return this.generateTokens(payload.sub);
   }
 }
