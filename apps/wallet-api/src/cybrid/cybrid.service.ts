@@ -244,15 +244,17 @@ export class CybridService {
           customer_guid: customerGuid,
         },
       });
-    return new Promise<ExternalBankAccountBankModel>((resolve, error) =>
+    return new Promise<
+      [ExternalBankAccountBankModel, IdentityVerificationBankModel]
+    >((resolve, error) =>
       externalBankAccountObservable.subscribe({
         error,
         next: async (externalAccount) => {
-          await this.verifyExternalAccount(
+          const identityVerfication = await this.verifyExternalAccount(
             customerGuid,
             externalAccount.guid as string
           );
-          resolve(externalAccount);
+          resolve([externalAccount, identityVerfication]);
         },
       })
     );
@@ -278,13 +280,20 @@ export class CybridService {
         },
       });
 
-    identityVerificationObservable.subscribe((identityVerfication) => {
-      this.cybridQueue.add(
-        cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
-        [customerGuid, identityVerfication.guid],
-        { backoff: { type: 'exponential', delay: 3000 } }
-      );
-    });
+    return new Promise<IdentityVerificationBankModel>((resolve, error) =>
+      identityVerificationObservable.subscribe({
+        error,
+        next: (identityVerfication) => {
+          this.cybridQueue.add(
+            cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
+            [customerGuid, identityVerfication.guid],
+            { backoff: { type: 'exponential', delay: 3000 } }
+          );
+
+          resolve(identityVerfication);
+        },
+      })
+    );
   }
 
   async getExternalBankAccount(
