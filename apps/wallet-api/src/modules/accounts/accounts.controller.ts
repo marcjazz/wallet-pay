@@ -19,6 +19,7 @@ import {
   WorkflowEntity,
   CybridTransactionEntity,
   CreateWorkflowDto,
+  CybridExternalAccountEntity,
 } from './dto/account.dto';
 
 @ApiBearerAuth()
@@ -34,6 +35,15 @@ export class AccountsController {
       request.user?.person_id as string
     );
     return accounts.map((account) => new CybridAccountEntity(account));
+  }
+
+  @Get("externals")
+  @ApiOkResponse({ type: [CybridAccountEntity] })
+  async findAllExternals(@Req() request: Request) {
+    const accounts = await this.accountsService.findExternalAccounts(
+      request.user?.person_id as string
+    );
+    return accounts.map((account) => new CybridExternalAccountEntity(account));
   }
 
   @Patch(':id/verify')
