@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -17,6 +18,7 @@ import {
   IdentityVerificationEntity,
   WorkflowEntity,
   CybridTransactionEntity,
+  CreateWorkflowDto,
 } from './dto/account.dto';
 
 @ApiBearerAuth()
@@ -47,17 +49,22 @@ export class AccountsController {
       customer_guid: identityVerfication.customer_guid as string,
       identity_verification_guid: identityVerfication.guid as string,
       persona_inquiry_id: identityVerfication.persona_inquiry_id as string,
+      persona_hosted_link: `https://withpersona.com/verify?inquiry-id=${identityVerfication.persona_inquiry_id}`,
     });
   }
 
   @Post('workflows/new')
-  @ApiOkResponse({ type: CreatedWorkFlowDto })
+  @ApiCreatedResponse({ type: CreatedWorkFlowDto })
   @ApiOperation({
     summary: 'Connect customer external bank account by starting a flow.',
   })
-  async createWorkflow(@Req() req: Request) {
+  async createWorkflow(
+    @Req() req: Request,
+    @Body() createWorkflowDto: CreateWorkflowDto
+  ) {
     const workflow = await this.accountsService.createWorkflow(
-      req.user?.person_id as string
+      req.user?.person_id as string,
+      createWorkflowDto.redirect_uri
     );
     return new CreatedWorkFlowDto(workflow);
   }
@@ -65,7 +72,7 @@ export class AccountsController {
   @Get('workflows/:guid')
   @ApiOkResponse({ type: WorkflowEntity })
   @ApiOperation({ summary: 'Fetch a created workflow.' })
-  async getWorkflow(@Req() req: Request, @Param('id') workflowGuid: string) {
+  async getWorkflow(@Req() req: Request, @Param('guid') workflowGuid: string) {
     const workflow = await this.accountsService.getWorkflow(
       req.user?.person_id as string,
       workflowGuid
@@ -74,8 +81,8 @@ export class AccountsController {
     return new WorkflowEntity(workflow);
   }
 
-  @Patch('new-external-account')
-  @ApiOkResponse({ type: ExternalBankAccountEntity })
+  @Post('new-external-account')
+  @ApiCreatedResponse({ type: ExternalBankAccountEntity })
   @ApiOperation({ summary: 'Initialize KYC process on a user account' })
   async startExternalPlaidLink(
     @Req() req: Request,
@@ -89,7 +96,7 @@ export class AccountsController {
   }
 
   @Post(':id/initiate-transfer')
-  @ApiOkResponse({ type: CybridTransactionEntity })
+  @ApiCreatedResponse({ type: CybridTransactionEntity })
   @ApiOperation({
     summary: 'Initialize a transfer on a given account.',
     description:

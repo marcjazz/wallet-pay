@@ -12,7 +12,7 @@ import {
   IdentityVerificationWithDetailsBankModel,
   PostAccountBankModelTypeEnum,
   PostCustomerBankModelTypeEnum,
-  PostExternalBankAccountBankModelAccountKindEnum,
+  PostExternalBankAccountBankModel,
   PostIdentityVerificationBankModelMethodEnum,
   PostIdentityVerificationBankModelTypeEnum,
   PostQuoteBankModelProductTypeEnum,
@@ -88,7 +88,7 @@ export class CybridService {
           const accountsBankApi = await this.cybridConfiguration.getInstance(
             AccountsBankApi,
             customer.guid as string,
-            ['accounts:execute', 'accounts:read']
+            ['accounts:execute']
           );
 
           const newAccountObservable = accountsBankApi.createAccount({
@@ -134,7 +134,7 @@ export class CybridService {
     const identityVerificationsApi = await this.cybridConfiguration.getInstance(
       IdentityVerificationsBankApi,
       customerGuid,
-      ['identity_verifications:write', 'identity_verifications:execute']
+      ['identity_verifications:execute']
     );
 
     const newIndentityVerficationObservable =
@@ -192,7 +192,7 @@ export class CybridService {
     );
   }
 
-  async createWorkflow(customerGuid: string) {
+  async createWorkflow(customerGuid: string, redirectUri?: string) {
     const workflowsBankApi = await this.cybridConfiguration.getInstance(
       WorkflowsBankApi,
       customerGuid,
@@ -200,11 +200,12 @@ export class CybridService {
     );
     const workflowObservable = workflowsBankApi.createWorkflow({
       postWorkflowBankModel: {
+        redirect_uri: redirectUri,
         customer_guid: customerGuid,
         type: PostWorkflowBankModelTypeEnum.Plaid,
         kind: PostWorkflowBankModelKindEnum.Create,
         language: PostWorkflowBankModelLanguageEnum.En,
-        link_customization_name: 'Xafpay connect workflow',
+        link_customization_name: 'default',
       },
     });
 
@@ -229,59 +230,61 @@ export class CybridService {
 
   async createExternalBankAccount(
     customerGuid: string,
-    plaidAccountId: string,
-    plaidPublicToken: string,
-    asset: CybridSupportedCurrency
+    payload: PostExternalBankAccountBankModel
   ) {
     const externalBankAccountsApi = await this.cybridConfiguration.getInstance(
       ExternalBankAccountsBankApi,
       customerGuid,
-      ['external_bank_accounts:write']
+      ['external_bank_accounts:execute']
     );
     const externalBankAccountObservable =
       externalBankAccountsApi.createExternalBankAccount({
         postExternalBankAccountBankModel: {
-          asset,
+          ...payload,
           customer_guid: customerGuid,
-          name: `${asset} Funding Account`,
-          plaid_account_id: plaidAccountId,
-          plaid_public_token: plaidPublicToken,
-          account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
         },
       });
     return new Promise<ExternalBankAccountBankModel>((resolve, error) =>
       externalBankAccountObservable.subscribe({
         error,
         next: async (externalAccount) => {
-          const identityVerificationsApi =
-            await this.cybridConfiguration.getInstance(
-              IdentityVerificationsBankApi,
-              customerGuid,
-              ['identity_verifications:write']
-            );
-
-          const identityVerificationObservable =
-            identityVerificationsApi.createIdentityVerification({
-              postIdentityVerificationBankModel: {
-                type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
-                method:
-                  PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
-                customer_guid: customerGuid,
-                external_bank_account_guid: externalAccount.guid,
-              },
-            });
-
-          identityVerificationObservable.subscribe((identityVerfication) => {
-            this.cybridQueue.add(
-              cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
-              [customerGuid, identityVerfication.guid],
-              { backoff: { type: 'exponential', delay: 3000 } }
-            );
-          });
+          await this.verifyExternalAccount(
+            customerGuid,
+            externalAccount.guid as string
+          );
           resolve(externalAccount);
         },
       })
     );
+  }
+
+  async verifyExternalAccount(
+    customerGuid: string,
+    externalBankAccountGuid: string
+  ) {
+    const identityVerificationsApi = await this.cybridConfiguration.getInstance(
+      IdentityVerificationsBankApi,
+      customerGuid,
+      ['identity_verifications:execute']
+    );
+
+    const identityVerificationObservable =
+      identityVerificationsApi.createIdentityVerification({
+        postIdentityVerificationBankModel: {
+          type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
+          method: PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
+          customer_guid: customerGuid,
+          external_bank_account_guid: externalBankAccountGuid,
+        },
+      });
+
+    identityVerificationObservable.subscribe((identityVerfication) => {
+      this.cybridQueue.add(
+        cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
+        [customerGuid, identityVerfication.guid],
+        { backoff: { type: 'exponential', delay: 3000 } }
+      );
+    });
   }
 
   async getExternalBankAccount(
@@ -357,7 +360,7 @@ export class CybridService {
     );
 
     const transfersObservable = transfersBankApi.createTransfer({
-      postTransferBankModel: payload,
+      postTransferBankModel: { ...payload, customer_guid: customerGuid },
     });
 
     return new Promise<TransferBankModel>((resolve, error) =>

@@ -9,7 +9,7 @@ import {
   CybridExternalAccount,
   CybridTransaction,
 } from '@prisma/client';
-import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { CybridKycState } from '../../../types/cybrid/enums';
 import { Exclude } from 'class-transformer';
 
@@ -58,9 +58,14 @@ export class IdentityVerificationEntity {
   state: CybridKycState;
 
   @ApiProperty({
-    description: 'Persona SDK link id for identity verification completion',
+    description: 'Persona inquiry id for identity verification completion',
   })
   persona_inquiry_id: string;
+
+  @ApiProperty({
+    description: 'Persona hosted link for identity verification completion',
+  })
+  persona_hosted_link: string;
 
   constructor(props: IdentityVerificationEntity) {
     Object.assign(this, props);
@@ -108,16 +113,23 @@ export class WorkflowEntity extends CreatedWorkFlowDto {
 }
 
 export class CreateExternalAccountDto {
+  @IsString()
   @ApiProperty()
-  plaid_link_token: string;
+  plaid_public_token: string;
 
+  @IsString()
   @ApiProperty()
   plaid_account_id: string;
 
+  @IsString()
+  @ApiProperty()
+  plaid_account_mask: string;
+
+  @IsEnum($Enums.CybridSupportedCurrency)
   @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
   currency: $Enums.CybridSupportedCurrency;
 
-  constructor(props: CreatedWorkFlowDto) {
+  constructor(props: CreateExternalAccountDto) {
     Object.assign(this, props);
   }
 }
@@ -134,6 +146,9 @@ export class ExternalBankAccountEntity implements CybridExternalAccount {
 
   @ApiProperty()
   balance: number;
+
+  @ApiProperty({ nullable: true })
+  mask: string | null;
 
   @ApiProperty({ enum: $Enums.CybridExternalAccountStatus })
   status: $Enums.CybridExternalAccountStatus;
@@ -230,6 +245,20 @@ export class CybridTransactionEntity implements CybridTransaction {
   initiated_by: string;
 
   constructor(props: CybridTransactionEntity) {
+    Object.assign(this, props);
+  }
+}
+
+export class CreateWorkflowDto {
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description:
+      'The redirect URI for Plaid link. Optional when type is plaid.',
+  })
+  redirect_uri?: string;
+
+  constructor(props: CreateWorkflowDto) {
     Object.assign(this, props);
   }
 }

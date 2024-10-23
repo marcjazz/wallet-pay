@@ -1,4 +1,5 @@
 import {
+  PostExternalBankAccountBankModelAccountKindEnum,
   PostQuoteBankModelProductTypeEnum,
   PostTransferBankModelTransferTypeEnum,
 } from '@cybrid/cybrid-api-bank-typescript';
@@ -42,8 +43,21 @@ export class AccountsService {
         customer.cybrid_customer_guid
       );
 
-    await this.prismaService.cybridCustomer.updateMany({
-      data: { identity_verification_guid: identityVerification.guid },
+    const verificationPayload = {
+      identity_verification_guid: identityVerification.guid,
+      verification_status:
+        identityVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
+    };
+    await this.prismaService.cybridCustomer.update({
+      data: {
+        ...verificationPayload,
+        CybridAccounts: {
+          updateMany: {
+            data: verificationPayload,
+            where: { cybrid_customer_id: customer.cybrid_customer_id },
+          },
+        },
+      },
       where: { cybrid_customer_id: customer.cybrid_customer_id },
     });
 
@@ -61,14 +75,17 @@ export class AccountsService {
     return cybridCustomers;
   }
 
-  async createWorkflow(personId: string) {
+  async createWorkflow(personId: string, redirectUri?: string) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
       where: { person_id: personId },
     });
     if (!customer) {
       throw new NotFoundException('Customer not found!');
     }
-    return this.cybridService.createWorkflow(customer.cybrid_customer_guid);
+    return this.cybridService.createWorkflow(
+      customer.cybrid_customer_guid,
+      redirectUri
+    );
   }
 
   async getWorkflow(personId: string, workflowGuid: string) {
@@ -86,7 +103,12 @@ export class AccountsService {
   }
 
   async createExternalAccount(
-    payload: CreateExternalAccountDto,
+    {
+      currency: asset,
+      plaid_account_mask,
+      plaid_account_id,
+      plaid_public_token,
+    }: CreateExternalAccountDto,
     personId: string
   ) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
@@ -96,19 +118,42 @@ export class AccountsService {
       throw new NotFoundException('Customer not found!');
     }
 
-    const externalAccount = await this.cybridService.createExternalBankAccount(
-      customer.cybrid_customer_guid,
-      payload.plaid_account_id,
-      payload.plaid_link_token,
-      payload.currency
+    let {
+      objects: [externalAccount],
+    } = await this.cybridService.getExternalBankAccounts(
+      customer.cybrid_customer_guid
     );
+    if (!externalAccount) {
+      externalAccount = await this.cybridService.createExternalBankAccount(
+        customer.cybrid_customer_guid,
+        {
+          asset,
+          plaid_account_id,
+          plaid_public_token,
+          plaid_account_mask,
+          name: `${asset} Funding Account`,
+          customer_guid: customer.cybrid_customer_guid,
+          account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
+        }
+      );
+    } else if (
+      externalAccount.state === $Enums.CybridExternalAccountStatus.UNVERIFIED
+    ) {
+      await this.cybridService.verifyExternalAccount(
+        customer.cybrid_customer_guid,
+        externalAccount.guid as string
+      );
+    }
 
     return this.prismaService.cybridExternalAccount.create({
       data: {
         name: externalAccount.name as string,
         balance: externalAccount.balances?.available ?? 0,
+        mask: (externalAccount.plaid_account_mask ??
+          plaid_account_mask) as string,
         cybrid_external_account_guid: externalAccount.guid as string,
-        status: externalAccount.state as $Enums.CybridExternalAccountStatus,
+        status:
+          externalAccount.state?.toLocaleUpperCase() as $Enums.CybridExternalAccountStatus,
         CybridCustomer: {
           connect: { cybrid_customer_id: customer.cybrid_customer_id },
         },
