@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -6,21 +14,23 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { $Enums } from '@prisma/client';
 import { Request } from 'express';
-import { CybridKycState } from '../../types/cybrid/enums';
 import { AccountsService } from './accounts.service';
 import {
   CreatedWorkFlowDto,
   CreateExternalAccountDto,
-  InitiateTransferDto,
+  CreateWorkflowDto,
   CybridAccountEntity,
+  CybridExternalAccountEntity,
+  CybridTransactionEntity,
   ExternalBankAccountEntity,
   IdentityVerificationEntity,
+  InitiateTransferDto,
+  VerifyCybridAccountDto,
   WorkflowEntity,
-  CybridTransactionEntity,
-  CreateWorkflowDto,
-  CybridExternalAccountEntity,
 } from './dto/account.dto';
+import { CybridAccountEnum } from '../../types/cybrid/enums';
 
 @ApiBearerAuth()
 @ApiTags('Accounts')
@@ -37,7 +47,7 @@ export class AccountsController {
     return accounts.map((account) => new CybridAccountEntity(account));
   }
 
-  @Get("externals")
+  @Get('externals')
   @ApiOkResponse({ type: [CybridAccountEntity] })
   async findAllExternals(@Req() request: Request) {
     const accounts = await this.accountsService.findExternalAccounts(
@@ -46,20 +56,48 @@ export class AccountsController {
     return accounts.map((account) => new CybridExternalAccountEntity(account));
   }
 
-  @Patch(':id/verify')
+  @Post('verify')
   @ApiOkResponse({ type: IdentityVerificationEntity })
   @ApiOperation({
-    summary: 'Initialize verification process on a user account',
+    summary: 'Initialize verification process on a account/external account',
   })
-  async initiateVerificationProcess(@Param('id') accountId: string) {
-    const identityVerfication =
-      await this.accountsService.initiateVerificationProcess(accountId);
+  async verifyCybridAccount(
+    @Req() req: Request,
+    @Body() payload: VerifyCybridAccountDto
+  ) {
+    if (
+      payload.account_type === CybridAccountEnum.EXTERNAL &&
+      !payload.external_bank_account_id
+    ) {
+      throw new UnprocessableEntityException(
+        `External bank account id is required for ${payload.account_type}`
+      );
+    }
+
+    if (
+      payload.account_type === CybridAccountEnum.FIAT &&
+      payload.external_bank_account_id
+    ) {
+      throw new UnprocessableEntityException(
+        `External bank account is not required for ${payload.account_type}`
+      );
+    }
+
+    const identityVerfication = await this.accountsService.verifyCybridAccount(
+      payload,
+      req.user?.person_id as string
+    );
     return new IdentityVerificationEntity({
-      state: identityVerfication.state as CybridKycState,
+      state:
+        identityVerfication.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
       customer_guid: identityVerfication.customer_guid as string,
       identity_verification_guid: identityVerfication.guid as string,
-      persona_inquiry_id: identityVerfication.persona_inquiry_id as string,
-      persona_hosted_link: `https://withpersona.com/verify?inquiry-id=${identityVerfication.persona_inquiry_id}`,
+      persona_inquiry_id: identityVerfication.persona_inquiry_id ?? null,
+      persona_hosted_link: identityVerfication.persona_inquiry_id
+        ? `https://withpersona.com/verify?inquiry-id=${identityVerfication.persona_inquiry_id}`
+        : null,
+      external_bank_account_id:
+        identityVerfication.external_bank_account_guid ?? null,
     });
   }
 

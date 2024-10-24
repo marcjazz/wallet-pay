@@ -1,5 +1,4 @@
 import {
-  IdentityVerificationBankModel,
   PostExternalBankAccountBankModelAccountKindEnum,
   PostQuoteBankModelProductTypeEnum,
   PostTransferBankModelTransferTypeEnum,
@@ -15,6 +14,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import {
   CreateExternalAccountDto,
   InitiateTransferDto,
+  VerifyCybridAccountDto,
 } from './dto/account.dto';
 
 @Injectable()
@@ -31,36 +31,56 @@ export class AccountsService {
     return cybridAccounts;
   }
 
-  async initiateVerificationProcess(accountId: string) {
+  async verifyCybridAccount(payload: VerifyCybridAccountDto, personId: string) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
-      where: { CybridAccounts: { some: { cybrid_account_id: accountId } } },
+      include: { CybridExternalAccounts: true },
+      where: { person_id: personId },
     });
     if (!customer) {
       throw new NotFoundException('Customer account not found!');
     }
 
-    const identityVerification =
-      await this.cybridService.createIdentityVerification(
-        customer.cybrid_customer_guid
-      );
+    let externalBankAccountGuid: string | undefined;
+    if (payload.external_bank_account_id) {
+      externalBankAccountGuid = customer.CybridExternalAccounts.find(
+        (_) => _.cybrid_external_account_id === payload.external_bank_account_id
+      )?.cybrid_external_account_guid;
+
+      if (!externalBankAccountGuid) {
+        throw new NotFoundException('External account not found!');
+      }
+    }
+
+    const identityVerification = await this.cybridService.verifyCybridAccount(
+      customer.cybrid_customer_guid,
+      externalBankAccountGuid
+    );
 
     const verificationPayload = {
       identity_verification_guid: identityVerification.guid,
       verification_status:
         identityVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
     };
-    await this.prismaService.cybridCustomer.update({
-      data: {
-        ...verificationPayload,
-        CybridAccounts: {
-          updateMany: {
-            data: verificationPayload,
-            where: { cybrid_customer_id: customer.cybrid_customer_id },
+
+    if (payload.external_bank_account_id) {
+      await this.prismaService.cybridExternalAccount.update({
+        data: {},
+        where: { cybrid_external_account_id: payload.external_bank_account_id },
+      });
+    } else {
+      await this.prismaService.cybridCustomer.update({
+        data: {
+          ...verificationPayload,
+          CybridAccounts: {
+            updateMany: {
+              data: verificationPayload,
+              where: { cybrid_customer_id: customer.cybrid_customer_id },
+            },
           },
         },
-      },
-      where: { cybrid_customer_id: customer.cybrid_customer_id },
-    });
+        where: { cybrid_customer_id: customer.cybrid_customer_id },
+      });
+    }
 
     return this.cybridService.getIdentityVerification(
       customer.cybrid_customer_guid,
@@ -119,49 +139,21 @@ export class AccountsService {
       throw new NotFoundException('Customer not found!');
     }
 
-    const externalAccounts = await this.cybridService.getExternalBankAccounts(
-      customer.cybrid_customer_guid
-    );
-    let externalAccount = externalAccounts.objects.find(
-      (acc) =>
-        acc.state?.toLocaleUpperCase() !==
-          $Enums.CybridExternalAccountStatus.FAILED && acc.asset !== asset
+    const externalAccount = await this.cybridService.createExternalBankAccount(
+      customer.cybrid_customer_guid,
+      {
+        asset,
+        plaid_account_id,
+        plaid_public_token,
+        plaid_account_mask,
+        name: `${asset} Funding Account`,
+        customer_guid: customer.cybrid_customer_guid,
+        account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
+      }
     );
 
-    let identityVerfication: IdentityVerificationBankModel | null = null;
-    if (!externalAccount) {
-      [externalAccount, identityVerfication] =
-        await this.cybridService.createExternalBankAccount(
-          customer.cybrid_customer_guid,
-          {
-            asset,
-            plaid_account_id,
-            plaid_public_token,
-            plaid_account_mask,
-            name: `${asset} Funding Account`,
-            customer_guid: customer.cybrid_customer_guid,
-            account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
-          }
-        );
-    } else if (
-      externalAccount?.state === $Enums.CybridExternalAccountStatus.UNVERIFIED
-    ) {
-      identityVerfication = await this.cybridService.verifyExternalAccount(
-        customer.cybrid_customer_guid,
-        externalAccount.guid as string
-      );
-    }
-
-    return this.prismaService.cybridExternalAccount.upsert({
-      update: {
-        identity_verification_guid: identityVerfication?.guid,
-        verification_status:
-          identityVerfication?.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
-      },
-      create: {
-        identity_verification_guid: identityVerfication?.guid,
-        verification_status:
-          identityVerfication?.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
+    return this.prismaService.cybridExternalAccount.create({
+      data: {
         name: externalAccount.name as string,
         balance: externalAccount.balances?.available ?? 0,
         mask: (externalAccount.plaid_account_mask ??
@@ -173,7 +165,6 @@ export class AccountsService {
           connect: { cybrid_customer_id: customer.cybrid_customer_id },
         },
       },
-      where: { cybrid_external_account_guid: externalAccount.guid },
     });
   }
 

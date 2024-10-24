@@ -130,7 +130,10 @@ export class CybridService {
     );
   }
 
-  async createIdentityVerification(customerGuid: string) {
+  async verifyCybridAccount(
+    customerGuid: string,
+    externalBankAccountGuid?: string
+  ) {
     const identityVerificationsApi = await this.cybridConfiguration.getInstance(
       IdentityVerificationsBankApi,
       customerGuid,
@@ -141,8 +144,17 @@ export class CybridService {
       identityVerificationsApi.createIdentityVerification({
         postIdentityVerificationBankModel: {
           customer_guid: customerGuid,
-          type: PostIdentityVerificationBankModelTypeEnum.Kyc,
-          method: PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
+          ...(externalBankAccountGuid
+            ? {
+                type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
+                method:
+                  PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
+                external_bank_account_guid: externalBankAccountGuid,
+              }
+            : {
+                type: PostIdentityVerificationBankModelTypeEnum.Kyc,
+                method: PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
+              }),
         },
       });
     const identityVerfication =
@@ -152,7 +164,9 @@ export class CybridService {
 
     // Pulling identity verification status from cybrid to update database
     this.cybridQueue.add(
-      cybridJobs.PULLING_CUSTOMER_IDENTITY_VERIFICATION,
+      externalBankAccountGuid
+        ? cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION
+        : cybridJobs.PULLING_CUSTOMER_IDENTITY_VERIFICATION,
       [customerGuid, identityVerfication.guid],
       {
         backoff: { type: 'exponential', delay: 5000 },
@@ -244,55 +258,8 @@ export class CybridService {
           customer_guid: customerGuid,
         },
       });
-    return new Promise<
-      [ExternalBankAccountBankModel, IdentityVerificationBankModel]
-    >((resolve, error) =>
-      externalBankAccountObservable.subscribe({
-        error,
-        next: async (externalAccount) => {
-          const identityVerfication = await this.verifyExternalAccount(
-            customerGuid,
-            externalAccount.guid as string
-          );
-          resolve([externalAccount, identityVerfication]);
-        },
-      })
-    );
-  }
-
-  async verifyExternalAccount(
-    customerGuid: string,
-    externalBankAccountGuid: string
-  ) {
-    const identityVerificationsApi = await this.cybridConfiguration.getInstance(
-      IdentityVerificationsBankApi,
-      customerGuid,
-      ['identity_verifications:execute']
-    );
-
-    const identityVerificationObservable =
-      identityVerificationsApi.createIdentityVerification({
-        postIdentityVerificationBankModel: {
-          type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
-          method: PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
-          customer_guid: customerGuid,
-          external_bank_account_guid: externalBankAccountGuid,
-        },
-      });
-
-    return new Promise<IdentityVerificationBankModel>((resolve, error) =>
-      identityVerificationObservable.subscribe({
-        error,
-        next: (identityVerfication) => {
-          this.cybridQueue.add(
-            cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION,
-            [customerGuid, identityVerfication.guid],
-            { backoff: { type: 'exponential', delay: 3000 } }
-          );
-
-          resolve(identityVerfication);
-        },
-      })
+    return new Promise<ExternalBankAccountBankModel>((next, error) =>
+      externalBankAccountObservable.subscribe({ error, next })
     );
   }
 

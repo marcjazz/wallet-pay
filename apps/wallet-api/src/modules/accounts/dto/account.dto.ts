@@ -9,9 +9,9 @@ import {
   CybridExternalAccount,
   CybridTransaction,
 } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { CybridKycState } from '../../../types/cybrid/enums';
 import { Exclude } from 'class-transformer';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { CybridAccountEnum } from '../../../types/cybrid/enums';
 
 export class CybridAccountEntity implements CybridAccount {
   @ApiProperty()
@@ -91,18 +91,23 @@ export class IdentityVerificationEntity {
   @ApiProperty()
   customer_guid: string;
 
-  @ApiProperty({ enum: CybridKycState })
-  state: CybridKycState;
+  @ApiProperty({ enum: $Enums.IdentityVerificationStatus })
+  state: $Enums.IdentityVerificationStatus;
+
+  @ApiProperty({
+    description: 'Required for external bank account verification',
+  })
+  external_bank_account_id: string | null;
 
   @ApiProperty({
     description: 'Persona inquiry id for identity verification completion',
   })
-  persona_inquiry_id: string;
+  persona_inquiry_id: string | null;
 
   @ApiProperty({
     description: 'Persona hosted link for identity verification completion',
   })
-  persona_hosted_link: string;
+  persona_hosted_link: string | null;
 
   constructor(props: IdentityVerificationEntity) {
     Object.assign(this, props);
@@ -296,6 +301,23 @@ export class CreateWorkflowDto {
   redirect_uri?: string;
 
   constructor(props: CreateWorkflowDto) {
+    Object.assign(this, props);
+  }
+}
+
+export class VerifyCybridAccountDto {
+  @IsEnum(CybridAccountEnum)
+  @ApiProperty({ enum: CybridAccountEnum })
+  account_type: CybridAccountEnum;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'Required when account type is external',
+  })
+  external_bank_account_id?: string;
+
+  constructor(props: VerifyCybridAccountDto) {
     Object.assign(this, props);
   }
 }
