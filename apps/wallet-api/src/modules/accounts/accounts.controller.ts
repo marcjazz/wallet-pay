@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Req,
+  UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import {
@@ -30,12 +31,17 @@ import {
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from './dto/account.dto';
+import { OTPService } from '../../app/two-fa/otp/otp.service';
+import { TwoFAUsage } from '../../app/two-fa/two-fa.interface';
 
 @ApiBearerAuth()
 @ApiTags('Accounts')
 @Controller('accounts')
 export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) {}
+  constructor(
+    private readonly otpService: OTPService,
+    private readonly accountsService: AccountsService
+  ) {}
 
   @Get()
   @ApiOkResponse({ type: [CybridAccountEntity] })
@@ -145,13 +151,23 @@ export class AccountsController {
   })
   async initiateTransfer(
     @Req() req: Request,
-    @Body() payload: InitiateTransferDto
+    @Body() { otp, ...payload }: InitiateTransferDto
   ) {
-    const transaction = await this.accountsService.initiateTransfer(
+    const isVerified = await this.otpService.verify(
+      otp.otp_id,
+      otp.code,
+      TwoFAUsage.TRANSFER
+    );
+
+    if (!isVerified) {
+      throw new UnauthorizedException(`Invalid One time password`);
+    }
+
+    const transfer = await this.accountsService.initiateTransfer(
       req.user?.person_id as string,
       payload
     );
 
-    return new CybridTransactionEntity(transaction);
+    return new CybridTransactionEntity(transfer);
   }
 }

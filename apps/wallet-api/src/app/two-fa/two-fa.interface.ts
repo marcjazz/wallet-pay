@@ -1,6 +1,7 @@
 export enum TwoFAUsage {
   VERIFY_EMAIL = 'verify_email',
   RESET_PASSWORD = 'reset_password',
+  TRANSFER = 'transfer',
 }
 
 export enum TwoFAEnum {

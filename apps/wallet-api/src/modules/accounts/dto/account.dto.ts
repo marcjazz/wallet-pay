@@ -10,7 +10,14 @@ import {
   CybridTransaction,
 } from '@prisma/client';
 import { Exclude } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
+import { VerifyOTPDto } from '../../../app/two-fa/dto/two-fa.dto';
 import { CybridAccountEnum } from '../../../types/cybrid/enums';
 
 export class CybridAccountEntity implements CybridAccount {
@@ -209,6 +216,13 @@ export class ExternalBankAccountEntity implements CybridExternalAccount {
 }
 
 export class InitiateTransferDto {
+  @IsString()
+  @Length(5)
+  @ApiProperty({
+    description: 'One time password received by email or any external channel',
+  })
+  otp: VerifyOTPDto;
+
   @IsString()
   @ApiProperty({
     description:

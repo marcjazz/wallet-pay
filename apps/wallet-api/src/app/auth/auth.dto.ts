@@ -126,18 +126,6 @@ export class ChangePasswordDto {
   }
 }
 
-export class VerifyOtpDto {
-  @IsUUID()
-  @ApiProperty({
-    description: 'Verified One time password ID',
-  })
-  otp_id: string;
-
-  constructor(props: VerifyOtpDto) {
-    Object.assign(this, props);
-  }
-}
-
 export class AuthTokensDto {
   @IsJWT()
   @IsString()

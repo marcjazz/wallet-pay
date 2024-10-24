@@ -170,7 +170,10 @@ export class AccountsService {
 
   async initiateTransfer(
     personId: string,
-    { transfer_type: transferType, ...payload }: InitiateTransferDto
+    {
+      transfer_type: transferType,
+      ...payload
+    }: Omit<InitiateTransferDto, 'otp'>
   ) {
     const isBookTransfer =
       transferType == PostTransferBankModelTransferTypeEnum.Book;
@@ -178,9 +181,9 @@ export class AccountsService {
       transferType == PostTransferBankModelTransferTypeEnum.InstantFunding ||
       transferType == PostTransferBankModelTransferTypeEnum.Funding;
 
-    let cybridExternalAccount = null;
+    let customerAccount = null;
     if (isBookTransfer) {
-      cybridExternalAccount = await this.prismaService.cybridAccount.findFirst({
+      customerAccount = await this.prismaService.cybridAccount.findFirst({
         include: { CybridCustomer: { include: { CybridAccounts: true } } },
         where: {
           cybrid_account_id: payload.cybrid_source_account_id,
@@ -188,7 +191,7 @@ export class AccountsService {
         },
       });
     } else if (isFundingTransfer) {
-      cybridExternalAccount =
+      customerAccount =
         await this.prismaService.cybridExternalAccount.findFirst({
           include: { CybridCustomer: { include: { CybridAccounts: true } } },
           where: {
@@ -201,8 +204,8 @@ export class AccountsService {
         `${transferType} transfers not implemented yet!`
       );
 
-    if (!cybridExternalAccount) {
-      throw new NotFoundException('External bank account not found!');
+    if (!customerAccount) {
+      throw new NotFoundException('Source bank account not found!');
     }
 
     const {
@@ -210,7 +213,7 @@ export class AccountsService {
         CybridAccounts: [cybridAccount],
         ...customer
       },
-    } = cybridExternalAccount;
+    } = customerAccount;
 
     const fundingTransferQuote = await this.cybridService.createQuote(
       customer.cybrid_customer_guid,

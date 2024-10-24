@@ -21,13 +21,21 @@ export class OTPService implements ITwoFAService<OTP> {
     return otp;
   }
 
-  async verify(id: string, otpCode: string): Promise<boolean> {
+  async verify(
+    id: string,
+    otpCode: string,
+    usage?: TwoFAUsage
+  ): Promise<boolean> {
     const otp = await this.prismaService.oTP.findUnique({
       where: { otp_id: id, is_verified: false, expires_at: { gt: new Date() } },
     });
 
-    const isVerified = !!otp && otp.code === otpCode && !otp.is_verified;
-    if (!isVerified) {
+    if (
+      !otp ||
+      otp.code !== otpCode ||
+      !otp.is_verified ||
+      (usage && usage !== otp.usage)
+    ) {
       return false;
     }
 
