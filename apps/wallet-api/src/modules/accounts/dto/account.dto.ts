@@ -115,6 +115,12 @@ export class IdentityVerificationEntity {
 }
 
 export class CreatedWorkFlowDto implements WorkflowBankModel {
+  constructor(props: CreatedWorkFlowDto) {
+    Object.assign(this, props);
+  }
+}
+
+export class WorkflowEntity implements WorkflowBankModel {
   @ApiPropertyOptional()
   guid?: string;
 
@@ -139,17 +145,10 @@ export class CreatedWorkFlowDto implements WorkflowBankModel {
   @ApiPropertyOptional()
   updated_at?: string;
 
-  constructor(props: CreatedWorkFlowDto) {
-    Object.assign(this, props);
-  }
-}
-
-export class WorkflowEntity extends CreatedWorkFlowDto {
   @ApiPropertyOptional({ nullable: true })
   plaid_link_token?: string | null;
 
   constructor(props: WorkflowEntity) {
-    super(props);
     Object.assign(this, props);
   }
 }

@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Post,
   Req,
   UnprocessableEntityException,
@@ -16,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { $Enums } from '@prisma/client';
 import { Request } from 'express';
+import { CybridAccountEnum } from '../../types/cybrid/enums';
 import { AccountsService } from './accounts.service';
 import {
   CreatedWorkFlowDto,
@@ -30,7 +30,6 @@ import {
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from './dto/account.dto';
-import { CybridAccountEnum } from '../../types/cybrid/enums';
 
 @ApiBearerAuth()
 @ApiTags('Accounts')
@@ -101,29 +100,23 @@ export class AccountsController {
     });
   }
 
-  @Post('workflows/new')
+  @Post('init-plaid-connect')
   @ApiCreatedResponse({ type: CreatedWorkFlowDto })
   @ApiOperation({
-    summary: 'Connect customer external bank account by starting a flow.',
+    summary: "Connect to customer's external bank account by starting a flow.",
   })
   async createWorkflow(
     @Req() req: Request,
     @Body() createWorkflowDto: CreateWorkflowDto
   ) {
-    const workflow = await this.accountsService.createWorkflow(
+    const { guid: workflowGuid } = await this.accountsService.createWorkflow(
       req.user?.person_id as string,
       createWorkflowDto.redirect_uri
     );
-    return new CreatedWorkFlowDto(workflow);
-  }
 
-  @Get('workflows/:guid')
-  @ApiOkResponse({ type: WorkflowEntity })
-  @ApiOperation({ summary: 'Fetch a created workflow.' })
-  async getWorkflow(@Req() req: Request, @Param('guid') workflowGuid: string) {
     const workflow = await this.accountsService.getWorkflow(
       req.user?.person_id as string,
-      workflowGuid
+      workflowGuid as string
     );
 
     return new WorkflowEntity(workflow);
