@@ -2,13 +2,14 @@ import {
   Configuration,
   ConfigurationParameters,
 } from '@cybrid/cybrid-api-bank-typescript';
-import { BullModule } from '@nestjs/bull';
-import { CacheModule } from '@nestjs/cache-manager';
-import { DynamicModule, Logger, Module } from '@nestjs/common';
-import { cybridConstants } from './constants';
-import { CybridService } from './cybrid.service';
-import { CybridConfiguration } from './cybrid.config';
 import { HttpModule } from '@nestjs/axios';
+import { BullModule } from '@nestjs/bull';
+import { CacheModule, CacheStore } from '@nestjs/cache-manager';
+import { DynamicModule, Logger, Module } from '@nestjs/common';
+import { redisStore } from 'cache-manager-redis-yet';
+import { cybridConstants } from './constants';
+import { CybridConfiguration } from './cybrid.config';
+import { CybridService } from './cybrid.service';
 
 @Module({})
 export class CybridModule {
@@ -33,7 +34,21 @@ export class CybridModule {
       module: CybridModule,
       imports: [
         HttpModule.register({}),
-        CacheModule.register(),
+        CacheModule.registerAsync({
+          useFactory: async () => {
+            const store = await redisStore({
+              socket: {
+                host: process.env.REDIS_HOST,
+                port: Number(process.env.REDIS_PORT),
+              },
+            });
+
+            return {
+              store: store as unknown as CacheStore,
+              ttl: 3 * 60000, // 3 minutes (milliseconds)
+            };
+          },
+        }),
         BullModule.registerQueue({
           name: cybridConstants.QUEUE,
         }),

@@ -79,7 +79,7 @@ export class CybridService {
         error,
         next: async (customer) => {
           // Pulling customer creation status from cybrid to update database
-          this.cybridQueue.add(
+          await this.cybridQueue.add(
             cybridJobs.PULLING_CYBRID_CUSTOMER,
             customer.guid,
             { backoff: { type: 'exponential', delay: 3000 } }
@@ -163,7 +163,7 @@ export class CybridService {
       );
 
     // Pulling identity verification status from cybrid to update database
-    this.cybridQueue.add(
+    await this.cybridQueue.add(
       externalBankAccountGuid
         ? cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION
         : cybridJobs.PULLING_CUSTOMER_IDENTITY_VERIFICATION,
@@ -342,12 +342,12 @@ export class CybridService {
     return new Promise<TransferBankModel>((resolve, error) =>
       transfersObservable.subscribe({
         error,
-        next: (transfer) => {
+        next: async (transfer) => {
           // Book transfers are nearly instant and there by don't need to be pulled
           if (
             payload.transfer_type != PostTransferBankModelTransferTypeEnum.Book
           ) {
-            this.cybridQueue.add(
+            await this.cybridQueue.add(
               cybridJobs.PULLING_CYBRID_TRANSFER,
               [customerGuid, payload.fiat_account_guid, transfer.guid],
               { backoff: { type: 'exponential', delay: 3000 } } // should be set to 24 hour in production

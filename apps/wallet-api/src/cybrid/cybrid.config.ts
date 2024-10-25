@@ -144,7 +144,8 @@ export class CybridConfiguration {
 
     if (
       !authResp ||
-      new Date(authResp.created_at).getTime() + authResp.expires_in <=
+      new Date(authResp.created_at * 1000).getTime() +
+        authResp.expires_in * 1000 <=
         Date.now()
     ) {
       const resp = await this.httpService.axiosRef
@@ -178,7 +179,7 @@ export class CybridConfiguration {
         'Cybrid access token was successfully retrieve and cached'
       );
     } else {
-      this.logger.log('Loaded cybrid bearer token from cache!');
+      this.logger.debug('Loaded cybrid bearer token from cache!');
     }
 
     return authResp;
