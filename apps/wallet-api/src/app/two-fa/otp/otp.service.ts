@@ -30,12 +30,7 @@ export class OTPService implements ITwoFAService<OTP> {
       where: { otp_id: id, is_verified: false, expires_at: { gt: new Date() } },
     });
 
-    if (
-      !otp ||
-      otp.code !== otpCode ||
-      !otp.is_verified ||
-      (usage && usage !== otp.usage)
-    ) {
+    if (!otp || otp.code !== otpCode || (usage && usage !== otp.usage)) {
       return false;
     }
 

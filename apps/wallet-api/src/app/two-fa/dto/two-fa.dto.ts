@@ -1,10 +1,15 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import {
+  ApiHideProperty,
+  ApiProperty,
+  OmitType,
+  PickType,
+} from '@nestjs/swagger';
 import { OTP } from '@prisma/client';
-import { IsString } from 'class-validator';
-import { TwoFAUsage } from '../two-fa.interface';
 import { Exclude } from 'class-transformer';
+import { IsEnum, IsString } from 'class-validator';
+import { TwoFAUsage } from '../two-fa.interface';
 
-export class VerifyOTPDto {
+export class OTPPayloadDto {
   @IsString()
   @ApiProperty()
   otp_id: string;
@@ -13,10 +18,12 @@ export class VerifyOTPDto {
   @ApiProperty()
   code: string;
 
-  constructor(props: VerifyOTPDto) {
+  constructor(props: OTPPayloadDto) {
     Object.assign(this, props);
   }
 }
+
+export class OTPCodeDto extends OmitType(OTPPayloadDto, ['otp_id']) {}
 
 export class OTPEntity implements OTP {
   @ApiProperty()
@@ -26,8 +33,9 @@ export class OTPEntity implements OTP {
   @ApiHideProperty()
   code: string;
 
+  @IsEnum(TwoFAUsage)
   @ApiProperty({ enum: TwoFAUsage })
-  usage: string;
+  usage: TwoFAUsage;
 
   @ApiProperty()
   is_verified: boolean;
@@ -48,3 +56,5 @@ export class OTPEntity implements OTP {
     Object.assign(this, props);
   }
 }
+
+export class OTPUsageDto extends PickType(OTPEntity, ['usage']) {}

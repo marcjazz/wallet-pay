@@ -1,6 +1,14 @@
-import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
+import { OTPCodeDto } from '../../app/two-fa/dto/two-fa.dto';
 import { UserEntity } from './user.dto';
 import { UsersService } from './users.service';
 
@@ -21,13 +29,14 @@ export class UsersController {
     return new UserEntity({ ...user, user_id });
   }
 
-  @Get('verify-email')
+  @Post('verify-email')
   @ApiOkResponse({ type: UserEntity })
-  async verifyEmail(@Req() req: Request) {
+  async verifyEmail(@Req() req: Request, @Body() otpPayload: OTPCodeDto) {
     if (!req.user) {
       throw new UnauthorizedException('User not connected!');
     }
 
-    return await this.usersService.verifyEmail(req.user);
+    await this.usersService.verifyEmail(otpPayload.code, req.user);
+    return new UserEntity({ ...req.user, user_id: req.user.id });
   }
 }

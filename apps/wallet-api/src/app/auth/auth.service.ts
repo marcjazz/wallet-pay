@@ -153,7 +153,7 @@ export class AuthService {
       await this.mailerService.sendText({
         to: `${user.first_name} <${user.email}>`,
         subject: 'Email Verification',
-        text: `Your One time password is ${otpCode}`,
+        text: `Your One time password is ${otpCode.code}`,
       });
 
       this.logger.debug(`Successfully sent requested otp user!`);

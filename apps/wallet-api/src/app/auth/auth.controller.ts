@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { OTPEntity } from '../two-fa/dto/two-fa.dto';
+import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { RoleEnum, SkipAuth } from './auth.decorator';
 import {
   AuthTokensDto,
@@ -101,7 +102,7 @@ export class AuthController {
       req,
       payload.email
     );
-    return new OTPEntity(otp);
+    return new OTPEntity({ ...otp, usage: otp.usage as TwoFAUsage });
   }
 
   @Post('reset-password')

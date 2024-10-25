@@ -1,25 +1,42 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { OTPService } from '../../app/two-fa/otp/otp.service';
 import { TwoFAUsage } from '../../app/two-fa/two-fa.interface';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly otpService: OTPService
+  ) {}
 
-  async verifyEmail(user: Express.User) {
+  async verifyEmail(otpCode: string, user: Express.User) {
     //Find the first `verified_email` otp record successfully verified in the past 60s
     const otp = await this.prismaService.oTP.findFirst({
+      orderBy: { created_at: 'desc' },
       where: {
-        is_verified: true,
+        person_has_role_id: user.id,
         usage: TwoFAUsage.VERIFY_EMAIL,
-        updated_at: { lte: new Date(Date.now() - 60_000) },
       },
     });
-
     if (!otp) {
       throw new NotFoundException(
-        `No valid records was found for 2FA usage ${TwoFAUsage.VERIFY_EMAIL}`
+        'No valid OTP request was found! Please request for a new one.'
       );
+    }
+
+    const isVerified = await this.otpService.verify(
+      otp.otp_id,
+      otpCode,
+      TwoFAUsage.VERIFY_EMAIL
+    );
+
+    if (!isVerified) {
+      throw new UnauthorizedException(`Invalid one time password!`);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
