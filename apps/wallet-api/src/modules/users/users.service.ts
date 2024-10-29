@@ -40,7 +40,7 @@ export class UsersService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, subdomain, is_active, created_at, person_id, ...person } = user;
+    const { id, is_active, created_at, person_id, ...person } = user;
     await this.prismaService.person.update({
       data: {
         is_verified: true,

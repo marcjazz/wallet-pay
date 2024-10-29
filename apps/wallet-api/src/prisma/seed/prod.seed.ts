@@ -15,7 +15,7 @@ async function main() {
       birthdate: new Date(),
       first_name: 'XafPay',
       last_name: 'Admin',
-      gender: 'OTHER',
+      gender: 'MALE',
       password,
       phone_number: '+1 (703) 899-5276',
       username: process.env.ADMIN_PASSWORD || 'xafpay237!',
@@ -30,25 +30,21 @@ async function main() {
     },
   });
 
-  const clientSubdomain = process.env.CLIENT_SUBDOMAIN ;
-  const adminSubdomain = process.env.CLIENT_SUBDOMAIN;
   await prisma.role.createMany({
     data: [
       {
         title: 'client',
-        subdomain: clientSubdomain,
         created_by: admin.person_id,
       },
       {
         title: 'admin',
-        subdomain: adminSubdomain,
         created_by: admin.person_id,
       },
     ],
   });
   await prisma.personHasRole.create({
     data: {
-      Role: { connect: { title: 'admin', subdomain: adminSubdomain } },
+      Role: { connect: { title: 'admin' } },
       Person: { connect: { email: admin.email } },
     },
   });

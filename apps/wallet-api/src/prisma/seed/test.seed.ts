@@ -20,18 +20,14 @@ async function main() {
     },
   });
 
-  const clientSubdomain = process.env.CLIENT_SUBDOMAIN;
-  const adminSubdomain = process.env.CLIENT_SUBDOMAIN;
   await prisma.role.createMany({
     data: [
       {
         title: 'client',
-        subdomain: clientSubdomain,
         created_by: alice.person_id,
       },
       {
         title: 'admin',
-        subdomain: adminSubdomain,
         created_by: alice.person_id,
       },
     ],
@@ -40,10 +36,7 @@ async function main() {
   await prisma.personHasRole.create({
     data: {
       Role: {
-        connect: {
-          title: 'admin',
-          // subdomain: 'admin.xafpay.com'
-        },
+        connect: { title: 'admin' },
       },
       Person: { connect: { email: alice.email } },
     },
@@ -52,10 +45,7 @@ async function main() {
   await prisma.personHasRole.create({
     data: {
       Role: {
-        connect: {
-          title: 'client',
-          // subdomain: 'app.xafpay.com'
-        },
+        connect: { title: 'client' },
       },
       Person: { connect: { email: alice.email } },
     },

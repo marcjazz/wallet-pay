@@ -4,7 +4,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  PreconditionFailedException,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -24,7 +23,7 @@ import {
 import { Request } from 'express';
 import { OTPEntity } from '../two-fa/dto/two-fa.dto';
 import { TwoFAUsage } from '../two-fa/two-fa.interface';
-import { RoleEnum, SkipAuth } from './auth.decorator';
+import { SkipAuth } from './auth.decorator';
 import {
   AuthTokensDto,
   ForgotPasswordDto,
@@ -35,7 +34,6 @@ import {
 } from './auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './local/local.guard';
-import { RolesService } from './roles.service';
 
 @SkipAuth()
 @Controller('auth')
@@ -48,10 +46,7 @@ import { RolesService } from './roles.service';
   description: 'Internal server error. An unexpected exception was thrown',
 })
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private rolesService: RolesService
-  ) {}
+  constructor(private authService: AuthService) {}
 
   @Post('sign-in')
   @UseGuards(LocalGuard)
@@ -80,28 +75,15 @@ export class AuthController {
     description:
       'Conflict, user email is already registered with another account.',
   })
-  async signUp(@Req() req: Request, @Body() newUser: SignUpDto) {
-    const subdomain = new URL(req.headers.origin as string).host;
-
-    const role = await this.rolesService.findByTitleAndSubdomain(
-      RoleEnum.CLIENT,
-      subdomain
-    );
-    if (!role) {
-      throw new PreconditionFailedException('Could not resolve user role');
-    }
-
-    const user = await this.authService.registerUser(newUser, role.role_id);
+  async signUp(@Body() newUser: SignUpDto) {
+    const user = await this.authService.registerUser(newUser);
     return this.authService.login(user);
   }
 
   @Post('forgot-password')
   @ApiCreatedResponse({ type: OTPEntity })
-  async requestTwoFA(@Req() req: Request, @Body() payload: ForgotPasswordDto) {
-    const otp = await this.authService.requestForgotPasswordOTP(
-      req,
-      payload.email
-    );
+  async requestTwoFA(@Body() payload: ForgotPasswordDto) {
+    const otp = await this.authService.requestForgotPasswordOTP(payload.email);
     return new OTPEntity({ ...otp, usage: otp.usage as TwoFAUsage });
   }
 

@@ -22,10 +22,9 @@ export class RolesService {
     return this.prismaService.role.findUnique({ where: { role_id: roleId } });
   }
 
-  async findByTitleAndSubdomain(
-    title: string,
-    subdomain: string
-  ): Promise<Role | null> {
-    return this.prismaService.role.findUnique({ where: { title, subdomain } });
+  async findByTitle(title: string): Promise<Role | null> {
+    return this.prismaService.role.findUnique({
+      where: { title },
+    });
   }
 }

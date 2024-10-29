@@ -24,10 +24,6 @@ export class UserEntity extends OmitType(SignUpDto, ['country']) {
 
   @Exclude()
   @ApiHideProperty()
-  subdomain: string | null;
-
-  @Exclude()
-  @ApiHideProperty()
   is_active: boolean;
 
   @IsISO8601()

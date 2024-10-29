@@ -20,8 +20,10 @@ import { MailerService } from '../../mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OTPService } from '../two-fa/otp/otp.service';
 import { TwoFAUsage } from '../two-fa/two-fa.interface';
+import { RoleEnum } from './auth.decorator';
 import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
+import { RolesService } from './roles.service';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +37,8 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
     private readonly otpService: OTPService,
-    private readonly cybridService: CybridService
+    private readonly cybridService: CybridService,
+    private readonly rolesService: RolesService
   ) {}
 
   async validateUser(
@@ -52,16 +55,12 @@ export class AuthService {
       this.logger.debug(`Authenticating user from origin ${subdomain}...`);
 
       const personHasRole = await this.prismaService.personHasRole.findFirst({
-        where: {
-          // Role: { subdomain },
-          person_id: person.person_id,
-        },
+        where: { person_id: person.person_id },
       });
 
       if (subdomain && personHasRole?.is_active) {
         return {
           ...person,
-          subdomain,
           is_active: personHasRole.is_active,
           id: personHasRole.person_has_role_id,
         };
@@ -72,7 +71,6 @@ export class AuthService {
 
   async registerUser(
     { password, country, ...payload }: SignUpDto,
-    roleId: string,
     createdBy?: string
   ): Promise<Express.User> {
     const { account, customer } = await this.cybridService.createCustomer(
@@ -84,20 +82,10 @@ export class AuthService {
     if (user) throw new ConflictException('Email address already taken!');
 
     const {
-      PersonHasRoles: [
-        {
-          is_active,
-          person_has_role_id,
-          Role: { subdomain },
-        },
-      ],
+      PersonHasRoles: [{ is_active, person_has_role_id }],
       ...person
     } = await this.prismaService.person.create({
-      include: {
-        PersonHasRoles: {
-          include: { Role: true },
-        },
-      },
+      include: { PersonHasRoles: true },
       data: {
         ...payload,
         birthdate: new Date(payload.birthdate),
@@ -107,7 +95,7 @@ export class AuthService {
         ),
         PersonHasRoles: {
           create: {
-            Role: { connect: { role_id: roleId } },
+            Role: { connect: { title: RoleEnum.CLIENT } },
             CreatedBy: createdBy
               ? { connect: { person_has_role_id: createdBy } }
               : undefined,
@@ -138,7 +126,7 @@ export class AuthService {
       },
     });
 
-    return { ...person, id: person_has_role_id, subdomain, is_active };
+    return { ...person, id: person_has_role_id, is_active };
   }
 
   async login(user: Express.User): Promise<AuthTokensDto> {
@@ -192,28 +180,21 @@ export class AuthService {
     }
 
     const personHasRole = await this.prismaService.personHasRole.findUnique({
-      include: { Person: true, Role: true },
+      include: { Person: true },
       where: { person_has_role_id: payload.sub },
     });
     if (!personHasRole) {
       throw new NotFoundException('Invalid token payload!');
     }
-    const {
-      Person: person,
-      is_active,
-      Role: { subdomain },
-    } = personHasRole;
+    const { Person: person, is_active } = personHasRole;
 
-    return { ...person, subdomain, is_active, id: payload.sub };
+    return { ...person, is_active, id: payload.sub };
   }
 
-  async requestForgotPasswordOTP(request: Request, username: string) {
-    const subdomain = new URL(request.headers.origin as string).host;
-
+  async requestForgotPasswordOTP(username: string) {
     const user = await this.prismaService.personHasRole.findFirst({
       include: { Person: true },
       where: {
-        Role: { subdomain },
         Person: { OR: [{ email: username }, { username }] },
       },
     });
