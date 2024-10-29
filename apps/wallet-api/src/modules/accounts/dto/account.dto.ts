@@ -17,8 +17,8 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { VerifyOTPDto } from '../../../app/two-fa/dto/two-fa.dto';
 import { CybridAccountEnum } from '../../../types/cybrid/enums';
+import { OTPPayloadDto } from '../../../app/two-fa/dto/two-fa.dto';
 
 export class CybridAccountEntity implements CybridAccount {
   @ApiProperty()
@@ -221,7 +221,7 @@ export class InitiateTransferDto {
   @ApiProperty({
     description: 'One time password received by email or any external channel',
   })
-  otp: VerifyOTPDto;
+  otp: OTPPayloadDto;
 
   @IsString()
   @ApiProperty({

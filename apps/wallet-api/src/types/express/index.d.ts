@@ -5,7 +5,6 @@ declare global {
     interface User extends Person {
       id: string;
       is_active: boolean;
-      subdomain: string | null;
     }
 
     namespace Express {

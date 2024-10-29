@@ -64,7 +64,7 @@ export class AccountsService {
 
     if (payload.external_bank_account_id) {
       await this.prismaService.cybridExternalAccount.update({
-        data: {},
+        data: verificationPayload,
         where: { cybrid_external_account_id: payload.external_bank_account_id },
       });
     } else {
