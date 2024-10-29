@@ -11,13 +11,14 @@ import { UsersModule } from '../modules/users/users.module';
 import { MailerModule } from '../mailer/mailer.module';
 import { HttpExceptionFilter } from '../exception-filters/http-exception.filter';
 import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.filter';
+import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
 
 @Module({
   imports: [
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
-        port: 6379,
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
       },
     }),
     PrismaModule,
@@ -40,6 +41,10 @@ import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.fil
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
     },
     {
       provide: APP_FILTER,
