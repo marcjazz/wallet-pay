@@ -1,6 +1,4 @@
-import {
-  IdentityVerificationWithDetailsBankModel
-} from '@cybrid/cybrid-api-bank-typescript';
+import { IdentityVerificationWithDetailsBankModel } from '@cybrid/cybrid-api-bank-typescript';
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import {
@@ -8,12 +6,13 @@ import {
   CybridExternalAccountStatus,
   CybridTransactionStatus,
   IdentityVerificationStatus,
-  PrismaPromise
+  PrismaPromise,
 } from '@prisma/client';
 import { Job } from 'bull';
 import { PrismaService } from '../prisma/prisma.service';
 import { cybridConstants, cybridJobs } from './constants';
 import { CybridService } from './cybrid.service';
+import { CybridSubscriptionEventObjectDto } from './subscriptions/cybrid-subscription.dto';
 
 @Processor(cybridConstants.QUEUE)
 //FIXME: Move database related instruction out of this module
@@ -44,6 +43,32 @@ export class CybridProcessor {
     this.logger.log(
       `Successfully pulled customer from cybrid and updated database`
     );
+  }
+
+  @Process(cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE)
+  async updateIdentityVerificationStatus(
+    job: Job<CybridSubscriptionEventObjectDto>
+  ) {
+    const { event_type: eventType, guid } = job.data;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, status] = eventType.split('.');
+    const verificationStatus =
+      status.toLocaleUpperCase() as IdentityVerificationStatus;
+
+    await this.prismaService.$transaction([
+      this.prismaService.cybridCustomer.updateMany({
+        data: {
+          verification_status: verificationStatus,
+        },
+        where: { identity_verification_guid: guid },
+      }),
+      this.prismaService.cybridExternalAccount.updateMany({
+        data: {
+          verification_status: verificationStatus,
+        },
+        where: { identity_verification_guid: guid },
+      }),
+    ]);
   }
 
   @Process(cybridJobs.PULLING_CUSTOMER_IDENTITY_VERIFICATION)

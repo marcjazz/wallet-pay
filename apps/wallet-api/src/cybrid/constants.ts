@@ -44,5 +44,6 @@ export const cybridJobs = {
   PULLING_CUSTOMER_IDENTITY_VERIFICATION: 'pulling-identity-verification',
   PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION:
     'pulling-external-account-identity-verification',
+  IDENTITY_VERIFICATION_STATUS_UPDATE: 'identity-verification-status-update',
   PULLING_CYBRID_TRANSFER: 'pulling-cybrid-transfer',
 };

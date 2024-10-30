@@ -10,6 +10,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { cybridConstants } from './constants';
 import { CybridConfiguration } from './cybrid.config';
 import { CybridService } from './cybrid.service';
+import { CybridSubscriptionsController } from './subscriptions/cybrid-subscriptions.controller';
 
 @Module({})
 export class CybridModule {
@@ -53,6 +54,7 @@ export class CybridModule {
           name: cybridConstants.QUEUE,
         }),
       ],
+      controllers: [CybridSubscriptionsController],
       providers: [
         CybridService,
         CybridConfiguration,
