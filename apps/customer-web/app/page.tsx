@@ -1,8 +1,10 @@
 'use client';
 
-import { Box, Button } from '@mui/material';
-import Header from '../components/layout/header/Header';
+import { Box } from '@mui/material';
+import MainCard from '../components/Home/MainCard';
+import TransactionSection from '../components/Home/TransactionSection';
 import Footer from '../components/layout/footer/Footer';
+import Header from '../components/layout/header/Header';
 
 export default function Index() {
   return (
@@ -17,16 +19,10 @@ export default function Index() {
       }}
     >
       <Header />
-      <Button
-        variant="contained"
-        size="medium"
-        fullWidth
-        color="primary"
-        // disabled
-        // startIcon={'s'}
-      >
-        Hello
-      </Button>
+      <Box sx={{ display: 'grid', gridTemplateRows: 'auto 1fr', rowGap: 4 }}>
+        <MainCard />
+        <TransactionSection />
+      </Box>
       <Footer />
     </Box>
   );
