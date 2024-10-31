@@ -157,22 +157,9 @@ export class CybridService {
               }),
         },
       });
-    const identityVerfication =
-      await new Promise<IdentityVerificationBankModel>((next, error) =>
-        newIndentityVerficationObservable.subscribe({ next, error })
-      );
-
-    // Pulling identity verification status from cybrid to update database
-    await this.cybridQueue.add(
-      externalBankAccountGuid
-        ? cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION
-        : cybridJobs.PULLING_CUSTOMER_IDENTITY_VERIFICATION,
-      [customerGuid, identityVerfication.guid],
-      {
-        backoff: { type: 'exponential', delay: 5000 },
-      }
+    return new Promise<IdentityVerificationBankModel>((next, error) =>
+      newIndentityVerficationObservable.subscribe({ next, error })
     );
-    return identityVerfication;
   }
 
   async getAccount(customerGuid: string, accountGuid: string) {

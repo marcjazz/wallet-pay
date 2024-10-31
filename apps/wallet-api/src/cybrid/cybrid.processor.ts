@@ -1,12 +1,10 @@
-import { IdentityVerificationWithDetailsBankModel } from '@cybrid/cybrid-api-bank-typescript';
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import {
   CybridCustomerStatus,
-  CybridExternalAccountStatus,
   CybridTransactionStatus,
   IdentityVerificationStatus,
-  PrismaPromise,
+  PrismaPromise
 } from '@prisma/client';
 import { Job } from 'bull';
 import { PrismaService } from '../prisma/prisma.service';
@@ -69,74 +67,9 @@ export class CybridProcessor {
         where: { identity_verification_guid: guid },
       }),
     ]);
-  }
-
-  @Process(cybridJobs.PULLING_CUSTOMER_IDENTITY_VERIFICATION)
-  async pullIdentityVerification(job: Job<[string, string]>) {
-    this.logger.debug('Pulling cybrid customer identity verification...');
-
-    const [customerGuid, identityVerificationGuid] = job.data;
-
-    const identityVerification = await this.fetchIdentityVerification(
-      customerGuid,
-      identityVerificationGuid
-    );
-
-    await this.prismaService.cybridCustomer.update({
-      data: {
-        verification_status:
-          identityVerification.state as IdentityVerificationStatus,
-      },
-      where: {
-        cybrid_customer_guid: identityVerification.customer_guid as string,
-      },
-    });
 
     this.logger.log(
-      `Successfully pulled customer from cybrid and updated database`
-    );
-  }
-
-  @Process(cybridJobs.PULLING_EXTERNAL_ACCOUNT_IDENTITY_VERIFICATION)
-  async pullExternalAccountIdentityVerification(job: Job<[string, string]>) {
-    this.logger.debug(
-      'Pulling cybrid external bank account identity verification...'
-    );
-    const [customerGuid, identityVerificationGuid] = job.data;
-
-    const identityVerification = await this.fetchIdentityVerification(
-      customerGuid,
-      identityVerificationGuid
-    );
-    if (
-      !identityVerification ||
-      !identityVerification.external_bank_account_guid
-    ) {
-      throw new Error(
-        'External bank account identity verification not completed yet!'
-      );
-    }
-
-    const externalAccount = await this.cybridService.getExternalBankAccount(
-      identityVerification.customer_guid as string,
-      identityVerification.external_bank_account_guid
-    );
-
-    await this.prismaService.cybridExternalAccount.update({
-      data: {
-        verification_status:
-          identityVerification.state?.toLocaleUpperCase() as IdentityVerificationStatus,
-        status:
-          externalAccount.state?.toLocaleUpperCase() as CybridExternalAccountStatus,
-      },
-      where: {
-        cybrid_external_account_guid:
-          identityVerification.external_bank_account_guid as string,
-      },
-    });
-
-    this.logger.log(
-      `Successfully pulled external bank account from cybrid and updated database`
+      `Successfully processed ${eventType} from cybrid and updated database`
     );
   }
 
@@ -199,32 +132,5 @@ export class CybridProcessor {
     this.logger.log(
       `Successfully pulled ongoing transaction from cybrid and updated database`
     );
-  }
-
-  private async fetchIdentityVerification(
-    customerGuid: string,
-    identityVerificationGuid: string
-  ): Promise<IdentityVerificationWithDetailsBankModel> {
-    const identityVerification =
-      await this.cybridService.getIdentityVerification(
-        customerGuid,
-        identityVerificationGuid
-      );
-
-    const finalIDVerificationStatus: IdentityVerificationStatus[] = [
-      IdentityVerificationStatus.COMPLETED,
-      IdentityVerificationStatus.EXPIRED,
-    ];
-    const identityVerificationStatus =
-      identityVerification.state?.toLocaleUpperCase() as IdentityVerificationStatus;
-    if (
-      !identityVerificationStatus ||
-      !identityVerification.customer_guid ||
-      !finalIDVerificationStatus.includes(identityVerificationStatus)
-    ) {
-      throw new Error('Identity verification not completed yet!');
-    }
-
-    return { ...identityVerification, state: identityVerificationStatus };
   }
 }
