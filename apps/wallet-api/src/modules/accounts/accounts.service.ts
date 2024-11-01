@@ -1,4 +1,9 @@
-import { PostExternalBankAccountBankModelAccountKindEnum } from '@cybrid/cybrid-api-bank-typescript';
+import {
+  PostExternalBankAccountBankModelAccountKindEnum,
+  PostIdentityVerificationBankModel,
+  PostIdentityVerificationBankModelMethodEnum,
+  PostIdentityVerificationBankModelTypeEnum,
+} from '@cybrid/cybrid-api-bank-typescript';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
@@ -31,20 +36,30 @@ export class AccountsService {
       throw new NotFoundException('Customer account not found!');
     }
 
-    let externalBankAccountGuid: string | undefined;
+    let identityVerificationPayload: PostIdentityVerificationBankModel;
     if (payload.external_bank_account_id) {
-      externalBankAccountGuid = customer.CybridExternalAccounts.find(
+      const externalBankAccountGuid = customer.CybridExternalAccounts.find(
         (_) => _.cybrid_external_account_id === payload.external_bank_account_id
       )?.cybrid_external_account_guid;
 
       if (!externalBankAccountGuid) {
         throw new NotFoundException('External account not found!');
       }
-    }
 
-    const identityVerification = await this.cybridService.verifyCybridAccount(
+      identityVerificationPayload = {
+        type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
+        method: PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
+        external_bank_account_guid: externalBankAccountGuid,
+      };
+    } else
+      identityVerificationPayload = {
+        type: PostIdentityVerificationBankModelTypeEnum.Kyc,
+        method: PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
+      };
+
+    const identityVerification = await this.cybridService.verifyIdentity(
       customer.cybrid_customer_guid,
-      externalBankAccountGuid
+      identityVerificationPayload
     );
 
     const verificationPayload = {

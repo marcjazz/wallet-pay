@@ -1,18 +1,7 @@
-import {
-  WorkflowBankModel
-} from '@cybrid/cybrid-api-bank-typescript';
+import { WorkflowBankModel } from '@cybrid/cybrid-api-bank-typescript';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  $Enums,
-  CybridAccount,
-  CybridExternalAccount
-} from '@prisma/client';
-import {
-  IsEnum,
-  IsOptional,
-  IsPhoneNumber,
-  IsString
-} from 'class-validator';
+import { $Enums, CybridAccount, CybridExternalAccount } from '@prisma/client';
+import { IsEnum, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
 import { CybridAccountEnum } from '../../../types/cybrid/enums';
 
 export class CybridAccountEntity implements CybridAccount {
@@ -223,6 +212,11 @@ export class ReceiverPayoutInfoDto {
   @ApiProperty()
   @IsPhoneNumber()
   phone_number: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  cybrid_counterparty_id: string | null = null;
 
   constructor(props: ReceiverPayoutInfoDto) {
     Object.assign(this, props);

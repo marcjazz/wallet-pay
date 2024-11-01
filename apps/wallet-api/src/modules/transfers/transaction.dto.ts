@@ -1,8 +1,14 @@
 import { PostTransferBankModelTransferTypeEnum } from '@cybrid/cybrid-api-bank-typescript';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { $Enums, CybridTransaction } from '@prisma/client';
 import { Exclude, Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsString, ValidateNested } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { OTPPayloadDto } from '../../app/two-fa/dto/two-fa.dto';
 import { ReceiverPayoutInfoDto } from '../accounts/dto/account.dto';
 
@@ -34,10 +40,11 @@ export class InitiateTransferDto {
   })
   otp: OTPPayloadDto;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => ReceiverPayoutInfoDto)
-  @ApiProperty({ type: ReceiverPayoutInfoDto })
-  receiver: ReceiverPayoutInfoDto;
+  @ApiPropertyOptional({ type: ReceiverPayoutInfoDto })
+  receiver: ReceiverPayoutInfoDto | null = null;
 
   constructor(props: InitiateTransferDto) {
     Object.assign(this, props);
