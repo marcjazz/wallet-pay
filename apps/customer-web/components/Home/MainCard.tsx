@@ -148,7 +148,6 @@ export default function MainCard() {
             <Typography variant="h1" sx={{ color: 'white' }} component="span">
               {isActiveAccountLoading ? (
                 <Skeleton
-                  animation="wave"
                   sx={{
                     minWidth: '100px',
                     backgroundColor: 'rgb(179 167 167 / 12%)',

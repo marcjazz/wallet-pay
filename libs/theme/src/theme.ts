@@ -247,6 +247,11 @@ export function useTheme() {
       },
     },
     components: {
+      MuiSkeleton: {
+        defaultProps: {
+          animation: 'wave',
+        },
+      },
       MuiButton: {
         defaultProps: {
           variant: 'contained',
