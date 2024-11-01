@@ -2,6 +2,8 @@ import {
   AccountBankModel,
   AccountListBankModel,
   AccountsBankApi,
+  CounterpartiesBankApi,
+  CounterpartyBankModel,
   CustomerBankModel,
   CustomerListBankModel,
   ExternalBankAccountBankModel,
@@ -11,10 +13,10 @@ import {
   IdentityVerificationsBankApi,
   IdentityVerificationWithDetailsBankModel,
   PostAccountBankModelTypeEnum,
+  PostCounterpartyBankModel,
   PostCustomerBankModelTypeEnum,
   PostExternalBankAccountBankModel,
-  PostIdentityVerificationBankModelMethodEnum,
-  PostIdentityVerificationBankModelTypeEnum,
+  PostIdentityVerificationBankModel,
   PostQuoteBankModelProductTypeEnum,
   PostTransferBankModel,
   PostWorkflowBankModelKindEnum,
@@ -26,7 +28,7 @@ import {
   TransfersBankApi,
   WorkflowBankModel,
   WorkflowsBankApi,
-  WorkflowWithDetailsBankModel
+  WorkflowWithDetailsBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
@@ -122,9 +124,9 @@ export class CybridService {
     );
   }
 
-  async verifyCybridAccount(
+  async verifyIdentity(
     customerGuid: string,
-    externalBankAccountGuid?: string
+    payload: PostIdentityVerificationBankModel
   ) {
     const identityVerificationsApi = await this.cybridConfiguration.getInstance(
       IdentityVerificationsBankApi,
@@ -136,17 +138,7 @@ export class CybridService {
       identityVerificationsApi.createIdentityVerification({
         postIdentityVerificationBankModel: {
           customer_guid: customerGuid,
-          ...(externalBankAccountGuid
-            ? {
-                type: PostIdentityVerificationBankModelTypeEnum.BankAccount,
-                method:
-                  PostIdentityVerificationBankModelMethodEnum.AccountOwnership,
-                external_bank_account_guid: externalBankAccountGuid,
-              }
-            : {
-                type: PostIdentityVerificationBankModelTypeEnum.Kyc,
-                method: PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
-              }),
+          ...payload,
         },
       });
     return new Promise<IdentityVerificationBankModel>((next, error) =>
@@ -336,6 +328,41 @@ export class CybridService {
 
     return new Promise<TransferBankModel>((next, error) =>
       transfersObservable.subscribe({ next, error })
+    );
+  }
+
+  async createCounterparty(
+    customerGuid: string,
+    payload: PostCounterpartyBankModel
+  ) {
+    const counterpartiesBankApi = await this.cybridConfiguration.getInstance(
+      CounterpartiesBankApi,
+      customerGuid,
+      ['counterparties:execute']
+    );
+
+    const counterpartiesObservable = counterpartiesBankApi.createCounterparty({
+      postCounterpartyBankModel: { customer_guid: customerGuid, ...payload },
+    });
+
+    return new Promise<CounterpartyBankModel>((next, error) =>
+      counterpartiesObservable.subscribe({ next, error })
+    );
+  }
+
+  async getCounterparty(customerGuid: string, counterpartyGuid: string) {
+    const counterpartiesBankApi = await this.cybridConfiguration.getInstance(
+      CounterpartiesBankApi,
+      customerGuid,
+      ['counterparties:read']
+    );
+
+    const counterpartiesObservable = counterpartiesBankApi.getCounterparty({
+      counterpartyGuid,
+    });
+
+    return new Promise<CounterpartyBankModel>((next, error) =>
+      counterpartiesObservable.subscribe({ next, error })
     );
   }
 }

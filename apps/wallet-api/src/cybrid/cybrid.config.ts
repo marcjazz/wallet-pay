@@ -2,6 +2,7 @@ import {
   AccountsBankApi,
   BaseAPI,
   Configuration,
+  CounterpartiesBankApi,
   CustomersBankApi,
   ExternalBankAccountsBankApi,
   IdentityVerificationsBankApi,
@@ -45,6 +46,7 @@ export class CybridConfiguration {
       [WorkflowsBankApi.name]: WorkflowsBankApi,
       [TransfersBankApi.name]: TransfersBankApi,
       [QuotesBankApi.name]: QuotesBankApi,
+      [CounterpartiesBankApi.name]: CounterpartiesBankApi,
     };
     const ModelBankApi = BankApiModelsMap[modelName.name];
     if (!ModelBankApi) {
