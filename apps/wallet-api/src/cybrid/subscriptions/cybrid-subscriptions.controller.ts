@@ -36,14 +36,17 @@ export class CybridSubscriptionsController {
     if (!event) {
       const [eventType] = eventObject.event_type.split('.');
 
-      if (eventType === 'identity_verification') {
-        this.cybridQueue.add(
-          cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE,
-          eventObject,
-          { attempts: 3, backoff: 5000 }
-        );
-      } else if (eventType === 'transfer') {
-        // handle transfer status update here
+      const eventTypeMap: Record<string, string> = {
+        transfer: cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE,
+        identity_verification: cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE,
+      };
+      const event = eventTypeMap[eventType];
+
+      if (event) {
+        this.cybridQueue.add(event, eventObject, {
+          attempts: 3,
+          backoff: 5000,
+        });
       } else
         throw new NotImplementedException(
           `Event type not implemented yet ${eventType}`

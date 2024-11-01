@@ -17,7 +17,6 @@ import {
   PostIdentityVerificationBankModelTypeEnum,
   PostQuoteBankModelProductTypeEnum,
   PostTransferBankModel,
-  PostTransferBankModelTransferTypeEnum,
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelLanguageEnum,
   PostWorkflowBankModelTypeEnum,
@@ -27,14 +26,14 @@ import {
   TransfersBankApi,
   WorkflowBankModel,
   WorkflowsBankApi,
-  WorkflowWithDetailsBankModel,
+  WorkflowWithDetailsBankModel
 } from '@cybrid/cybrid-api-bank-typescript';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
 import { Queue } from 'bull';
 import { NewCybridCustomerType } from '../types/cybrid';
-import { cybridConstants, cybridJobs } from './constants';
+import { cybridConstants } from './constants';
 import { CybridConfiguration } from './cybrid.config';
 
 @Injectable()
@@ -78,13 +77,6 @@ export class CybridService {
       return newCustomerObservable.subscribe({
         error,
         next: async (customer) => {
-          // Pulling customer creation status from cybrid to update database
-          await this.cybridQueue.add(
-            cybridJobs.PULLING_CYBRID_CUSTOMER,
-            customer.guid,
-            { backoff: { type: 'exponential', delay: 3000 } }
-          );
-
           const accountsBankApi = await this.cybridConfiguration.getInstance(
             AccountsBankApi,
             customer.guid as string,
@@ -326,24 +318,8 @@ export class CybridService {
       postTransferBankModel: { ...payload, customer_guid: customerGuid },
     });
 
-    return new Promise<TransferBankModel>((resolve, error) =>
-      transfersObservable.subscribe({
-        error,
-        next: async (transfer) => {
-          // Book transfers are nearly instant and there by don't need to be pulled
-          if (
-            payload.transfer_type != PostTransferBankModelTransferTypeEnum.Book
-          ) {
-            await this.cybridQueue.add(
-              cybridJobs.PULLING_CYBRID_TRANSFER,
-              [customerGuid, payload.fiat_account_guid, transfer.guid],
-              { backoff: { type: 'exponential', delay: 3000 } } // should be set to 24 hour in production
-            );
-          }
-
-          resolve(transfer);
-        },
-      })
+    return new Promise<TransferBankModel>((next, error) =>
+      transfersObservable.subscribe({ error, next })
     );
   }
 
