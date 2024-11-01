@@ -11,7 +11,7 @@ import {
   Lock as LockIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { DialogTransition } from '../../shared/dialog-transition';
+import { LeftDialogTransition } from '../../shared/dialog-transition';
 import MenuItem, { MenuItemProps } from './MenuItem';
 
 type MenuItemGroup = Record<string, MenuItemProps[]>;
@@ -86,7 +86,7 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
       open={isMenuOpen}
       onClose={handleClose}
       fullScreen
-      TransitionComponent={DialogTransition}
+      TransitionComponent={LeftDialogTransition}
     >
       <Box
         sx={{
