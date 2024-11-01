@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
+import { TwoFAModule } from '../../app/two-fa/two-fa.module';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { AccountsModule } from '../accounts/accounts.module';
-import { TwoFAModule } from '../../app/two-fa/two-fa.module';
 
 @Module({
-  imports: [TwoFAModule, AccountsModule],
+  imports: [TwoFAModule],
   providers: [UsersService],
   controllers: [UsersController],
 })

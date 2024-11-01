@@ -1,24 +1,19 @@
 import {
-  PostTransferBankModelTransferTypeEnum,
-  WorkflowBankModel,
+  WorkflowBankModel
 } from '@cybrid/cybrid-api-bank-typescript';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   $Enums,
   CybridAccount,
-  CybridExternalAccount,
-  CybridTransaction,
+  CybridExternalAccount
 } from '@prisma/client';
-import { Exclude } from 'class-transformer';
 import {
   IsEnum,
-  IsNumber,
   IsOptional,
-  IsString,
-  Length,
+  IsPhoneNumber,
+  IsString
 } from 'class-validator';
 import { CybridAccountEnum } from '../../../types/cybrid/enums';
-import { OTPPayloadDto } from '../../../app/two-fa/dto/two-fa.dto';
 
 export class CybridAccountEntity implements CybridAccount {
   @ApiProperty()
@@ -215,91 +210,21 @@ export class ExternalBankAccountEntity implements CybridExternalAccount {
   }
 }
 
-export class InitiateTransferDto {
+export class ReceiverPayoutInfoDto {
   @IsString()
-  @Length(5)
-  @ApiProperty({
-    description: 'One time password received by email or any external channel',
-  })
-  otp: OTPPayloadDto;
+  @ApiProperty()
+  fullname: string;
 
   @IsString()
-  @ApiProperty({
-    description:
-      'customer internal or external account unique identifier in our database',
-  })
-  cybrid_source_account_id: string;
-
-  @IsEnum(PostTransferBankModelTransferTypeEnum)
-  @ApiProperty({ enum: PostTransferBankModelTransferTypeEnum })
-  transfer_type: PostTransferBankModelTransferTypeEnum;
-
-  @IsEnum($Enums.CybridSupportedCurrency)
-  @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
-  currency: $Enums.CybridSupportedCurrency;
-
-  @IsNumber()
-  @ApiProperty({ description: 'Amount in currency base unit' })
-  amount: number;
-
-  constructor(props: InitiateTransferDto) {
-    Object.assign(this, props);
-  }
-}
-
-export class CybridTransactionEntity implements CybridTransaction {
-  @ApiProperty()
-  cybrid_transaction_id: string;
+  @IsOptional()
+  @ApiPropertyOptional()
+  national_id_number: string | null = null;
 
   @ApiProperty()
-  cybrid_transaction_guid: string;
+  @IsPhoneNumber()
+  phone_number: string;
 
-  @ApiProperty()
-  amount: number;
-
-  @ApiProperty()
-  initial_currency: $Enums.CybridSupportedCurrency;
-
-  @ApiProperty()
-  converstion_rate: number | null;
-
-  @ApiProperty()
-  fees: number;
-
-  @ApiProperty()
-  transaction_id: string;
-
-  @ApiProperty({ enum: $Enums.CybridTransactionType })
-  transaction_type: $Enums.CybridTransactionType;
-
-  @ApiProperty({ enum: $Enums.CybridTransactionStatus })
-  status: $Enums.CybridTransactionStatus;
-
-  @ApiProperty({ type: Date })
-  initiated_at: Date;
-
-  @ApiProperty({ type: Date })
-  settled_at: Date | null;
-
-  @ApiProperty({ description: 'Provided for local transactions' })
-  local_customer_id: string | null;
-
-  @ApiProperty()
-  payout_info_id: string | null;
-
-  @ApiProperty()
-  bank_info_id: string | null;
-
-  @ApiProperty()
-  cybrid_account_id: string | null;
-
-  @ApiProperty()
-  cybrid_external_account_id: string | null;
-
-  @Exclude()
-  initiated_by: string;
-
-  constructor(props: CybridTransactionEntity) {
+  constructor(props: ReceiverPayoutInfoDto) {
     Object.assign(this, props);
   }
 }

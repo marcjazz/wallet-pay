@@ -4,7 +4,6 @@ import {
   Get,
   Post,
   Req,
-  UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import {
@@ -16,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { $Enums } from '@prisma/client';
 import { Request } from 'express';
+import { OTPService } from '../../app/two-fa/otp/otp.service';
 import { CybridAccountEnum } from '../../types/cybrid/enums';
 import { AccountsService } from './accounts.service';
 import {
@@ -24,15 +24,11 @@ import {
   CreateWorkflowDto,
   CybridAccountEntity,
   CybridExternalAccountEntity,
-  CybridTransactionEntity,
   ExternalBankAccountEntity,
   IdentityVerificationEntity,
-  InitiateTransferDto,
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from './dto/account.dto';
-import { OTPService } from '../../app/two-fa/otp/otp.service';
-import { TwoFAUsage } from '../../app/two-fa/two-fa.interface';
 
 @ApiBearerAuth()
 @ApiTags('Accounts')
@@ -130,7 +126,9 @@ export class AccountsController {
 
   @Post('new-external-account')
   @ApiCreatedResponse({ type: ExternalBankAccountEntity })
-  @ApiOperation({ summary: 'Initialize KYC process on a user account' })
+  @ApiOperation({
+    summary: 'Create new external bank account from data returned by plaid',
+  })
   async startExternalPlaidLink(
     @Req() req: Request,
     @Body() payload: CreateExternalAccountDto
@@ -140,34 +138,5 @@ export class AccountsController {
       req.user?.person_id as string
     );
     return new ExternalBankAccountEntity(externalAccount);
-  }
-
-  @Post(':id/initiate-transfer')
-  @ApiCreatedResponse({ type: CybridTransactionEntity })
-  @ApiOperation({
-    summary: 'Initialize a transfer on a given account.',
-    description:
-      'Initialize a transfer on a given account. Only book, funding or instant funding are currently supported',
-  })
-  async initiateTransfer(
-    @Req() req: Request,
-    @Body() { otp, ...payload }: InitiateTransferDto
-  ) {
-    const isVerified = await this.otpService.verify(
-      otp.otp_id,
-      otp.code,
-      TwoFAUsage.TRANSFER
-    );
-
-    if (!isVerified) {
-      throw new UnauthorizedException(`Invalid One time password`);
-    }
-
-    const transfer = await this.accountsService.initiateTransfer(
-      req.user?.person_id as string,
-      payload
-    );
-
-    return new CybridTransactionEntity(transfer);
   }
 }
