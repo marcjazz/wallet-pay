@@ -11,7 +11,9 @@ import {
   Lock as LockIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { LeftDialogTransition } from '../../shared/dialog-transition';
+import {
+  LeftDialogTransition
+} from '../../shared/dialog-transition';
 import MenuItem, { MenuItemProps } from './MenuItem';
 
 type MenuItemGroup = Record<string, MenuItemProps[]>;
