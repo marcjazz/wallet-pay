@@ -1,8 +1,16 @@
 import { Box, Button, Typography } from '@mui/material';
 import { ChevronRight as ChevronRightIcon } from 'react-feather';
-import TransactionHistoryCard from '../transaction/TransactionHistoryCard';
+import { useIntl } from 'react-intl';
+import TransactionList from '../transaction/TransactionList';
 
-export default function TransactionSection() {
+interface TransactionSectionProps {
+  openAllHistory: () => void;
+}
+export default function TransactionSection({
+  openAllHistory,
+}: TransactionSectionProps) {
+  const { formatMessage } = useIntl();
+
   return (
     <Box>
       <Box
@@ -13,7 +21,7 @@ export default function TransactionSection() {
         }}
       >
         <Typography variant="l1r" sx={{ color: '#8E9090' }}>
-          Transactions
+          {formatMessage({ id: 'transactions' })}
         </Typography>
         <Button
           variant="text"
@@ -22,14 +30,13 @@ export default function TransactionSection() {
             typography: 'l1r',
             padding: 0,
           }}
+          onClick={openAllHistory}
         >
-          See all
+          {formatMessage({ id: 'seeAll' })}
         </Button>
       </Box>
 
-      <Box>
-        <TransactionHistoryCard />
-      </Box>
+      <TransactionList />
     </Box>
   );
 }

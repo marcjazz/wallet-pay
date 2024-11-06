@@ -64,4 +64,8 @@ export const website = {
   deposit: 'Deposit',
   withdraw: 'Withdraw',
   account: 'Account: ',
+  transactions: 'Transactions',
+  seeAll: 'See All',
+  allTransactions: 'All Transactions',
+  searchName: 'Search Name',
 };

@@ -247,6 +247,11 @@ export function useTheme() {
       },
     },
     components: {
+      MuiTooltip: {
+        defaultProps: {
+          arrow: true,
+        },
+      },
       MuiSkeleton: {
         defaultProps: {
           animation: 'wave',
