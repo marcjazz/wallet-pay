@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  nestjs:
+    image: node:18-alpine # Use the Node.js image, or build from your own Dockerfile
+    container_name: xafpay_api
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules # Ensures node_modules are accessible inside the container
+    command: sh -c "npm install && npm run start:dev"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "3000:3000"
+
+  postgres:
+    image: postgres:alpine
+    container_name: xafpay_api_db
+    env_file:
+      - .env
+    volumes:
+      - xafpay_api_pgdata:/var/lib/postgresql/data # Persistent storage for PostgreSQL
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: xafpay_api_cache
+    ports:
+      - "6379:6379"
+
+volumes:
+  xafpay_api_pgdata:
+    driver: local

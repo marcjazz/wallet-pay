@@ -7,13 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model BankPayoutInfo {
-  bank_payout_info_id String              @id @default(cuid()) @db.VarChar(36)
-  holder_name         String              @db.VarChar(45)
-  bank_name           String              @db.VarChar(45)
-  iban_number         String              @db.VarChar(45)
-  CybridTransactions  CybridTransaction[]
-  StripeTransactions  StripeTransaction[]
+model ReceiverBankPayoutInfo {
+  receiver_bank_payout_info_id String              @id @default(cuid()) @db.VarChar(36)
+  holder_name                  String              @db.VarChar(45)
+  bank_name                    String              @db.VarChar(45)
+  iban_number                  String              @db.VarChar(45)
+  CybridTransactions           CybridTransaction[]
+  StripeTransactions           StripeTransaction[]
 
   @@map("bank_payout_info")
 }
@@ -72,6 +72,7 @@ model CybridExternalAccount {
   cybrid_external_account_guid String                      @unique @db.VarChar(45)
   name                         String
   balance                      Float
+  mask                         String?                     @db.VarChar(4)
   status                       CybridExternalAccountStatus
   identity_verification_guid   String?                     @db.VarChar(45)
   verification_status          IdentityVerificationStatus?
@@ -84,37 +85,43 @@ model CybridExternalAccount {
 }
 
 model CybridTransaction {
-  cybrid_transaction_id      String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_transaction_guid    String                  @unique @db.VarChar(45)
-  amount                     Float
-  initial_currency           CybridSupportedCurrency
-  converstion_rate           Float?
-  fees                       Float
-  transaction_id             String                  @default(cuid()) @db.VarChar(45)
-  transaction_type           CybridTransactionType
-  status                     CybridTransactionStatus
-  initiated_at               DateTime                @default(now()) @db.Timestamp()
-  settled_at                 DateTime?               @db.Timestamp()
-  local_customer_id          String?
-  LocalCustomer              LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
-  payout_info_id             String?
-  ReceiverPayoutInfo         ReceiverPayoutInfo?     @relation(fields: [payout_info_id], references: [receiver_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
-  bank_info_id               String?
-  BankPayoutInfo             BankPayoutInfo?         @relation(fields: [bank_info_id], references: [bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_BankInfo1")
-  cybrid_account_id          String?
-  CybridAccount              CybridAccount?          @relation("cybridaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount2")
-  cybrid_external_account_id String?
-  CybridExternalAccount      CybridExternalAccount?  @relation(fields: [cybrid_external_account_id], references: [cybrid_external_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridExternalAccount1")
-  initiated_by               String
-  InitiatedBy                CybridAccount           @relation("cybridaccountTocybridtransaction_created_by", fields: [initiated_by], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount1")
+  cybrid_transaction_id        String                  @id @default(cuid()) @db.VarChar(36)
+  cybrid_transaction_guid      String                  @unique @db.VarChar(45)
+  amount                       Float
+  initial_currency             CybridSupportedCurrency
+  converstion_rate             Float?
+  fees                         Float
+  transaction_id               String                  @default(cuid()) @db.VarChar(45)
+  transaction_type             CybridTransactionType
+  status                       CybridTransactionStatus
+  initiated_at                 DateTime                @default(now()) @db.Timestamp()
+  settled_at                   DateTime?               @db.Timestamp()
+  local_customer_id            String?
+  LocalCustomer                LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
+  receiver_payout_info_id      String?
+  ReceiverPayoutInfo           CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counter_party_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
+  receiver_bank_payout_info_id String?
+  ReceiverBankPayoutInfo       ReceiverBankPayoutInfo? @relation(fields: [receiver_bank_payout_info_id], references: [receiver_bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_BankInfo1")
+  cybrid_account_id            String?
+  CybridAccount                CybridAccount?          @relation("cybridaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount2")
+  cybrid_external_account_id   String?
+  CybridExternalAccount        CybridExternalAccount?  @relation(fields: [cybrid_external_account_id], references: [cybrid_external_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridExternalAccount1")
+  initiated_by                 String
+  InitiatedBy                  CybridAccount           @relation("cybridaccountTocybridtransaction_created_by", fields: [initiated_by], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount1")
 
-  @@index([bank_info_id], map: "fk_CybridTransaction_BankInfo1_idx")
+  @@index([receiver_bank_payout_info_id], map: "fk_CybridTransaction_BankInfo1_idx")
   @@index([initiated_by], map: "fk_CybridTransaction_CybridAccount1_idx")
   @@index([cybrid_account_id], map: "fk_CybridTransaction_CybridAccount2_idx")
   @@index([cybrid_external_account_id], map: "fk_CybridTransaction_CybridExternalAccount1_idx")
   @@index([local_customer_id], map: "fk_CybridTransaction_LocalCustomer1_idx")
-  @@index([payout_info_id], map: "fk_CybridTransaction_PayoutInfo1_idx")
+  @@index([receiver_payout_info_id], map: "fk_CybridTransaction_PayoutInfo1_idx")
   @@map("cybrid_transactions")
+}
+
+model CybridSubscriptionEvent {
+  event_guid        String @unique
+  event_type        String
+  organization_guid String
 }
 
 model LocalCustomer {
@@ -181,24 +188,25 @@ model OTP {
 }
 
 model Person {
-  person_id          String            @id @default(cuid()) @db.VarChar(36)
+  person_id          String               @id @default(cuid()) @db.VarChar(36)
   gender             PersonGender
   birthdate          DateTime
-  first_name         String            @db.VarChar(45)
-  last_name          String            @db.VarChar(45)
-  email              String            @unique @db.VarChar(45)
-  username           String            @unique @db.VarChar(45)
-  is_verified        Boolean           @default(false) @db.Boolean
-  phone_number       String            @db.VarChar(45)
-  password           String            @db.VarChar(255)
-  created_at         DateTime          @default(now()) @db.Timestamp()
-  preferred_language PreferredLanguage @default(EN_US)
+  first_name         String               @db.VarChar(45)
+  last_name          String               @db.VarChar(45)
+  email              String               @unique @db.VarChar(45)
+  username           String               @unique @db.VarChar(45)
+  is_verified        Boolean              @default(false) @db.Boolean
+  phone_number       String               @db.VarChar(45)
+  password           String               @db.VarChar(255)
+  created_at         DateTime             @default(now()) @db.Timestamp()
+  preferred_language PreferredLanguage    @default(EN_US)
   CybridCustomers    CybridCustomer[]
   LocalCustomers     LocalCustomer[]
   PersonAudits       PersonAudit[]
   PersonHasRoles     PersonHasRole[]
   RoleAudits         RoleAudit[]
   Roles              Role[]
+  Receivers          CybridCounterparty[] @relation("personToreceiverpayoutinfo_person_id")
 
   @@map("persons")
 }
@@ -268,15 +276,19 @@ model PersonHasRoleAudit {
   @@map("person_has_role_audits")
 }
 
-model ReceiverPayoutInfo {
-  receiver_payout_info_id String              @id @default(cuid()) @db.VarChar(36)
-  fullname                String              @db.VarChar(45)
-  phone_number            String              @db.VarChar(45)
-  national_id_number      String?             @db.VarChar(45)
-  created_at              DateTime            @default(now()) @db.Timestamp()
-  CybridTransactions      CybridTransaction[]
-  StripeTransactions      StripeTransaction[]
+model CybridCounterparty {
+  cybrid_counter_party_id  String              @id @default(cuid()) @db.VarChar(36)
+  fullname                 String              @db.VarChar(45)
+  phone_number             String              @db.VarChar(45)
+  national_id_number       String?             @db.VarChar(45)
+  cybrid_counterparty_guid String              @db.VarChar(45)
+  person_id                String
+  Person                   Person              @relation("personToreceiverpayoutinfo_person_id", fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: Cascade, map: "fk_ReceiverPayoutInfo_Person")
+  created_at               DateTime            @default(now()) @db.Timestamp()
+  CybridTransactions       CybridTransaction[]
+  StripeTransactions       StripeTransaction[]
 
+  @@unique([person_id, fullname, phone_number])
   @@map("receiver_payout_info")
 }
 
@@ -284,14 +296,12 @@ model Role {
   role_id        String          @id @default(cuid()) @db.VarChar(36)
   title          String          @unique @db.VarChar(45)
   is_active      Boolean         @default(true) @db.Boolean
-  subdomain      String?         @db.VarChar(45)
   created_at     DateTime        @default(now()) @db.Timestamp()
   created_by     String
   CreatedBy      Person          @relation(fields: [created_by], references: [person_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_Role_Person1")
   PersonHasRoles PersonHasRole[] @relation("roleTopersonhasrole_role_id")
   RoleAudits     RoleAudit[]
 
-  @@unique([title, subdomain])
   @@index([created_by], map: "fk_Role_Person1_idx")
   @@map("roles")
 }
@@ -312,24 +322,24 @@ model RoleAudit {
 }
 
 model StripeTransaction {
-  stripe_transaction_id   String              @id @default(cuid()) @db.VarChar(36)
+  stripe_transaction_id   String                  @id @default(cuid()) @db.VarChar(36)
   amount_sent             Float
   fees                    Float
   converstion_rate        Float
-  transaction_id          String              @db.VarChar(45)
-  stripe_transaction_guid String              @db.VarChar(45)
-  created_at              DateTime            @default(now()) @db.Timestamp()
-  settled_at              DateTime?           @db.Timestamp()
-  initial_currency        String              @db.VarChar(36)
-  InitialCurrency         SupportedCurrency   @relation(fields: [initial_currency], references: [supported_currency_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_SupportedCurrency1")
-  created_by              String              @db.VarChar(36)
-  CreatedBy               PersonHasRole       @relation(fields: [created_by], references: [person_has_role_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_PersonHasRole1")
-  local_customer_id       String?             @db.VarChar(36)
-  LocalCustomer           LocalCustomer?      @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_LocalCustomer1")
-  receiver_payout_info_id String?             @db.VarChar(36)
-  ReceiverPayoutInfo      ReceiverPayoutInfo? @relation(fields: [receiver_payout_info_id], references: [receiver_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_ReceiverPayoutInfo1")
-  bank_payout_info_id     String?             @db.VarChar(36)
-  BankPayoutInfo          BankPayoutInfo?     @relation(fields: [bank_payout_info_id], references: [bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_BankPayoutInfo1")
+  transaction_id          String                  @db.VarChar(45)
+  stripe_transaction_guid String                  @db.VarChar(45)
+  created_at              DateTime                @default(now()) @db.Timestamp()
+  settled_at              DateTime?               @db.Timestamp()
+  initial_currency        String                  @db.VarChar(36)
+  InitialCurrency         SupportedCurrency       @relation(fields: [initial_currency], references: [supported_currency_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_SupportedCurrency1")
+  created_by              String                  @db.VarChar(36)
+  CreatedBy               PersonHasRole           @relation(fields: [created_by], references: [person_has_role_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_PersonHasRole1")
+  local_customer_id       String?                 @db.VarChar(36)
+  LocalCustomer           LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_LocalCustomer1")
+  receiver_payout_info_id String?                 @db.VarChar(36)
+  ReceiverPayoutInfo      CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counter_party_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_ReceiverPayoutInfo1")
+  bank_payout_info_id     String?                 @db.VarChar(36)
+  BankPayoutInfo          ReceiverBankPayoutInfo? @relation(fields: [bank_payout_info_id], references: [receiver_bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_BankPayoutInfo1")
 
   @@index([bank_payout_info_id], map: "fk_StripeTransaction_BankPayoutInfo1_idx")
   @@index([local_customer_id], map: "fk_StripeTransaction_LocalCustomer1_idx")
