@@ -406,6 +406,15 @@ export function useTheme() {
           variant: 'p1r',
         },
       },
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            '& .MuiSelect-select': {
+              color: '#415058',
+            },
+          },
+        },
+      },
     },
   });
 }

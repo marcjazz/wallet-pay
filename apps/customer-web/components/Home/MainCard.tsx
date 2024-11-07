@@ -8,6 +8,7 @@ import {
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 import AccountMenu from './AccountMenu';
+import DepositBottomSheet from './DepositBottomSheet';
 
 enum CurrencyEnum {
   USD = 'USD',
@@ -27,6 +28,7 @@ interface ActiveAccount extends Account {
 export default function MainCard() {
   const { formatNumber, formatMessage } = useIntl();
 
+  //TODO: CALL API TO FETCH ACCOUNTS
   const [accounts, setAccounts] = useState<Account[]>([
     {
       cybrid_account_id: '1',
@@ -56,12 +58,12 @@ export default function MainCard() {
     {
       icon: <PlusIcon size={28} color="white" />,
       title: formatMessage({ id: 'deposit' }),
-      action: () => null,
+      action: () => setIsDepositBottomSheetOpen(true),
     },
     {
       icon: <MinusIcon size={28} color="white" />,
       title: formatMessage({ id: 'withdraw' }),
-      action: () => null,
+      action: () => alert('Feature Is Coming Soon'),
     },
   ];
 
@@ -90,8 +92,15 @@ export default function MainCard() {
     }
   }
 
+  const [isDepositBottomSheetOpen, setIsDepositBottomSheetOpen] =
+    useState(false);
+
   return (
     <>
+      <DepositBottomSheet
+        isOpen={isDepositBottomSheetOpen}
+        closeBottomSheet={() => setIsDepositBottomSheetOpen(false)}
+      />
       <AccountMenu
         closeMenu={() => setIsAccountMenuOpen(false)}
         anchorEl={anchorEl}
@@ -180,7 +189,7 @@ export default function MainCard() {
               gridAutoFlow: 'column',
             }}
           >
-            {majorActions.map((action, index) => (
+            {majorActions.map(({ action, icon, title }, index) => (
               <Box
                 component={Button}
                 variant="text"
@@ -193,10 +202,11 @@ export default function MainCard() {
                     background: 'transparent',
                   },
                 }}
+                onClick={action}
               >
-                {action.icon}
+                {icon}
                 <Typography variant="p1m" sx={{ color: 'white' }}>
-                  {action.title}
+                  {title}
                 </Typography>
               </Box>
             ))}
