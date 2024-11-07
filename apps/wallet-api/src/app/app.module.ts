@@ -13,7 +13,7 @@ import { HttpExceptionFilter } from '../exception-filters/http-exception.filter'
 import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.filter';
 import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
 import { AccountsModule } from '../modules/accounts/accounts.module';
-import { TransactionsModule } from '../modules/transfers/transactions.module';
+import { TransactionsModule } from '../modules/transactions/transactions.module';
 
 @Module({
   imports: [
