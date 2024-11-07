@@ -61,7 +61,9 @@ export default function Footer() {
       ? basePath.slice(0, -1)
       : basePath;
 
-    const isActive = pathname.startsWith(normalizedBasePath);
+    const isActive =
+      (pathname.startsWith(normalizedBasePath) && normalizedBasePath !== '')
+      ||(pathname === '/' && normalizedBasePath === '');
 
     return isActive;
   }
