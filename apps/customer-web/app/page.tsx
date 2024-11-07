@@ -35,21 +35,27 @@ export default function Index() {
         handleClose={() => setIsAllHistoryOpen(false)}
       />
       <Box
-        sx={{
-          padding: 2,
-          height: '100%',
-          display: 'grid',
-          gridTemplateRows: 'auto 1fr auto',
-          alignItems: 'start',
-          rowGap: 3,
-        }}
+        sx={{ display: 'grid', gridTemplateRows: '1fr auto', height: '100%' }}
       >
-        <Header />
-        <Box sx={{ display: 'grid', gridTemplateRows: 'auto 1fr', rowGap: 4 }}>
-          <MainCard />
-          <TransactionSection
-            openAllHistory={() => setIsAllHistoryOpen(true)}
-          />
+        <Box
+          sx={{
+            padding: 2,
+            paddingBottom: 0,
+            display: 'grid',
+            gridTemplateRows: 'auto 1fr',
+            alignItems: 'start',
+            rowGap: 3,
+          }}
+        >
+          <Header />
+          <Box
+            sx={{ display: 'grid', gridTemplateRows: 'auto 1fr', rowGap: 4, height:'100%' }}
+          >
+            <MainCard />
+            <TransactionSection
+              openAllHistory={() => setIsAllHistoryOpen(true)}
+            />
+          </Box>
         </Box>
         <Footer />
       </Box>
