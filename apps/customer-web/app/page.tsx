@@ -1,7 +1,7 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import MainCard from '../components/Home/MainCard';
 import TransactionSection from '../components/Home/TransactionSection';
 import Footer from '../components/layout/footer/Footer';
@@ -11,10 +11,25 @@ import TransactionHistory from '../components/transaction/TransactionHistory';
 
 export default function Index() {
   const [isAllHistoryOpen, setIsAllHistoryOpen] = useState<boolean>(false);
+  const [shouldShowWelcomeScreen, setShouldShowWelcomeScreen] =
+    useState<boolean>(true);
+
+  useEffect(() => {
+    setShouldShowWelcomeScreen(
+      !localStorage.getItem('shouldShowWelcomeScreen')
+    );
+  }, []);
 
   return (
     <>
-      <WelcomeScreen />
+      {shouldShowWelcomeScreen && (
+        <WelcomeScreen
+          handleSwipe={() => {
+            setShouldShowWelcomeScreen(false);
+            localStorage.setItem('shouldShowWelcomeScreen', 'false');
+          }}
+        />
+      )}
       <TransactionHistory
         isMenuOpen={isAllHistoryOpen}
         handleClose={() => setIsAllHistoryOpen(false)}

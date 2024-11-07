@@ -2,9 +2,9 @@
 
 import { Box, Button, keyframes, Typography } from '@mui/material';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ArrowRight } from 'react-feather';
+import { useIntl } from 'react-intl';
 
 const swipeLeft = keyframes`
   0% {
@@ -15,14 +15,19 @@ const swipeLeft = keyframes`
   }
 `;
 
-export default function WelcomeScreen() {
+interface WelcomeScreenProps {
+  handleSwipe: () => void;
+}
+export default function WelcomeScreen({
+  handleSwipe: swipeHandler,
+}: WelcomeScreenProps) {
   const [swipe, setSwipe] = useState<boolean>(false);
-  const { push } = useRouter();
+  const { formatMessage } = useIntl();
 
   const handleSwipe = () => {
     setSwipe(true);
     setTimeout(() => {
-      push('/new-route');
+      swipeHandler();
     }, 600);
   };
   return (
@@ -59,7 +64,7 @@ export default function WelcomeScreen() {
           width: '85%',
         }}
       >
-        Send money at{' '}
+        {formatMessage({ id: 'sendMoneyAt' })}
         <Typography
           component="span"
           sx={{
@@ -71,9 +76,9 @@ export default function WelcomeScreen() {
             color: '#F1AC42',
           }}
         >
-          unbeatable
+          {formatMessage({ id: 'unbeatable' })}
         </Typography>{' '}
-        rates
+        {formatMessage({ id: 'rates' })}
       </Typography>
       <Button
         size="small"
@@ -83,7 +88,7 @@ export default function WelcomeScreen() {
         sx={{ position: 'absolute', left: '16px', bottom: '65px' }}
         onClick={handleSwipe}
       >
-        Click to swipe
+        {formatMessage({ id: 'clickToSwipe' })}
       </Button>
 
       <Image

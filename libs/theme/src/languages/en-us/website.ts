@@ -68,4 +68,8 @@ export const website = {
   seeAll: 'See All',
   allTransactions: 'All Transactions',
   searchName: 'Search Name',
+  sendMoneyAt: 'Send money at ',
+  unbeatable: 'unbeatable',
+  rates: 'rates',
+  clickToSwipe: 'Click to swipe',
 };
