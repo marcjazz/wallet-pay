@@ -9,8 +9,9 @@ import {
 import { useIntl } from 'react-intl';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
+import { useRouter } from 'next/navigation';
 
-enum CurrencyEnum {
+export enum CurrencyEnum {
   USD = 'USD',
   CAD = 'CAD',
 }
@@ -24,6 +25,7 @@ export interface Account {
 
 export default function MainCard() {
   const { formatNumber, formatMessage } = useIntl();
+  const { push } = useRouter();
 
   //TODO: CALL API TO FETCH ACCOUNTS
   const [accounts, setAccounts] = useState<Account[]>([
@@ -54,7 +56,7 @@ export default function MainCard() {
     {
       icon: <ArrowUpRightIcon size={28} color="white" />,
       title: formatMessage({ id: 'send' }),
-      action: () => null,
+      action: () => push('/transactions'),
     },
     {
       icon: <PlusIcon size={28} color="white" />,
