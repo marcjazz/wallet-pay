@@ -18,9 +18,6 @@ enum CurrencyEnum {
 export interface Account {
   cybrid_account_id: string;
   currency: CurrencyEnum;
-}
-
-interface ActiveAccount extends Account {
   account_balance: number;
   xaf_conversion_rate: number;
 }
@@ -33,16 +30,20 @@ export default function MainCard() {
     {
       cybrid_account_id: '1',
       currency: CurrencyEnum['USD'],
+      account_balance: 352479.9,
+      xaf_conversion_rate: 600,
     },
     {
       cybrid_account_id: '2',
       currency: CurrencyEnum['CAD'],
+      account_balance: 2479.9,
+      xaf_conversion_rate: 400,
     },
   ]);
 
   const [isActiveAccountLoading, setIsActiveAccountLoading] =
     useState<boolean>(false);
-  const [activeAccount, setActiveAccount] = useState<ActiveAccount>({
+  const [activeAccount, setActiveAccount] = useState<Account>({
     cybrid_account_id: '',
     currency: CurrencyEnum['USD'],
     account_balance: 352479.9,
