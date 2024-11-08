@@ -356,7 +356,7 @@ export default function SendAmountStep({
                     typography: 'h2',
                     textAlign: 'end',
                     '&:disabled': {
-                      color: 'black',
+                      WebkitTextFillColor: 'black',
                     },
                   },
                   backgroundColor: 'rgba(232, 242, 255, 0.50)',
