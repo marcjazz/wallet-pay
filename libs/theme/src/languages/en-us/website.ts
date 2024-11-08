@@ -94,4 +94,8 @@ export const website = {
   changeCurrency: 'Change Currency',
   from: 'From',
   to: 'To',
+  cash_pickup: 'Cash Pickup',
+  bank_deposit: 'Bank Deposit',
+  mobile_money: 'Mobile Money',
+  selectPayoutMethod: 'Select the payout method',
 };

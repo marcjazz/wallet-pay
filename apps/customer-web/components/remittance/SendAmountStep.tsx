@@ -18,8 +18,28 @@ import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { Account, CurrencyEnum } from '../Home/MainCard';
 import ChangeCurrencyMenu from './ChangeCurrencyMenu';
+import PayoutMethodBottomSheet from './PayoutMethodBottomSheet';
 
-export default function SendAmountStep() {
+export enum SupportedPayoutMethod {
+  cash = 'cash_pickup',
+  bank = 'bank_deposit',
+  mobile = 'mobile_money',
+}
+
+export interface AmountStepData {
+  sendingAmount: number;
+  sendingAccount: Account;
+  payoutMethod: SupportedPayoutMethod;
+}
+
+interface SendAmountStepProps {
+  handleNext: (data: AmountStepData) => void;
+  amountStepData: Partial<AmountStepData>;
+}
+export default function SendAmountStep({
+  handleNext,
+  amountStepData,
+}: SendAmountStepProps) {
   //TODO: CALL API TO FETCH LIMITS
   const MAX_SENDING_AMOUNT = 1000;
   const MIN_SENDING_AMOUNT = 10;
@@ -49,7 +69,9 @@ export default function SendAmountStep() {
     },
   };
 
-  const [sendingAccount, setSendingAccount] = useState<Account>();
+  const [sendingAccount, setSendingAccount] = useState<Account | undefined>(
+    amountStepData.sendingAccount
+  );
   const [isChangeCurrencyMenuOpen, setIsChangeCurrencyMenuOpen] =
     useState(false);
   const [sendingCurrencyAnchorEl, setSendingCurrencyAnchorEl] =
@@ -106,8 +128,14 @@ export default function SendAmountStep() {
       ),
   });
 
+  const [isPayoutMethodBottomSheetOpen, setIsPayoutMethodBottomSheetOpen] =
+    useState(false);
+  const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<
+    SupportedPayoutMethod | undefined
+  >(amountStepData.payoutMethod);
+
   const initialValues = {
-    sendingAmount: 100,
+    sendingAmount: amountStepData.sendingAmount || 100,
   };
 
   const formik = useFormik({
@@ -116,9 +144,27 @@ export default function SendAmountStep() {
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
       console.log(values);
+      setIsPayoutMethodBottomSheetOpen(true);
     },
   });
   const { errors, touched } = formik;
+
+  function onNext() {
+    if (!selectedPayoutMethod) {
+      alert('Please select a payout method');
+      return;
+    }
+    if (!sendingAccount) {
+      alert('Please select a sending account');
+      return;
+    }
+    handleNext({
+      sendingAmount: formik.values.sendingAmount,
+      sendingAccount,
+      payoutMethod: selectedPayoutMethod!,
+    });
+    setIsPayoutMethodBottomSheetOpen(false);
+  }
 
   return (
     <>
@@ -131,6 +177,16 @@ export default function SendAmountStep() {
           setSendingAccount(account);
           setIsChangeCurrencyMenuOpen(false);
         }}
+      />
+
+      <PayoutMethodBottomSheet
+        isOpen={isPayoutMethodBottomSheetOpen}
+        closeBottomSheet={() => setIsPayoutMethodBottomSheetOpen(false)}
+        onSelect={(payoutMethod: SupportedPayoutMethod) => {
+          setSelectedPayoutMethod(payoutMethod);
+        }}
+        selectedPayoutMethod={selectedPayoutMethod}
+        onNext={onNext}
       />
 
       <Box

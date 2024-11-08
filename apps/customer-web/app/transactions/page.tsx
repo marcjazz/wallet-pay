@@ -2,7 +2,9 @@
 
 import { Box, Divider, IconButton, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import SendAmountStep from 'apps/customer-web/components/remittance/SendAmountStep';
+import SendAmountStep, {
+  AmountStepData,
+} from 'apps/customer-web/components/remittance/SendAmountStep';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
@@ -46,6 +48,14 @@ export default function Transactions() {
       return nextStep;
     });
   }
+
+  const [amountStepData, setAmountStepData] = useState<Partial<AmountStepData>>(
+    {
+      sendingAmount: 100,
+      sendingAccount: undefined,
+      payoutMethod: undefined,
+    }
+  );
 
   return (
     <>
@@ -145,7 +155,12 @@ export default function Transactions() {
             {formatMessage({ id: 'enterAmount' })}
           </Typography>
 
-          <SendAmountStep />
+          <SendAmountStep
+            amountStepData={amountStepData}
+            handleNext={(data: AmountStepData) => {
+              handleNextStep(() => setAmountStepData(data));
+            }}
+          />
         </Box>
         <Footer />
       </Box>
