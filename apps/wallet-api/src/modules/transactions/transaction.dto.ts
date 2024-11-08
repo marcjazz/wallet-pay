@@ -1,9 +1,14 @@
 import { PostTransferBankModelTransferTypeEnum } from '@cybrid/cybrid-api-bank-typescript';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { $Enums, CybridTransaction } from '@prisma/client';
+import {
+  $Enums,
+  CybridTransaction,
+  CybridTransactionStatus,
+} from '@prisma/client';
 import { Exclude, Type } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -82,10 +87,13 @@ export class CybridTransactionEntity implements CybridTransaction {
   @ApiProperty({ type: Date })
   initiated_at: Date;
 
-  @ApiProperty({ type: Date })
+  @ApiProperty({ nullable: true, type: Date })
   settled_at: Date | null;
 
-  @ApiProperty({ description: 'Provided for local transactions' })
+  @ApiProperty({
+    nullable: true,
+    description: 'Provided for local transactions',
+  })
   local_customer_id: string | null;
 
   @ApiProperty()
@@ -94,16 +102,51 @@ export class CybridTransactionEntity implements CybridTransaction {
   @ApiProperty()
   cybrid_external_account_id: string | null;
 
-  @ApiProperty({ description: 'Receiver payout info' })
+  @ApiProperty({ nullable: true, description: 'Receiver payout info' })
   receiver_payout_info_id: string | null;
 
-  @ApiProperty({ description: "Receiver's bank settlement  bank info" })
+  @ApiProperty({
+    nullable: true,
+    description: "Receiver's bank settlement  bank info",
+  })
   receiver_bank_payout_info_id: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    description: 'Receipient can be either payout or cybrid account.',
+  })
+  reciepient_fullname: string | null;
 
   @Exclude()
   initiated_by: string;
 
   constructor(props: CybridTransactionEntity) {
+    Object.assign(this, props);
+  }
+}
+
+export class QueryTransactionDto {
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  search?: string;
+
+  @IsOptional()
+  @IsEnum(CybridTransactionStatus)
+  @ApiPropertyOptional({ enum: CybridTransactionStatus })
+  status?: CybridTransactionStatus;
+
+  @IsOptional()
+  @IsIn(['date', 'amount'])
+  @ApiPropertyOptional()
+  order_by?: 'date' | 'amount';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  @ApiPropertyOptional()
+  order_direction?: 'asc' | 'desc';
+
+  constructor(props: QueryTransactionDto) {
     Object.assign(this, props);
   }
 }

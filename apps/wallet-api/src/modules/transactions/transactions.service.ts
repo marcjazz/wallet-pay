@@ -13,10 +13,17 @@ import {
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { $Enums, CybridCounterparty } from '@prisma/client';
+import {
+  $Enums,
+  CybridCounterparty
+} from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { InitiateTransferDto } from './transaction.dto';
+import {
+  CybridTransactionEntity,
+  InitiateTransferDto,
+  QueryTransactionDto,
+} from './transaction.dto';
 
 @Injectable()
 export class TransactionsService {
@@ -224,6 +231,50 @@ export class TransactionsService {
       }),
     ]);
 
-    return cybridTransaction;
+    return new CybridTransactionEntity({
+      ...cybridTransaction,
+      reciepient_fullname: receiver?.fullname ?? null,
+    });
+  }
+
+  async getTransaction(cybridTransactionId: string) {
+    return this.prismaService.cybridTransaction.findUnique({
+      where: { cybrid_transaction_id: cybridTransactionId },
+    });
+  }
+
+  async getTransactions(
+    { order_by, order_direction, search, status }: QueryTransactionDto,
+    initiatedBy: string
+  ) {
+    const personFullnameSelect = {
+      select: { Person: { select: { first_name: true, last_name: true } } },
+    };
+    const transantions = await this.prismaService.cybridTransaction.findMany({
+      orderBy:
+        order_by === 'amount'
+          ? { amount: order_direction }
+          : { initiated_at: order_direction },
+      include: {
+        LocalCustomer: personFullnameSelect,
+        ReceiverPayoutInfo: {
+          ...personFullnameSelect,
+          where: { fullname: search },
+        },
+      },
+      where: { status, initiated_by: initiatedBy },
+    });
+
+    return transantions.map(
+      ({ LocalCustomer, ReceiverPayoutInfo, ...transantion }) => {
+        const person = ReceiverPayoutInfo?.Person ?? LocalCustomer?.Person;
+        return new CybridTransactionEntity({
+          ...transantion,
+          reciepient_fullname: person
+            ? `${person.first_name} ${person.last_name}`
+            : null,
+        });
+      }
+    );
   }
 }

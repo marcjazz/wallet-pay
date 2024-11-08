@@ -1,11 +1,17 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CybridTransactionEntity, InitiateTransferDto } from './transaction.dto';
+import {
+  CybridTransactionEntity,
+  InitiateTransferDto,
+  QueryTransactionDto,
+} from './transaction.dto';
 import { TransactionsService } from './transactions.service';
 import { TwoFAUsage } from '../../app/two-fa/two-fa.interface';
 import {
@@ -47,11 +53,22 @@ export class TransactionsController {
       throw new UnauthorizedException(`Invalid One time password`);
     }
 
-    const transfer = await this.transactionsService.initiateTransfer(
+    return this.transactionsService.initiateTransfer(
       req.user?.id as string,
       payload
     );
+  }
 
-    return new CybridTransactionEntity(transfer);
+  @Get()
+  @ApiCreatedResponse({ type: [CybridTransactionEntity] })
+  @ApiOperation({ summary: 'Get all transactions' })
+  async getTransactions(
+    @Req() req: Request,
+    @Query() params: QueryTransactionDto
+  ) {
+    return this.transactionsService.getTransactions(
+      params,
+      req.user?.id as string
+    );
   }
 }
