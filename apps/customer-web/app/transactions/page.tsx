@@ -127,7 +127,7 @@ export default function Transactions() {
                   height: '8px',
                   width: '34px',
                   backgroundColor:
-                    currentStep === Step.recipient
+                    currentStep >= Step.recipient
                       ? theme.palette.primary.main
                       : '#B6D6FE',
                   borderRadius: 1.25,
