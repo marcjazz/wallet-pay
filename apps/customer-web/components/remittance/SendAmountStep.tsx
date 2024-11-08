@@ -189,215 +189,225 @@ export default function SendAmountStep({
         onNext={onNext}
       />
 
-      <Box
-        component="form"
-        onSubmit={formik.handleSubmit}
-        sx={{
-          display: 'grid',
-          rowGap: 2,
-          height: '100%',
-          gridTemplateRows: 'auto auto 1fr',
-          alignItems: 'end',
-          paddingBottom: 2,
-        }}
-      >
+      <Box sx={{ display: 'grid', rowGap: 5, gridTemplateRows: 'auto 1fr' }}>
+        <Typography variant="h2">
+          {formatMessage({ id: 'enterAmount' })}
+        </Typography>
         <Box
+          component="form"
+          onSubmit={formik.handleSubmit}
           sx={{
             display: 'grid',
-            gridTemplateColumns: 'auto 1fr',
-            alignItems: 'center',
-            columnGap: 2,
-            justifyItems: 'start',
+            rowGap: 2,
+            height: '100%',
+            gridTemplateRows: 'auto auto 1fr',
+            alignItems: 'end',
+            paddingBottom: 2,
           }}
         >
-          {Object.entries(paymentMethods).map(([key, { action, title }]) => (
-            <Typography
-              key={key}
-              onClick={action}
-              variant="h5"
-              sx={{
-                color: key === selectedPaymentMethod ? 'inherit' : '#BABDBE',
-                padding: '0.5px 1px',
-                position: 'relative',
-                '&::after': {
-                  content: '" "',
-                  position: 'absolute',
-                  width: '100%',
-                  backgroundColor: theme.palette.primary.main,
-                  height: key === selectedPaymentMethod ? '3px' : '0',
-                  bottom: '-8.5px',
-                  left: '0',
-                  borderRadius: '10px',
-                },
-              }}
-            >
-              {title}
-            </Typography>
-          ))}
-        </Box>
-
-        <Box sx={{ display: 'grid', rowGap: 1.5 }}>
-          <FormControl
-            error={Boolean(touched.sendingAmount && errors.sendingAmount)}
-            required
-            fullWidth
-            disabled={isLoadingAccounts || !accounts.length}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              alignItems: 'center',
+              columnGap: 2,
+              justifyItems: 'start',
+            }}
           >
-            <OutlinedInput
-              sx={{
-                '& .MuiOutlinedInput-notchedOutline': {
-                  border: 'none',
-                },
-                '&.Mui-error': {
-                  border: '1px solid #EE2B2B',
-                },
-                '& .MuiInputBase-input': {
-                  typography: 'h2',
-                  textAlign: 'end',
-                },
-                backgroundColor: 'rgba(232, 242, 255, 0.50)',
-              }}
-              type="number"
-              {...formik.getFieldProps('sendingAmount')}
-              placeholder={formatMessage({ id: 'amount' })}
-              autoFocus
-              endAdornment={
-                <InputAdornment position="end">
-                  {sendingAccount && (
-                    <Box sx={{ display: 'grid' }}>
-                      <Typography variant="h6" sx={{ color: '#BABDBE' }}>
-                        {formatNumber(sendingAccount.account_balance, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                          currency: sendingAccount.currency,
-                          style: 'currency',
-                        })}
-                      </Typography>
-                      <IconButton
-                        size="small"
-                        onClick={() => {
-                          formik.setFieldValue(
-                            'sendingAmount',
-                            sendingAccount.account_balance > MAX_SENDING_AMOUNT
-                              ? MAX_SENDING_AMOUNT
-                              : sendingAccount.account_balance
-                          );
-                        }}
-                        sx={{
-                          typography: 'p3m',
-                          color: theme.palette.secondary.main,
-                        }}
-                      >
-                        {formatMessage({ id: 'max' })}
-                      </IconButton>
-                    </Box>
-                  )}
-                </InputAdornment>
-              }
-              startAdornment={
-                <InputAdornment position="start">
-                  <Box>
-                    <Typography variant="h6" sx={{ color: '#BABDBE' }}>
-                      {formatMessage({ id: 'from' })}
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: 'grid',
-                        gridAutoFlow: 'column',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Typography variant="p1m" sx={{ color: '#415058' }}>
-                        {isLoadingAccounts || !sendingAccount ? (
-                          <Skeleton variant="text" width={50} />
-                        ) : (
-                          sendingAccount.currency
-                        )}
-                      </Typography>
-                      <Tooltip title={formatMessage({ id: 'changeCurrency' })}>
+            {Object.entries(paymentMethods).map(([key, { action, title }]) => (
+              <Typography
+                key={key}
+                onClick={action}
+                variant="h5"
+                sx={{
+                  color: key === selectedPaymentMethod ? 'inherit' : '#BABDBE',
+                  padding: '0.5px 1px',
+                  position: 'relative',
+                  '&::after': {
+                    content: '" "',
+                    position: 'absolute',
+                    width: '100%',
+                    backgroundColor: theme.palette.primary.main,
+                    height: key === selectedPaymentMethod ? '3px' : '0',
+                    bottom: '-8.5px',
+                    left: '0',
+                    borderRadius: '10px',
+                  },
+                }}
+              >
+                {title}
+              </Typography>
+            ))}
+          </Box>
+
+          <Box sx={{ display: 'grid', rowGap: 1.5 }}>
+            <FormControl
+              error={Boolean(touched.sendingAmount && errors.sendingAmount)}
+              required
+              fullWidth
+              disabled={isLoadingAccounts || !accounts.length}
+            >
+              <OutlinedInput
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    border: 'none',
+                  },
+                  '&.Mui-error': {
+                    border: '1px solid #EE2B2B',
+                  },
+                  '& .MuiInputBase-input': {
+                    typography: 'h2',
+                    textAlign: 'end',
+                  },
+                  backgroundColor: 'rgba(232, 242, 255, 0.50)',
+                }}
+                type="number"
+                {...formik.getFieldProps('sendingAmount')}
+                placeholder={formatMessage({ id: 'amount' })}
+                autoFocus
+                endAdornment={
+                  <InputAdornment position="end">
+                    {sendingAccount && (
+                      <Box sx={{ display: 'grid' }}>
+                        <Typography variant="h6" sx={{ color: '#BABDBE' }}>
+                          {formatNumber(sendingAccount.account_balance, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                            currency: sendingAccount.currency,
+                            style: 'currency',
+                          })}
+                        </Typography>
                         <IconButton
                           size="small"
-                          // disabled={isLoadingAccounts || !accounts.length}
-                          onClick={(event) => {
-                            setSendingCurrencyAnchorEl(event.currentTarget);
-                            setIsChangeCurrencyMenuOpen(true);
+                          onClick={() => {
+                            formik.setFieldValue(
+                              'sendingAmount',
+                              sendingAccount.account_balance >
+                                MAX_SENDING_AMOUNT
+                                ? MAX_SENDING_AMOUNT
+                                : sendingAccount.account_balance
+                            );
+                          }}
+                          sx={{
+                            typography: 'p3m',
+                            color: theme.palette.secondary.main,
                           }}
                         >
-                          <ChevronDown color="#1F2223" />
+                          {formatMessage({ id: 'max' })}
                         </IconButton>
-                      </Tooltip>
+                      </Box>
+                    )}
+                  </InputAdornment>
+                }
+                startAdornment={
+                  <InputAdornment position="start">
+                    <Box>
+                      <Typography variant="h6" sx={{ color: '#BABDBE' }}>
+                        {formatMessage({ id: 'from' })}
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridAutoFlow: 'column',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Typography variant="p1m" sx={{ color: '#415058' }}>
+                          {isLoadingAccounts || !sendingAccount ? (
+                            <Skeleton variant="text" width={50} />
+                          ) : (
+                            sendingAccount.currency
+                          )}
+                        </Typography>
+                        <Tooltip
+                          title={formatMessage({ id: 'changeCurrency' })}
+                        >
+                          <IconButton
+                            size="small"
+                            // disabled={isLoadingAccounts || !accounts.length}
+                            onClick={(event) => {
+                              setSendingCurrencyAnchorEl(event.currentTarget);
+                              setIsChangeCurrencyMenuOpen(true);
+                            }}
+                          >
+                            <ChevronDown color="#1F2223" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Box>
-                  </Box>
-                </InputAdornment>
-              }
-            />
-            <FormHelperText error>
-              {touched.sendingAmount && errors.sendingAmount}
-            </FormHelperText>
-          </FormControl>
+                  </InputAdornment>
+                }
+              />
+              <FormHelperText error>
+                {touched.sendingAmount && errors.sendingAmount}
+              </FormHelperText>
+            </FormControl>
 
-          <FormControl fullWidth disabled>
-            <OutlinedInput
-              sx={{
-                '& .MuiOutlinedInput-notchedOutline': {
-                  border: 'none',
-                },
-                '&.Mui-error': {
-                  border: '1px solid #EE2B2B',
-                },
-                '& .MuiInputBase-input': {
-                  typography: 'h2',
-                  textAlign: 'end',
-                  '&:disabled': {
-                    color: 'black',
+            <FormControl fullWidth disabled>
+              <OutlinedInput
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    border: 'none',
                   },
-                },
-                backgroundColor: 'rgba(232, 242, 255, 0.50)',
-              }}
-              value={
-                sendingAccount
-                  ? formatNumber(
-                      formik.values.sendingAmount *
-                        sendingAccount.xaf_conversion_rate,
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }
-                    )
-                  : 0
-              }
-              startAdornment={
-                <InputAdornment position="start">
-                  <Box>
-                    <Typography variant="h6" sx={{ color: '#BABDBE' }}>
-                      {formatMessage({ id: 'to' })}
-                    </Typography>
-                    <Typography variant="p1m" sx={{ color: '#415058' }}>
-                      XAF
-                    </Typography>
-                  </Box>
-                </InputAdornment>
-              }
-            />
-          </FormControl>
+                  '&.Mui-error': {
+                    border: '1px solid #EE2B2B',
+                  },
+                  '& .MuiInputBase-input': {
+                    typography: 'h2',
+                    textAlign: 'end',
+                    '&:disabled': {
+                      color: 'black',
+                    },
+                  },
+                  backgroundColor: 'rgba(232, 242, 255, 0.50)',
+                }}
+                value={
+                  sendingAccount
+                    ? formatNumber(
+                        formik.values.sendingAmount *
+                          sendingAccount.xaf_conversion_rate,
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }
+                      )
+                    : 0
+                }
+                startAdornment={
+                  <InputAdornment position="start">
+                    <Box>
+                      <Typography variant="h6" sx={{ color: '#BABDBE' }}>
+                        {formatMessage({ id: 'to' })}
+                      </Typography>
+                      <Typography variant="p1m" sx={{ color: '#415058' }}>
+                        XAF
+                      </Typography>
+                    </Box>
+                  </InputAdornment>
+                }
+              />
+            </FormControl>
 
-          {sendingAccount && (
-            <Typography
-              variant="l2r"
-              sx={{ color: '#BABDBE', justifySelf: 'center' }}
-            >{`1${sendingAccount.currency} = ${sendingAccount.xaf_conversion_rate}XAF`}</Typography>
+            {sendingAccount && (
+              <Typography
+                variant="l2r"
+                sx={{ color: '#BABDBE', justifySelf: 'center' }}
+              >{`1${sendingAccount.currency} = ${sendingAccount.xaf_conversion_rate}XAF`}</Typography>
+            )}
+          </Box>
+
+          {(!isLoadingAccounts || !accounts.length) && (
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              endIcon={<ArrowRight size="24" />}
+            >
+              {formatMessage({ id: 'next' })}
+            </Button>
           )}
         </Box>
-
-        <Button
-          type="submit"
-          variant="contained"
-          size="large"
-          fullWidth
-          endIcon={<ArrowRight size="24" />}
-        >
-          {formatMessage({ id: 'next' })}
-        </Button>
       </Box>
     </>
   );

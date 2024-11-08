@@ -57,6 +57,48 @@ export default function Transactions() {
     }
   );
 
+  const stepComponent: Record<
+    Step,
+    {
+      onStepBack: () => void;
+      stepTitle: string;
+      stepComponent: JSX.Element;
+    }
+  > = {
+    '1': {
+      stepTitle: formatMessage({ id: 'sendMoney' }),
+      onStepBack: () => push('/'),
+      stepComponent: (
+        <SendAmountStep
+          amountStepData={amountStepData}
+          handleNext={(data: AmountStepData) => {
+            handleNextStep(() => setAmountStepData(data));
+          }}
+        />
+      ),
+    },
+    '2': {
+      stepTitle: formatMessage({ id: 'selectRecipient' }),
+      onStepBack: () => handleBackStep(() => {}),
+      stepComponent: (
+        <Box>
+          Hello world.
+          <Typography variant="h2">This is recipient step</Typography>
+        </Box>
+      ),
+    },
+    '3': {
+      stepTitle: formatMessage({ id: 'transferSummary' }),
+      onStepBack: () => handleBackStep(() => {}),
+      stepComponent: (
+        <Box>
+          Hello world.
+          <Typography variant="h2">This is Summary step</Typography>
+        </Box>
+      ),
+    },
+  };
+
   return (
     <>
       <Box
@@ -71,7 +113,7 @@ export default function Transactions() {
             padding: 2,
             paddingBottom: 0,
             display: 'grid',
-            gridTemplateRows: 'auto auto 1fr',
+            gridTemplateRows: 'auto 1fr',
             rowGap: 5,
           }}
         >
@@ -87,7 +129,7 @@ export default function Transactions() {
             <Tooltip title={formatMessage({ id: 'back' })}>
               <IconButton
                 size="small"
-                onClick={() => push('/')}
+                onClick={stepComponent[currentStep].onStepBack}
                 sx={{
                   padding: 0,
                 }}
@@ -97,7 +139,7 @@ export default function Transactions() {
             </Tooltip>
 
             <Typography variant="h3">
-              {formatMessage({ id: 'sendMoney' })}
+              {stepComponent[currentStep].stepTitle}
             </Typography>
 
             <Box
@@ -151,16 +193,7 @@ export default function Transactions() {
             </Box>
           </Box>
 
-          <Typography variant="h2">
-            {formatMessage({ id: 'enterAmount' })}
-          </Typography>
-
-          <SendAmountStep
-            amountStepData={amountStepData}
-            handleNext={(data: AmountStepData) => {
-              handleNextStep(() => setAmountStepData(data));
-            }}
-          />
+          {stepComponent[currentStep].stepComponent}
         </Box>
         <Footer />
       </Box>
