@@ -11,15 +11,16 @@ import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
 import Footer from '../../components/layout/footer/Footer';
 import ReceiverStep from 'apps/customer-web/components/remittance/ReceiverStep';
+import RemittanceStepper from 'apps/customer-web/components/remittance/RemittanceStepper';
 
-enum Step {
+export enum RemittanceStep {
   amount = 1,
   recipient = 2,
   summary = 3,
 }
 
 export default function Transactions() {
-  const MAX_STEPS = Object.keys(Step).filter((key) =>
+  const MAX_STEPS = Object.keys(RemittanceStep).filter((key) =>
     isNaN(Number(key))
   ).length;
   const MIN_STEP = 1;
@@ -27,8 +28,8 @@ export default function Transactions() {
   const theme = useTheme();
   const { formatMessage, formatNumber } = useIntl();
   const { push } = useRouter();
-  const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [maxAccessibleStep, setMaxAccessibleStep] = useState<Step>(1);
+  const [currentStep, setCurrentStep] = useState<RemittanceStep>(1);
+  const [maxAccessibleStep, setMaxAccessibleStep] = useState<RemittanceStep>(1);
 
   function handleNextStep(storeData: () => void) {
     storeData();
@@ -59,7 +60,7 @@ export default function Transactions() {
   );
 
   const stepComponent: Record<
-    Step,
+    RemittanceStep,
     {
       onStepBack: () => void;
       stepTitle: string;
@@ -138,55 +139,11 @@ export default function Transactions() {
               {stepComponent[currentStep].stepTitle}
             </Typography>
 
-            <Box
-              sx={{
-                display: 'grid',
-                justifyContent: 'start',
-                alignItems: 'center',
-                gridAutoFlow: 'column',
-                columnGap: 0.5,
-              }}
-            >
-              <Divider
-                onClick={() => setCurrentStep(Step.amount)}
-                sx={{
-                  height: '8px',
-                  width: '34px',
-                  backgroundColor: theme.palette.primary.main,
-                  borderRadius: 1.25,
-                }}
-              />
-              <Divider
-                onClick={() => {
-                  if (maxAccessibleStep >= Step.recipient)
-                    setCurrentStep(Step.recipient);
-                }}
-                sx={{
-                  height: '8px',
-                  width: '34px',
-                  backgroundColor:
-                    currentStep >= Step.recipient
-                      ? theme.palette.primary.main
-                      : '#B6D6FE',
-                  borderRadius: 1.25,
-                }}
-              />
-              <Divider
-                onClick={() => {
-                  if (maxAccessibleStep >= Step.summary)
-                    setCurrentStep(Step.summary);
-                }}
-                sx={{
-                  height: '8px',
-                  width: '34px',
-                  backgroundColor:
-                    currentStep === Step.summary
-                      ? theme.palette.primary.main
-                      : '#B6D6FE',
-                  borderRadius: 1.25,
-                }}
-              />
-            </Box>
+            <RemittanceStepper
+              currentStep={currentStep}
+              maxAccessibleStep={maxAccessibleStep}
+              setCurrentStep={setCurrentStep}
+            />
           </Box>
 
           {stepComponent[currentStep].stepComponent}
