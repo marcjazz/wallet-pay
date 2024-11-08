@@ -98,4 +98,8 @@ export const website = {
   bank_deposit: 'Bank Deposit',
   mobile_money: 'Mobile Money',
   selectPayoutMethod: 'Select the payout method',
+  noReceivers: 'No saved receivers',
+  addNewReceiver: 'Add New Receiver',
+  selectRecipient: 'Select Recipient',
+  transferSummary: 'Transfer Summary',
 };

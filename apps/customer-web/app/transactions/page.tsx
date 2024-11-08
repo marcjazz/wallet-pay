@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
 import Footer from '../../components/layout/footer/Footer';
+import ReceiverStep from 'apps/customer-web/components/remittance/ReceiverStep';
 
 enum Step {
   amount = 1,
@@ -80,12 +81,7 @@ export default function Transactions() {
     '2': {
       stepTitle: formatMessage({ id: 'selectRecipient' }),
       onStepBack: () => handleBackStep(() => {}),
-      stepComponent: (
-        <Box>
-          Hello world.
-          <Typography variant="h2">This is recipient step</Typography>
-        </Box>
-      ),
+      stepComponent: <ReceiverStep />,
     },
     '3': {
       stepTitle: formatMessage({ id: 'transferSummary' }),
