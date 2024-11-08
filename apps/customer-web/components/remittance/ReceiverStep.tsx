@@ -5,12 +5,14 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material';
+import { useTheme } from '@xafpay/theme';
+import { Scrollbars } from 'rc-scrollbars';
 import { useEffect, useState } from 'react';
 import { Plus, Search, Sliders } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { Scrollbars } from 'rc-scrollbars';
+import RecipientCard from './RecipientCard';
 
-interface Receiver {
+export interface Receiver {
   receiver_payout_info_id: string;
   fullname: string;
   phone_number: string;
@@ -18,11 +20,13 @@ interface Receiver {
 }
 
 export default function ReceiverStep() {
-  const { formatMessage } = useIntl();
+  const { formatMessage, formatNumber } = useIntl();
+  const theme = useTheme();
 
   const [receivers, setReceivers] = useState<Receiver[]>([]);
   const [areReceiversLoading, setAreReceiversLoading] =
     useState<boolean>(false);
+  const [selectedReceiver, setSelectedReceiver] = useState<Receiver>();
 
   useEffect(() => {
     setAreReceiversLoading(true);
@@ -31,7 +35,7 @@ export default function ReceiverStep() {
       setReceivers([
         {
           receiver_payout_info_id: '1',
-          fullname: 'John Doe',
+          fullname: 'John Doe Mary',
           phone_number: '+237657140183',
           national_id_number: '000316122',
         },
@@ -75,43 +79,22 @@ export default function ReceiverStep() {
       />
       <Scrollbars universal autoHide>
         <Box sx={{ display: 'grid', rowGap: 1 }}>
-          {receivers.length ? (
+          {areReceiversLoading ? (
+            <Typography
+              variant="p2r"
+              sx={{ color: '#BABDBE', textAlign: 'center' }}
+            >
+              {/* TODO: make receipients skeleton screen */}
+              {formatMessage({ id: 'loadingReceivers' })}
+            </Typography>
+          ) : receivers.length ? (
             receivers.map((receiver) => (
-              <Box key={receiver.receiver_payout_info_id}>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr auto',
-                    alignItems: 'center',
-                    columnGap: 3,
-                    padding: 2,
-                    borderRadius: '10px',
-                    backgroundColor: 'white',
-                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      rowGap: 1,
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="l1r">{receiver.fullname}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="l2r">
-                        {receiver.phone_number}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="l2r">
-                        {receiver.national_id_number}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+              <RecipientCard
+                key={receiver.receiver_payout_info_id}
+                receiver={receiver}
+                selectedReceiver={selectedReceiver}
+                setSelectedReceiver={setSelectedReceiver}
+              />
             ))
           ) : (
             <Typography

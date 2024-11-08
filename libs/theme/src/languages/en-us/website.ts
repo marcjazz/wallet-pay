@@ -102,4 +102,5 @@ export const website = {
   addNewReceiver: 'Add New Receiver',
   selectRecipient: 'Select Recipient',
   transferSummary: 'Transfer Summary',
+  loadingReceivers: 'Loading your receivers...',
 };
