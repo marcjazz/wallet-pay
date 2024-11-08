@@ -26,7 +26,6 @@ export default function PayoutMethodBottomSheet({
     <BottomSheet
       open={isOpen}
       closeBottomSheet={closeBottomSheet}
-      disableSwipeToClose
     >
       <Box sx={{ display: 'grid', rowGap: 6 }}>
         <Typography variant="h2">
