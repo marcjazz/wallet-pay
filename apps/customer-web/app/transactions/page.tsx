@@ -82,7 +82,9 @@ export default function Transactions() {
     '2': {
       stepTitle: formatMessage({ id: 'selectRecipient' }),
       onStepBack: () => handleBackStep(() => {}),
-      stepComponent: <ReceiverStep />,
+      stepComponent: (
+        <ReceiverStep selectedPayoutMethod={amountStepData.payoutMethod!} />
+      ),
     },
     '3': {
       stepTitle: formatMessage({ id: 'transferSummary' }),

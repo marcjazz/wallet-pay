@@ -55,7 +55,9 @@ export default function RecipientCard({
           {receiver.fullname}
         </Typography>
         <Typography variant="p2r" color="#B1ACA5">
-          {receiver.phone_number}
+          {'phone_number' in receiver
+            ? receiver.phone_number
+            : receiver.bank_name}
         </Typography>
       </Box>
       {isSelected && <CheckCircle />}
