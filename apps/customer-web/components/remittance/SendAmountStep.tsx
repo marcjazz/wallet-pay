@@ -143,7 +143,6 @@ export default function SendAmountStep({
     validationSchema,
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
-      console.log(values);
       setIsPayoutMethodBottomSheetOpen(true);
     },
   });

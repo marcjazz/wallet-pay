@@ -32,9 +32,13 @@ export type Receiver = MomoReceiver | BankReceiver;
 
 interface ReceiverStepProps {
   selectedPayoutMethod: SupportedPayoutMethod;
+  handleNext: (receiverData: Receiver) => void;
+  receiverData?: Receiver;
 }
 export default function ReceiverStep({
+  receiverData,
   selectedPayoutMethod,
+  handleNext,
 }: ReceiverStepProps) {
   const { formatMessage, formatNumber } = useIntl();
   const theme = useTheme();
@@ -42,7 +46,9 @@ export default function ReceiverStep({
   const [receivers, setReceivers] = useState<Receiver[]>([]);
   const [areReceiversLoading, setAreReceiversLoading] =
     useState<boolean>(false);
-  const [selectedReceiver, setSelectedReceiver] = useState<Receiver>();
+  const [selectedReceiver, setSelectedReceiver] = useState<
+    Receiver | undefined
+  >(receiverData);
 
   useEffect(() => {
     setAreReceiversLoading(true);
@@ -73,6 +79,7 @@ export default function ReceiverStep({
         closeBottomSheet={() => setIsReceipientDetailsOpen(false)}
         selectedPayoutMethod={selectedPayoutMethod}
         selectedReceiver={selectedReceiver}
+        handleNext={handleNext}
       />
       <Box
         sx={{

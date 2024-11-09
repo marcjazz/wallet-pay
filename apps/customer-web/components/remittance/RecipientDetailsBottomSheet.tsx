@@ -21,12 +21,14 @@ interface RecipientBottomSheetProps {
   closeBottomSheet: () => void;
   selectedPayoutMethod: SupportedPayoutMethod;
   selectedReceiver?: Receiver;
+  handleNext: (receiverData: Receiver) => void;
 }
 export default function RecipientDetailsBottomSheet({
   isOpen,
   closeBottomSheet,
   selectedPayoutMethod,
   selectedReceiver,
+  handleNext,
 }: RecipientBottomSheetProps) {
   const { formatMessage } = useIntl();
   const isBank = selectedPayoutMethod === SupportedPayoutMethod.bank;
@@ -78,7 +80,8 @@ export default function RecipientDetailsBottomSheet({
     validationSchema,
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
-      console.log(values);
+      handleNext(values);
+      resetForm();
     },
   });
 

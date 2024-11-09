@@ -1,7 +1,11 @@
 'use client';
 
-import { Box, Divider, IconButton, Tooltip, Typography } from '@mui/material';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
+import ReceiverStep, {
+  Receiver,
+} from 'apps/customer-web/components/remittance/ReceiverStep';
+import RemittanceStepper from 'apps/customer-web/components/remittance/RemittanceStepper';
 import SendAmountStep, {
   AmountStepData,
 } from 'apps/customer-web/components/remittance/SendAmountStep';
@@ -10,8 +14,6 @@ import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
 import Footer from '../../components/layout/footer/Footer';
-import ReceiverStep from 'apps/customer-web/components/remittance/ReceiverStep';
-import RemittanceStepper from 'apps/customer-web/components/remittance/RemittanceStepper';
 
 export enum RemittanceStep {
   amount = 1,
@@ -58,6 +60,7 @@ export default function Transactions() {
       payoutMethod: undefined,
     }
   );
+  const [recipientData, setRecipientData] = useState<Receiver>();
 
   const stepComponent: Record<
     RemittanceStep,
@@ -73,9 +76,9 @@ export default function Transactions() {
       stepComponent: (
         <SendAmountStep
           amountStepData={amountStepData}
-          handleNext={(data: AmountStepData) => {
-            handleNextStep(() => setAmountStepData(data));
-          }}
+          handleNext={(data: AmountStepData) =>
+            handleNextStep(() => setAmountStepData(data))
+          }
         />
       ),
     },
@@ -83,7 +86,13 @@ export default function Transactions() {
       stepTitle: formatMessage({ id: 'selectRecipient' }),
       onStepBack: () => handleBackStep(() => {}),
       stepComponent: (
-        <ReceiverStep selectedPayoutMethod={amountStepData.payoutMethod!} />
+        <ReceiverStep
+          selectedPayoutMethod={amountStepData.payoutMethod!}
+          receiverData={recipientData}
+          handleNext={(receiverData) =>
+            handleNextStep(() => setRecipientData(receiverData))
+          }
+        />
       ),
     },
     '3': {
