@@ -70,7 +70,7 @@ export default function ReceiverStep({
     }, 3000);
   }, []);
 
-  const [isReceipientDetailsOpen, setIsReceipientDetailsOpen] = useState(false);
+  const [isReceipientDetailsOpen, setIsReceipientDetailsOpen] = useState(!!receiverData);
 
   return (
     <>

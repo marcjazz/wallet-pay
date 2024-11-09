@@ -129,7 +129,7 @@ export default function SendAmountStep({
   });
 
   const [isPayoutMethodBottomSheetOpen, setIsPayoutMethodBottomSheetOpen] =
-    useState(false);
+    useState(!!amountStepData.payoutMethod);
   const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<
     SupportedPayoutMethod | undefined
   >(amountStepData.payoutMethod);
