@@ -33,21 +33,20 @@ export default function RecipientDetailsBottomSheet({
   const { formatMessage } = useIntl();
   const isBank = selectedPayoutMethod === SupportedPayoutMethod.bank;
 
-  const momoInitialValues: MomoReceiver =
-    (selectedReceiver as MomoReceiver) || {
-      receiver_payout_info_id: '',
-      fullname: '',
-      phone_number: '',
-      national_id_number: '',
-    };
+  const momoInitialValues: MomoReceiver = {
+    receiver_payout_info_id: selectedReceiver?.receiver_payout_info_id || '',
+    fullname: selectedReceiver?.fullname || '',
+    phone_number: (selectedReceiver as MomoReceiver)?.phone_number || '',
+    national_id_number:
+      (selectedReceiver as MomoReceiver)?.national_id_number || '',
+  };
 
-  const bankInitialValues: BankReceiver =
-    (selectedReceiver as BankReceiver) || {
-      receiver_payout_info_id: '',
-      fullname: '',
-      bank_name: '',
-      IBAN: '',
-    };
+  const bankInitialValues: BankReceiver = {
+    receiver_payout_info_id: selectedReceiver?.receiver_payout_info_id || '',
+    fullname: selectedReceiver?.fullname || '',
+    bank_name: (selectedReceiver as BankReceiver)?.bank_name || '',
+    IBAN: (selectedReceiver as BankReceiver)?.IBAN || '',
+  };
 
   const validationSchema = Yup.object().shape({
     fullname: Yup.string().required(formatMessage({ id: 'requiredField' })),
