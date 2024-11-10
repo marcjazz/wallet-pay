@@ -1,57 +1,40 @@
 import { Avatar, Box, Button, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { CheckCircle } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { getUsernameInitials } from '../shared/utilities';
-import { PhoneNetworkIcon } from './PhoneNetworkIcon';
-import { BankReceiver, MomoReceiver, Receiver } from './ReceiverStep';
-import { SupportedPayoutMethod } from './SendAmountStep';
+import { getUsernameInitials } from '../../shared/utilities';
+import { BankReceiver, MomoReceiver, Receiver } from '../receiver/ReceiverStep';
+import { PhoneNetworkIcon } from '../receiver/PhoneNetworkIcon';
+import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 
 interface ReceiverCardProps {
   receiver: Receiver;
   selectedPayoutMethod: SupportedPayoutMethod;
-  selectedReceiver?: Receiver;
-  setSelectedReceiver: (receiver?: Receiver) => void;
+  handleBack: () => void;
 }
-export default function RecipientCard({
+export default function RecipientSummaryCard({
   receiver,
-  selectedReceiver,
-  setSelectedReceiver,
   selectedPayoutMethod,
+  handleBack,
 }: ReceiverCardProps) {
   const theme = useTheme();
   const { formatMessage } = useIntl();
 
-  const isSelected =
-    selectedReceiver?.receiver_payout_info_id ===
-    receiver.receiver_payout_info_id;
   return (
     <Box
-      component={Button}
-      variant="text"
-      key={receiver.receiver_payout_info_id}
-      onClick={() => {
-        isSelected
-          ? setSelectedReceiver(undefined)
-          : setSelectedReceiver(receiver);
-      }}
       sx={{
         display: 'grid',
         gridTemplateColumns: 'auto 1fr auto',
-        columnGap: 1,
+        columnGap: 1.5,
         alignItems: 'center',
-        bgcolor: isSelected ? '#DBEAFE' : 'transparent',
-        '&:hover': {
-          bgcolor: isSelected ? '#DBEAFE' : 'transparent',
-        },
       }}
     >
       <Avatar
         sx={{
           height: '50px',
           width: '50px',
-          backgroundColor: theme.palette.primary.main,
+          backgroundColor: theme.palette.primary.dark,
           color: theme.palette.primary.contrastText,
+          fontWeight: 'bold',
         }}
       >
         {getUsernameInitials(receiver.fullname)}
@@ -63,10 +46,7 @@ export default function RecipientCard({
         {selectedPayoutMethod === SupportedPayoutMethod.bank ? (
           <Box sx={{ display: 'grid', rowGap: 0.5 }}>
             <Typography variant="l2r" color="#797A7B">
-              {(receiver as BankReceiver)?.bank_name ??
-                `${formatMessage({ id: 'bank' })}: ${formatMessage({
-                  id: 'notAvailable',
-                })}`}
+              {(receiver as BankReceiver).bank_name}
             </Typography>
 
             <Typography
@@ -74,13 +54,10 @@ export default function RecipientCard({
               color="#797A7B"
               sx={{ textAlign: 'left' }}
             >
-              {(receiver as BankReceiver)?.IBAN?.replace(
+              {(receiver as BankReceiver).IBAN?.replace(
                 /^([A-Z]{2})(\d{2})(\d{5})(\d{5})(\d{11})(\d{2})$/,
                 '$1$2 $3 $4 $5 $6'
-              ) ??
-                `${formatMessage({ id: 'iban' })}: ${formatMessage({
-                  id: 'notAvailable',
-                })}`}
+              )}
             </Typography>
           </Box>
         ) : (
@@ -94,7 +71,7 @@ export default function RecipientCard({
               }}
             >
               <Typography variant="l2r" color="#797A7B">
-                {`+237 ${(receiver as MomoReceiver).phone_number.replace(
+                {`+237 ${(receiver as MomoReceiver).phone_number?.replace(
                   /(.{3})(?=.)/g,
                   '$1 '
                 )}`}
@@ -108,14 +85,16 @@ export default function RecipientCard({
                 sx={{ justifySelf: 'start' }}
               >
                 {`${formatMessage({ id: 'nid' })} ${
-                  (receiver as MomoReceiver).national_id_number ?? 'N/A'
+                  (receiver as MomoReceiver).national_id_number
                 }`}
               </Typography>
             )}
           </Box>
         )}
       </Box>
-      {isSelected && <CheckCircle />}
+      <Button size="small" variant="text" onClick={handleBack}>
+        {formatMessage({ id: 'change' })}
+      </Button>
     </Box>
   );
 }

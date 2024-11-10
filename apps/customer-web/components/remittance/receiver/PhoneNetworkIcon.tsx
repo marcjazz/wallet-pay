@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { validatePhoneNumber } from '../shared/utilities';
+import { validatePhoneNumber } from '../../shared/utilities';
 
 export const PhoneNetworkIcon = (phoneNumber: string) => {
   const result = validatePhoneNumber(phoneNumber);

@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import { Account, CurrencyEnum } from '../Home/MainCard';
+import { Account, CurrencyEnum } from '../../Home/MainCard';
 import ChangeCurrencyMenu from './ChangeCurrencyMenu';
 import PayoutMethodBottomSheet from './PayoutMethodBottomSheet';
 

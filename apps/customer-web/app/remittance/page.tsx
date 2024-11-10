@@ -4,17 +4,17 @@ import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import ReceiverStep, {
   Receiver,
-} from 'apps/customer-web/components/remittance/ReceiverStep';
+} from 'apps/customer-web/components/remittance/receiver/ReceiverStep';
 import RemittanceStepper from 'apps/customer-web/components/remittance/RemittanceStepper';
 import SendAmountStep, {
   AmountStepData,
-} from 'apps/customer-web/components/remittance/SendAmountStep';
+} from 'apps/customer-web/components/remittance/amount/SendAmountStep';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
 import Footer from '../../components/layout/footer/Footer';
-import TransferSummary from 'apps/customer-web/components/remittance/TransferSummary';
+import TransferSummary from 'apps/customer-web/components/remittance/summary/TransferSummary';
 
 export enum RemittanceStep {
   amount = 1,

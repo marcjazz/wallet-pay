@@ -1,9 +1,9 @@
 import { Box, Button, Divider, Typography } from '@mui/material';
 import Image from 'next/image';
 import { useIntl } from 'react-intl';
-import { Receiver } from './ReceiverStep';
+import { Receiver } from '../receiver/ReceiverStep';
 import RecipientSummaryCard from './RecipientSummaryCard';
-import { AmountStepData } from './SendAmountStep';
+import { AmountStepData } from '../amount/SendAmountStep';
 import SummaryLine from './SummaryLine';
 
 interface TransferSummaryProps {

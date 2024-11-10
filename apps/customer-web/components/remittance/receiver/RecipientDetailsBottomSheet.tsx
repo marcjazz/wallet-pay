@@ -11,10 +11,10 @@ import {
 import { FormikErrors, FormikTouched, useFormik } from 'formik';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import BottomSheet from '../shared/BottomSheet';
+import BottomSheet from '../../shared/BottomSheet';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';
 import { BankReceiver, MomoReceiver, Receiver } from './ReceiverStep';
-import { SupportedPayoutMethod } from './SendAmountStep';
+import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 
 interface RecipientBottomSheetProps {
   isOpen: boolean;

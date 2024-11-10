@@ -12,7 +12,7 @@ import { Plus, Search, Sliders } from 'react-feather';
 import { useIntl } from 'react-intl';
 import RecipientCard from './RecipientCard';
 import RecipientDetailsBottomSheet from './RecipientDetailsBottomSheet';
-import { SupportedPayoutMethod } from './SendAmountStep';
+import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 
 export interface MomoReceiver {
   receiver_payout_info_id: string;

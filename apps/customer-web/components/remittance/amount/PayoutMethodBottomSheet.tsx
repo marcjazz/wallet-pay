@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from '@mui/material';
 import { useIntl } from 'react-intl';
-import BottomSheet from '../shared/BottomSheet';
+import BottomSheet from '../../shared/BottomSheet';
 import { SupportedPayoutMethod } from './SendAmountStep';
 import { ArrowRight, CheckCircle } from 'react-feather';
 import { useTheme } from '@xafpay/theme';

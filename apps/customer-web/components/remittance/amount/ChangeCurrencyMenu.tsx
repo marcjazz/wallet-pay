@@ -1,5 +1,5 @@
 import { Menu, MenuList, MenuItem } from '@mui/material';
-import { Account, CurrencyEnum } from '../Home/MainCard';
+import { Account, CurrencyEnum } from '../../Home/MainCard';
 
 export enum SUPPORTED_CURRENCY {
   usd = 'USD',
