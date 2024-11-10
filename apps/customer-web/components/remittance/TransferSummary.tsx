@@ -1,10 +1,9 @@
 import { Box, Button, Divider, Typography } from '@mui/material';
+import Image from 'next/image';
 import { useIntl } from 'react-intl';
 import { Receiver } from './ReceiverStep';
-import { AmountStepData } from './SendAmountStep';
-import RecipientCard from './RecipientCard';
 import RecipientSummaryCard from './RecipientSummaryCard';
-import Image from 'next/image';
+import { AmountStepData } from './SendAmountStep';
 import SummaryLine from './SummaryLine';
 
 interface TransferSummaryProps {
@@ -73,10 +72,12 @@ export default function TransferSummary({
               height={22}
             />
             <Typography variant="p2r" color="#B1ACA5">
-              USD FBO Account
+              {`${amountStepData.sendingAccount.currency} ${formatMessage({
+                id: 'fboAccount',
+              })}`}
             </Typography>
             <Typography variant="p2r" color="#B1ACA5">
-              **** **** 7888
+              {`**** **** ${amountStepData.sendingAccount.account_number}`}
             </Typography>
           </Box>
         </Box>

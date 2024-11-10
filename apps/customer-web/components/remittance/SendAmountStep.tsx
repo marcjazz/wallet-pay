@@ -90,12 +90,14 @@ export default function SendAmountStep({
           currency: CurrencyEnum['USD'],
           account_balance: 352479.9,
           xaf_conversion_rate: 567.56,
+          account_number: '7815',
         },
         {
           cybrid_account_id: '2',
           currency: CurrencyEnum['CAD'],
           account_balance: 2479.9,
           xaf_conversion_rate: 373.5,
+          account_number: '1588',
         },
       ];
       setAccounts(cybridAccounts);

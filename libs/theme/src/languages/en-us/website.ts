@@ -130,4 +130,5 @@ export const website = {
   paymentSummary: 'Payment Summary',
   paymentInformation: 'Payment Information',
   confirmTransfer: 'Confirm Transfer',
+  fboAccount:'FBO Account',
 };

@@ -1,4 +1,5 @@
 import { Box, Button, Skeleton, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   ArrowUpRight as ArrowUpRightIcon,
@@ -9,7 +10,6 @@ import {
 import { useIntl } from 'react-intl';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
-import { useRouter } from 'next/navigation';
 
 export enum CurrencyEnum {
   USD = 'USD',
@@ -21,6 +21,7 @@ export interface Account {
   currency: CurrencyEnum;
   account_balance: number;
   xaf_conversion_rate: number;
+  account_number: string;
 }
 
 export default function MainCard() {
@@ -34,12 +35,14 @@ export default function MainCard() {
       currency: CurrencyEnum['USD'],
       account_balance: 352479.9,
       xaf_conversion_rate: 600,
+      account_number: '7815',
     },
     {
       cybrid_account_id: '2',
       currency: CurrencyEnum['CAD'],
       account_balance: 2479.9,
       xaf_conversion_rate: 400,
+      account_number: '1588',
     },
   ]);
 
@@ -50,6 +53,7 @@ export default function MainCard() {
     currency: CurrencyEnum['USD'],
     account_balance: 352479.9,
     xaf_conversion_rate: 600,
+    account_number: '7815',
   });
 
   const majorActions = [
