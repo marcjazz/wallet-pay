@@ -60,7 +60,7 @@ export default function MainCard() {
     {
       icon: <ArrowUpRightIcon size={28} color="white" />,
       title: formatMessage({ id: 'send' }),
-      action: () => push('/transactions'),
+      action: () => push('/remittance'),
     },
     {
       icon: <PlusIcon size={28} color="white" />,

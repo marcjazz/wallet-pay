@@ -33,13 +33,13 @@ export default function Footer() {
       icon: (
         <ArrowSwap
           color={
-            isActiveRoute('/transactions')
+            isActiveRoute('/remittance')
               ? theme.palette.primary.main
               : 'black'
           }
         />
       ),
-      route: '/transactions',
+      route: '/remittance',
     },
     {
       title: formatMessage({ id: 'profile' }),
