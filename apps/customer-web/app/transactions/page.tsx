@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
 import Footer from '../../components/layout/footer/Footer';
+import TransferSummary from 'apps/customer-web/components/remittance/TransferSummary';
 
 export enum RemittanceStep {
   amount = 1,
@@ -99,10 +100,11 @@ export default function Transactions() {
       stepTitle: formatMessage({ id: 'transferSummary' }),
       onStepBack: () => handleBackStep(() => {}),
       stepComponent: (
-        <Box>
-          Hello world.
-          <Typography variant="h2">This is Summary step</Typography>
-        </Box>
+        <TransferSummary
+          amountStepData={amountStepData as AmountStepData}
+          receiverData={recipientData as Receiver}
+          handleBack={() => handleBackStep(() => {})}
+        />
       ),
     },
   };
