@@ -18,6 +18,12 @@ export default function TransferSummary({
 }: TransferSummaryProps) {
   const { formatMessage, formatNumber } = useIntl();
 
+  function submitTransaction() {
+    // TODO: CALL API TO SUBMIT REMITTANCE TRANSACTION
+    console.log('Submitting transaction');
+    console.log(amountStepData, receiverData);
+  }
+
   return (
     <Box
       sx={{
@@ -153,7 +159,9 @@ export default function TransferSummary({
         </Box>
       </Box>
 
-      <Button>{formatMessage({ id: 'confirmTransfer' })}</Button>
+      <Button onClick={submitTransaction}>
+        {formatMessage({ id: 'confirmTransfer' })}
+      </Button>
     </Box>
   );
 }
