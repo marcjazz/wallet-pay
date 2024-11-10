@@ -128,6 +128,7 @@ export default function ReceiverStep({
                 <RecipientCard
                   key={receiver.receiver_payout_info_id}
                   receiver={receiver}
+                  selectedPayoutMethod={selectedPayoutMethod}
                   selectedReceiver={selectedReceiver}
                   setSelectedReceiver={(selectedReceiver?: Receiver) => {
                     setSelectedReceiver(selectedReceiver);

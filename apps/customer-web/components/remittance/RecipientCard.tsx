@@ -1,11 +1,15 @@
 import { Avatar, Box, Button, Typography } from '@mui/material';
-import { CheckCircle } from 'react-feather';
-import { getUsernameInitials } from '../shared/utilities';
 import { useTheme } from '@xafpay/theme';
-import { Receiver } from './ReceiverStep';
+import { CheckCircle } from 'react-feather';
+import { useIntl } from 'react-intl';
+import { getUsernameInitials } from '../shared/utilities';
+import { PhoneNetworkIcon } from './PhoneNetworkIcon';
+import { BankReceiver, MomoReceiver, Receiver } from './ReceiverStep';
+import { SupportedPayoutMethod } from './SendAmountStep';
 
 interface ReceiverCardProps {
   receiver: Receiver;
+  selectedPayoutMethod: SupportedPayoutMethod;
   selectedReceiver?: Receiver;
   setSelectedReceiver: (receiver?: Receiver) => void;
 }
@@ -13,8 +17,10 @@ export default function RecipientCard({
   receiver,
   selectedReceiver,
   setSelectedReceiver,
+  selectedPayoutMethod,
 }: ReceiverCardProps) {
   const theme = useTheme();
+  const { formatMessage } = useIntl();
 
   const isSelected =
     selectedReceiver?.receiver_payout_info_id ===
@@ -54,11 +60,60 @@ export default function RecipientCard({
         <Typography variant="l1b" color="black">
           {receiver.fullname}
         </Typography>
-        <Typography variant="p2r" color="#B1ACA5">
-          {'phone_number' in receiver
-            ? receiver.phone_number
-            : receiver.bank_name}
-        </Typography>
+        {selectedPayoutMethod === SupportedPayoutMethod.bank ? (
+          <Box sx={{ display: 'grid', rowGap: 0.5 }}>
+            <Typography variant="l2r" color="#797A7B">
+              {(receiver as BankReceiver)?.bank_name ??
+                `${formatMessage({ id: 'bank' })}: ${formatMessage({
+                  id: 'notAvailable',
+                })}`}
+            </Typography>
+
+            <Typography
+              variant="l3r"
+              color="#797A7B"
+              sx={{ textAlign: 'left' }}
+            >
+              {(receiver as BankReceiver)?.IBAN?.replace(
+                /^([A-Z]{2})(\d{2})(\d{5})(\d{5})(\d{11})(\d{2})$/,
+                '$1$2 $3 $4 $5 $6'
+              ) ??
+                `${formatMessage({ id: 'iban' })}: ${formatMessage({
+                  id: 'notAvailable',
+                })}`}
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'grid', rowGap: 0 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr',
+                alignItems: 'center',
+                columnGap: 1,
+              }}
+            >
+              <Typography variant="l2r" color="#797A7B">
+                {`+237 ${(receiver as MomoReceiver).phone_number.replace(
+                  /(.{3})(?=.)/g,
+                  '$1 '
+                )}`}
+              </Typography>
+              {PhoneNetworkIcon((receiver as MomoReceiver).phone_number)}
+            </Box>
+            {selectedPayoutMethod === SupportedPayoutMethod.cash && (
+              <Typography
+                variant="l2r"
+                color="#797A7B"
+                sx={{ justifySelf: 'start' }}
+              >
+                {`${formatMessage({ id: 'nid' })} ${
+                  (receiver as MomoReceiver).national_id_number ?? 'N/A'
+                }`}
+              </Typography>
+            )}
+          </Box>
+        )}
       </Box>
       {isSelected && <CheckCircle />}
     </Box>
