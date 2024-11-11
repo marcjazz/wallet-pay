@@ -12,7 +12,6 @@ import {
 import { BottomSheet } from '@tchakoumi/handy-components';
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Key } from 'react-feather';
 import { useIntl } from 'react-intl';
@@ -20,15 +19,22 @@ import * as Yup from 'yup';
 
 interface OTPBottomSheetProps {
   isOpen: boolean;
-  closeBottomSheet: () => void;
+  closeBottomSheet: (isOtpValid: boolean) => void;
+  title?: string;
+  description?: string;
+  confirmText?: string;
 }
 
 export default function OTPBottomSheet({
   isOpen,
   closeBottomSheet,
+  title,
+  description,
+  confirmText,
 }: OTPBottomSheetProps) {
   const { formatMessage } = useIntl();
-  const { push } = useRouter();
+  const theme = useTheme();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validationSchema = Yup.object({
@@ -49,19 +55,42 @@ export default function OTPBottomSheet({
       setIsSubmitting(true);
       setTimeout(() => {
         setIsSubmitting(false);
-        closeBottomSheet();
+        // TODO: if the otp validation was correct, send true, else false
+        // TODO: send the otp value to the parent component, to be used in the API call, the parent might have to verify the otp before executing the transaction.
+        closeBottomSheet(true);
         resetForm();
-        push('/reset-password');
-        console.log(values);
       }, 3000);
     },
   });
   const { errors, touched } = formik;
-  const theme = useTheme();
+
+  const [countdown, setCountdown] = useState(60);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
+  const [isCountingDown, setIsCountingDown] = useState(false);
+  function resendOtp() {
+    //TODO: CALL API TO RESEND OTP
+    setIsResendingOtp(true);
+    setTimeout(() => {
+      setIsResendingOtp(false);
+      setCountdown(60);
+      setIsCountingDown(true);
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === 0) {
+            clearInterval(interval);
+            setIsCountingDown(false);
+            return 60;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }, 3000);
+  }
+
   return (
     <BottomSheet
       open={isOpen}
-      closeBottomSheet={closeBottomSheet}
+      closeBottomSheet={() => closeBottomSheet(false)}
       disableSwipeToClose
       sx={{
         backgroundColor: 'green',
@@ -69,10 +98,10 @@ export default function OTPBottomSheet({
     >
       <Box sx={{ display: 'grid', rowGap: 2.25 }}>
         <Typography variant="h1">
-          {formatMessage({ id: 'enterYourOTP' })}
+          {title ?? formatMessage({ id: 'enterYourOTP' })}
         </Typography>
         <Typography variant="p1r">
-          {formatMessage({ id: 'otpDescription' })}
+          {description ?? formatMessage({ id: 'otpDescription' })}
         </Typography>
       </Box>
 
@@ -87,7 +116,37 @@ export default function OTPBottomSheet({
           fullWidth
           disabled={isSubmitting}
         >
-          <FormLabel htmlFor="otp">{formatMessage({ id: 'otp' })}</FormLabel>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              justifyItems: 'end',
+              alignItems: 'end',
+            }}
+          >
+            <FormLabel htmlFor="otp">{formatMessage({ id: 'otp' })}</FormLabel>
+            {!isSubmitting && (
+              <Button
+                onClick={resendOtp}
+                variant="text"
+                size="small"
+                disabled={isResendingOtp || isCountingDown}
+                sx={{
+                  typography: 'l3r',
+                  color: theme.palette.primary.main,
+                  cursor: 'pointer',
+                  py: 0,
+                  '&:disabled': {
+                    color: 'black',
+                  },
+                }}
+              >
+                {isCountingDown
+                  ? `${formatMessage({ id: 'resendIn' })} (${countdown}s)`
+                  : formatMessage({ id: 'resendEmail' })}
+              </Button>
+            )}
+          </Box>
           <OutlinedInput
             id="otp"
             type="number"
@@ -112,13 +171,13 @@ export default function OTPBottomSheet({
               isSubmitting && <CircularProgress size={20} thickness={23} />
             }
           >
-            {formatMessage({ id: 'submit' })}
+            {confirmText ?? formatMessage({ id: 'submit' })}
           </Button>
           <Button
             size="small"
             variant="text"
             disabled={isSubmitting}
-            onClick={closeBottomSheet}
+            onClick={() => closeBottomSheet(false)}
           >
             {formatMessage({ id: 'cancel' })}
           </Button>

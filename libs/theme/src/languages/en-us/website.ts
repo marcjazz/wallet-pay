@@ -142,4 +142,9 @@ export const website = {
   transactionFee: 'Transaction Fee',
   loadingTransactions: 'Loading your transactions...',
   noTransactionsYet: 'No transactions yet',
+  confirmTransaction: 'Confirm Transaction',
+  confirmTransactionDescription:
+    'Enter the one-time password sent to your email address to confirm the transaction',
+  resendIn: 'Resend in',
+  resendEmail: 'Resend Email',
 };

@@ -14,6 +14,7 @@ import {
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Mail as MailIcon } from 'react-feather';
 import { useIntl } from 'react-intl';
@@ -22,6 +23,9 @@ import OTPBottomSheet from './OTPBottomSheet';
 
 export default function EnterEmail() {
   const { formatMessage } = useIntl();
+  const theme = useTheme();
+  const { push } = useRouter();
+
   const validationSchema = Yup.object({
     email: Yup.string()
       .email(formatMessage({ id: 'invalidEmail' }))
@@ -49,7 +53,6 @@ export default function EnterEmail() {
     },
   });
   const { errors, touched } = formik;
-  const theme = useTheme();
 
   const preventRouteWhenSubmitting = (event: React.MouseEvent) => {
     if (isSubmitting) {
@@ -61,7 +64,10 @@ export default function EnterEmail() {
     <>
       <OTPBottomSheet
         isOpen={isBottomSheetOpen}
-        closeBottomSheet={() => setIsBottomSheetOpen(false)}
+        closeBottomSheet={(isOtpValid) => {
+          setIsBottomSheetOpen(false);
+          if (isOtpValid) push('/reset-password');
+        }}
       />
       <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
         <Box sx={{ display: 'grid', rowGap: 2.25 }}>
