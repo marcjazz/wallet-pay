@@ -16,6 +16,15 @@ import {
 import { useIntl } from 'react-intl';
 import { UpDialogTransition } from '../shared/dialog-transition';
 import TransactionList from './TransactionList';
+import { useEffect, useState } from 'react';
+import {
+  RemittanceTransaction,
+  TransactionStatus,
+} from 'apps/customer-web/app/remittance/[remittance_id]/page';
+import { SUPPORTED_CURRENCY } from '../remittance/amount/ChangeCurrencyMenu';
+import { CurrencyEnum } from '../Home/MainCard';
+import { SupportedPayoutMethod } from '../remittance/amount/SendAmountStep';
+import Scrollbars from 'rc-scrollbars';
 
 interface TransactionHistoryProps {
   isMenuOpen: boolean;
@@ -26,6 +35,42 @@ export default function TransactionHistory({
   handleClose,
 }: TransactionHistoryProps) {
   const { formatMessage } = useIntl();
+
+  const [transactions, setTransactions] = useState<RemittanceTransaction[]>([]);
+  const [areTransactionsLoading, setAreTransactionsLoading] =
+    useState<boolean>(false);
+  useEffect(() => {
+    // TODO: CALL API TO FETCH TRANSACTIONS
+    if (isMenuOpen) {
+      setAreTransactionsLoading(true);
+      setTimeout(() => {
+        setAreTransactionsLoading(false);
+        setTransactions([
+          {
+            amount_received: 28.98,
+            amount_sent: 50,
+            cybrid_transaction_id: '1',
+            exchange_rate: 600,
+            initial_currency: CurrencyEnum.USD,
+            initiated_at: new Date().toISOString(),
+            payout_method: SupportedPayoutMethod.bank,
+            transaction_fee: 2,
+            settled_at: new Date().toISOString(),
+
+            receiver: {
+              bank_name: 'UBA',
+              fullname: 'John Doe',
+              IBAN: 'CM2110005000031234567898764',
+              national_id_number: '000316122',
+              phone_number: '657140183',
+              receiver_payout_info_id: '1',
+            },
+            status: TransactionStatus.FAILED,
+          },
+        ]);
+      }, 3000);
+    }
+  }, [isMenuOpen]);
 
   return (
     <Dialog
@@ -44,6 +89,7 @@ export default function TransactionHistory({
           display: 'grid',
           rowGap: 5,
           gridTemplateRows: 'auto 1fr',
+          height: '100%',
         }}
       >
         <Box
@@ -89,7 +135,12 @@ export default function TransactionHistory({
             }}
           />
 
-          <TransactionList />
+          <Scrollbars universal autoHide>
+            <TransactionList
+              transactions={transactions}
+              areTransactionsLoading={areTransactionsLoading}
+            />
+          </Scrollbars>
         </Box>
       </Box>
     </Dialog>

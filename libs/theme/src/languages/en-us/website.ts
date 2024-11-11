@@ -140,4 +140,6 @@ export const website = {
   transactionId: 'Transaction ID',
   backToHome: 'Back to Home',
   transactionFee: 'Transaction Fee',
+  loadingTransactions: 'Loading your transactions...',
+  noTransactionsYet: 'No transactions yet',
 };

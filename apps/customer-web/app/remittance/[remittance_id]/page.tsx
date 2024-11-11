@@ -16,13 +16,13 @@ import { useEffect, useState } from 'react';
 import { ArrowUpRight, AlertCircle, RefreshCcw } from 'react-feather';
 import { useIntl } from 'react-intl';
 
-enum TransactionStatus {
+export enum TransactionStatus {
   PENDING = 'PENDING',
   SETTLED = 'SETTLED',
   FAILED = 'FAILED',
 }
 
-interface RemittanceTransaction {
+export interface RemittanceTransaction {
   cybrid_transaction_id: string;
   amount_sent: number;
   amount_received: number;
