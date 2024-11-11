@@ -3,6 +3,7 @@ import { RemittanceTransaction } from 'apps/customer-web/app/remittance/[remitta
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import TransactionHistoryCard from './TransactionHistoryCard';
+import TransactionDetailsBottomSheet from './TransactionDetailsBottomSheet';
 
 interface TransactionListProps {
   transactions: RemittanceTransaction[];
@@ -19,42 +20,50 @@ export default function TransactionList({
     useState<RemittanceTransaction>();
 
   return (
-    <Box>
-      {areTransactionsLoading ? (
-        <Typography
-          variant="p2r"
-          sx={{
-            color: '#BABDBE',
-            textAlign: 'center',
-            width: '100%',
-            display: 'inline-block',
-          }}
-        >
-          {formatMessage({ id: 'loadingTransactions' })}
-        </Typography>
-      ) : transactions.length ? (
-        transactions.map((transaction, index) => (
-          <TransactionHistoryCard
-            key={index}
-            transaction={transaction}
-            hadleSelectTransaction={(transaction: RemittanceTransaction) => {
-              setSelectedTransaction(transaction);
-            }}
-          />
-        ))
-      ) : (
-        <Typography
-          variant="p2r"
-          sx={{
-            color: '#BABDBE',
-            textAlign: 'center',
-            width: '100%',
-            display: 'inline-block',
-          }}
-        >
-          {formatMessage({ id: 'noTransactionsYet' })}
-        </Typography>
+    <>
+      {selectedTransaction && (
+        <TransactionDetailsBottomSheet
+          closeBottomSheet={() => setSelectedTransaction(undefined)}
+          selectedTransaction={selectedTransaction}
+        />
       )}
-    </Box>
+      <Box>
+        {areTransactionsLoading ? (
+          <Typography
+            variant="p2r"
+            sx={{
+              color: '#BABDBE',
+              textAlign: 'center',
+              width: '100%',
+              display: 'inline-block',
+            }}
+          >
+            {formatMessage({ id: 'loadingTransactions' })}
+          </Typography>
+        ) : transactions.length ? (
+          transactions.map((transaction, index) => (
+            <TransactionHistoryCard
+              key={index}
+              transaction={transaction}
+              hadleSelectTransaction={(transaction: RemittanceTransaction) => {
+                setSelectedTransaction(transaction);
+              }}
+            />
+          ))
+        ) : (
+          <Typography
+            variant="p2r"
+            sx={{
+              color: '#BABDBE',
+              textAlign: 'center',
+              width: '100%',
+              display: 'inline-block',
+            }}
+          >
+            {formatMessage({ id: 'noTransactionsYet' })}
+          </Typography>
+        )}
+      </Box>
+    </>
   );
 }
