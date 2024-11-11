@@ -1,9 +1,10 @@
 import { Box, Button, Divider, Typography } from '@mui/material';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useIntl } from 'react-intl';
+import { AmountStepData } from '../amount/SendAmountStep';
 import { Receiver } from '../receiver/ReceiverStep';
 import RecipientSummaryCard from './RecipientSummaryCard';
-import { AmountStepData } from '../amount/SendAmountStep';
 import SummaryLine from './SummaryLine';
 
 interface TransferSummaryProps {
@@ -17,11 +18,14 @@ export default function TransferSummary({
   handleBack,
 }: TransferSummaryProps) {
   const { formatMessage, formatNumber } = useIntl();
+  const { push } = useRouter();
 
   function submitTransaction() {
     // TODO: CALL API TO SUBMIT REMITTANCE TRANSACTION
     console.log('Submitting transaction');
     console.log(amountStepData, receiverData);
+    // TODO: redirect to remittance details page
+    push('/remittance/1');
   }
 
   return (
