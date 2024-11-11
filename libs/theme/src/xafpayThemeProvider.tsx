@@ -16,7 +16,6 @@ import UserContextProvider from './contexts/user/user.provider';
 import enMessages from './languages/en-us';
 import frMessages from './languages/fr';
 import { useTheme } from './theme';
-import { LanguageType } from './contexts/language/language.interface';
 
 const TempApp = ({ children }: { children: React.ReactNode }) => {
   const { modeDispatch } = useMode();
