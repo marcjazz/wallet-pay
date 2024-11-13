@@ -45,7 +45,10 @@ export class AccountsController {
     const accounts = await this.accountsService.findAccounts(
       request.user?.person_id as string
     );
-    return accounts.map((account) => new CybridAccountEntity(account));
+    return accounts.map(
+      ({ CybridCustomer: customer, ...account }) =>
+        new CybridAccountEntity({ ...account, ...customer })
+    );
   }
 
   @Get('externals')
@@ -58,7 +61,7 @@ export class AccountsController {
   }
 
   @Post('verify')
-  @ApiOkResponse({ type: IdentityVerificationEntity })
+  @ApiCreatedResponse({ type: IdentityVerificationEntity })
   @ApiOperation({
     summary: 'Initialize verification process on a account/external account',
   })

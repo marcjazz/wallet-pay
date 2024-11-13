@@ -22,6 +22,14 @@ export class AccountsService {
 
   async findAccounts(personId: string) {
     const cybridAccounts = await this.prismaService.cybridAccount.findMany({
+      include: {
+        CybridCustomer: {
+          select: {
+            identity_verification_guid: true,
+            verification_status: true,
+          },
+        },
+      },
       where: { CybridCustomer: { person_id: personId } },
     });
     return cybridAccounts;

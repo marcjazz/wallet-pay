@@ -17,6 +17,7 @@ import {
   PostCustomerBankModelTypeEnum,
   PostExternalBankAccountBankModel,
   PostIdentityVerificationBankModel,
+  PostIdentityVerificationBankModelExpectedBehavioursEnum,
   PostQuoteBankModelProductTypeEnum,
   PostTransferBankModel,
   PostWorkflowBankModelKindEnum,
@@ -98,6 +99,9 @@ export class CybridService {
             newAccountObservable.subscribe({ next, error })
           );
 
+          // Pulling latest customer state from cybrid
+          customer = await this.getCustomer(customer.guid as string);
+
           resolve({ account, customer });
         },
       });
@@ -138,6 +142,9 @@ export class CybridService {
       identityVerificationsApi.createIdentityVerification({
         postIdentityVerificationBankModel: {
           customer_guid: customerGuid,
+          expected_behaviours: [
+            PostIdentityVerificationBankModelExpectedBehavioursEnum.PassedImmediately,
+          ],
           ...payload,
         },
       });

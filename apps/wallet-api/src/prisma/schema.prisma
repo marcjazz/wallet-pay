@@ -37,8 +37,6 @@ model CybridAccount {
   cybrid_account_guid         String                      @unique @db.VarChar(45)
   name                        String
   balance                     Float
-  identity_verification_guid  String?                     @db.VarChar(45)
-  verification_status         IdentityVerificationStatus?
   currency                    CybridSupportedCurrency
   is_active                   Boolean                     @default(true) @db.Boolean
   cybrid_customer_id          String

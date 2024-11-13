@@ -1,10 +1,9 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import {
-  CybridCustomerStatus,
   CybridTransactionStatus,
   IdentityVerificationStatus,
-  PrismaPromise,
+  PrismaPromise
 } from '@prisma/client';
 import { Job } from 'bull';
 import { PrismaService } from '../prisma/prisma.service';
@@ -22,51 +21,49 @@ export class CybridProcessor {
     private readonly prismaService: PrismaService
   ) {}
 
-  @Process(cybridJobs.PULLING_CYBRID_CUSTOMER)
-  async pullCybridCustomer(job: Job<string>) {
-    this.logger.debug('Pulling cybrid customer...');
-
-    const customer = await this.cybridService.getCustomer(job.data);
-    if (!customer.state || customer.state === CybridCustomerStatus.STORING) {
-      throw new Error('Customer creation not completed yet!');
-    }
-
-    this.prismaService.cybridCustomer.update({
-      data: {
-        status: customer.state.toLocaleUpperCase() as CybridCustomerStatus,
-      },
-      where: { cybrid_customer_guid: job.data },
-    });
-
-    this.logger.log(
-      `Successfully pulled customer from cybrid and updated database`
-    );
-  }
-
   @Process(cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE)
   async updateIdentityVerificationStatus(
     job: Job<CybridSubscriptionEventObjectDto>
   ) {
-    const { event_type: eventType, guid } = job.data;
+    const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, status] = eventType.split('.');
     const verificationStatus =
       status.toLocaleUpperCase() as IdentityVerificationStatus;
 
-    await this.prismaService.$transaction([
-      this.prismaService.cybridCustomer.updateMany({
-        data: {
-          verification_status: verificationStatus,
+    const object = await this.prismaService.cybridCustomer.findUnique({
+      where: {
+        identity_verification_guid: guid,
+        cybrid_customer_guid: objectGuid,
+      },
+    });
+
+    if (object) {
+      await this.prismaService.cybridCustomer.update({
+        data: { verification_status: verificationStatus },
+        where: {
+          identity_verification_guid: guid,
+          cybrid_customer_guid: objectGuid,
         },
-        where: { identity_verification_guid: guid },
-      }),
-      this.prismaService.cybridExternalAccount.updateMany({
-        data: {
-          verification_status: verificationStatus,
+      });
+    } else {
+      const object = await this.prismaService.cybridExternalAccount.findUnique({
+        where: {
+          identity_verification_guid: guid,
+          cybrid_external_account_guid: objectGuid,
         },
-        where: { identity_verification_guid: guid },
-      }),
-    ]);
+      });
+
+      if (object) {
+        await this.prismaService.cybridExternalAccount.update({
+          data: { verification_status: verificationStatus },
+          where: {
+            identity_verification_guid: guid,
+            cybrid_external_account_guid: objectGuid,
+          },
+        });
+      }
+    }
 
     this.logger.log(
       `Successfully processed ${eventType} from cybrid and updated database`
@@ -95,6 +92,11 @@ export class CybridProcessor {
     });
     if (!transaction || !transaction.CybridAccount) {
       throw new Error('No transaction record was found!');
+    }
+
+    //  Do nothing if transaction status was already set to a final state
+    if (transaction.status === 'COMPLETED' || transaction.status === 'FAILED') {
+      return;
     }
 
     const {
