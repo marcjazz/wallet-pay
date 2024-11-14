@@ -5,14 +5,13 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material';
-import { useTheme } from '@xafpay/theme';
 import { Scrollbars } from 'rc-scrollbars';
 import { useEffect, useState } from 'react';
 import { Plus, Search, Sliders } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import RecipientCard from './RecipientCard';
 import RecipientDetailsBottomSheet from './RecipientDetailsBottomSheet';
-import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 
 export interface MomoReceiver {
   receiver_payout_info_id: string;
@@ -40,8 +39,7 @@ export default function ReceiverStep({
   selectedPayoutMethod,
   handleNext,
 }: ReceiverStepProps) {
-  const { formatMessage, formatNumber } = useIntl();
-  const theme = useTheme();
+  const { formatMessage } = useIntl();
 
   const [receivers, setReceivers] = useState<Receiver[]>([]);
   const [areReceiversLoading, setAreReceiversLoading] =
@@ -70,7 +68,9 @@ export default function ReceiverStep({
     }, 3000);
   }, []);
 
-  const [isReceipientDetailsOpen, setIsReceipientDetailsOpen] = useState(!!receiverData);
+  const [isReceipientDetailsOpen, setIsReceipientDetailsOpen] = useState(
+    !!receiverData
+  );
 
   return (
     <>

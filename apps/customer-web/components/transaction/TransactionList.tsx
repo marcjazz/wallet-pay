@@ -1,9 +1,9 @@
 import { Box, Typography } from '@mui/material';
-import { RemittanceTransaction } from 'apps/customer-web/app/remittance/[remittance_id]/page';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import TransactionHistoryCard from './TransactionHistoryCard';
+import { RemittanceTransaction } from '../../app/remittance/[remittance_id]/page';
 import TransactionDetailsBottomSheet from './TransactionDetailsBottomSheet';
+import TransactionHistoryCard from './TransactionHistoryCard';
 
 interface TransactionListProps {
   transactions: RemittanceTransaction[];
@@ -29,6 +29,7 @@ export default function TransactionList({
       )}
       <Box>
         {areTransactionsLoading ? (
+          // TODO: MAKE SKELETON SCREENS LATER
           <Typography
             variant="p2r"
             sx={{

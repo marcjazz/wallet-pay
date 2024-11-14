@@ -1,20 +1,19 @@
 'use client';
 
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import { useTheme } from '@xafpay/theme';
-import ReceiverStep, {
-  Receiver,
-} from 'apps/customer-web/components/remittance/receiver/ReceiverStep';
-import RemittanceStepper from 'apps/customer-web/components/remittance/RemittanceStepper';
-import SendAmountStep, {
-  AmountStepData,
-} from 'apps/customer-web/components/remittance/amount/SendAmountStep';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
 import Footer from '../../components/layout/footer/Footer';
-import TransferSummary from 'apps/customer-web/components/remittance/summary/TransferSummary';
+import SendAmountStep, {
+  AmountStepData,
+} from '../../components/remittance/amount/SendAmountStep';
+import ReceiverStep, {
+  Receiver,
+} from '../../components/remittance/receiver/ReceiverStep';
+import RemittanceStepper from '../../components/remittance/RemittanceStepper';
+import TransferSummary from '../../components/remittance/summary/TransferSummary';
 
 export enum RemittanceStep {
   amount = 1,
@@ -28,8 +27,7 @@ export default function Transactions() {
   ).length;
   const MIN_STEP = 1;
 
-  const theme = useTheme();
-  const { formatMessage, formatNumber } = useIntl();
+  const { formatMessage } = useIntl();
   const { push } = useRouter();
   const [currentStep, setCurrentStep] = useState<RemittanceStep>(1);
   const [maxAccessibleStep, setMaxAccessibleStep] = useState<RemittanceStep>(1);
@@ -85,25 +83,29 @@ export default function Transactions() {
     },
     '2': {
       stepTitle: formatMessage({ id: 'selectRecipient' }),
-      onStepBack: () => handleBackStep(() => {}),
-      stepComponent: (
+      onStepBack: () => handleBackStep(() => null),
+      stepComponent: amountStepData.payoutMethod ? (
         <ReceiverStep
-          selectedPayoutMethod={amountStepData.payoutMethod!}
+          selectedPayoutMethod={amountStepData.payoutMethod}
           receiverData={recipientData}
           handleNext={(receiverData) =>
             handleNextStep(() => setRecipientData(receiverData))
           }
         />
+      ) : (
+        <Typography variant="p3r">
+          {formatMessage({ id: 'somethingWentWrongPleaseRefresh' })}
+        </Typography>
       ),
     },
     '3': {
       stepTitle: formatMessage({ id: 'transferSummary' }),
-      onStepBack: () => handleBackStep(() => {}),
+      onStepBack: () => handleBackStep(() => null),
       stepComponent: (
         <TransferSummary
           amountStepData={amountStepData as AmountStepData}
           receiverData={recipientData as Receiver}
-          handleBack={() => handleBackStep(() => {})}
+          handleBack={() => handleBackStep(() => null)}
         />
       ),
     },
