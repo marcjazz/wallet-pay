@@ -2,19 +2,19 @@
 
 import { Box, Button, Divider, Skeleton, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { CurrencyEnum } from 'apps/customer-web/components/Home/MainCard';
-import { SupportedPayoutMethod } from 'apps/customer-web/components/remittance/amount/SendAmountStep';
-import ReceiptLine from 'apps/customer-web/components/remittance/receipt/ReceiptLine';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { AlertCircle, RefreshCcw } from 'react-feather';
+import { useIntl } from 'react-intl';
+import { CurrencyEnum } from '../../../components/Home/MainCard';
+import { SupportedPayoutMethod } from '../../../components/remittance/amount/SendAmountStep';
+import ReceiptLine from '../../../components/remittance/receipt/ReceiptLine';
 import {
   BankReceiver,
   MomoReceiver,
   Receiver,
-} from 'apps/customer-web/components/remittance/receiver/ReceiverStep';
-import Image from 'next/image';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { ArrowUpRight, AlertCircle, RefreshCcw } from 'react-feather';
-import { useIntl } from 'react-intl';
+} from '../../../components/remittance/receiver/ReceiverStep';
 
 export enum TransactionStatus {
   PENDING = 'PENDING',
@@ -42,7 +42,6 @@ interface RemittanceDetailsProps {
 export default function RemittanceDetails({
   transaction: fullTransaction,
 }: RemittanceDetailsProps) {
-  const searchParams = useSearchParams();
   const params = useParams();
   const { push } = useRouter();
   const { formatMessage, formatNumber, formatDate } = useIntl();
@@ -84,6 +83,7 @@ export default function RemittanceDetails({
     } else {
       setIsTransactionLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const receiptHeader: Record<
@@ -115,16 +115,16 @@ export default function RemittanceDetails({
     <Box sx={{ padding: 2, display: 'grid', rowGap: 6 }}>
       <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 4 }}>
         <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 2 }}>
-          {isTransactionLoading ? (
+          {isTransactionLoading || !transaction ? (
             <Skeleton variant="circular" height={76} width={76} />
           ) : (
-            receiptHeader[transaction!.status].image
+            receiptHeader[transaction.status].image
           )}
           <Typography variant="h2">
-            {isTransactionLoading ? (
+            {isTransactionLoading || !transaction ? (
               <Skeleton width={237} />
             ) : (
-              receiptHeader[transaction!.status].title
+              receiptHeader[transaction.status].title
             )}
           </Typography>
         </Box>
@@ -149,10 +149,10 @@ export default function RemittanceDetails({
                 XAF
               </Typography>
               <Typography variant="h1">
-                {isTransactionLoading ? (
+                {isTransactionLoading || !transaction ? (
                   <Skeleton width={50} />
                 ) : (
-                  formatNumber(transaction!.amount_received, {
+                  formatNumber(transaction.amount_received, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })
@@ -168,17 +168,17 @@ export default function RemittanceDetails({
               }}
             >
               <Typography variant="h6" color="#C8CDD0">
-                {isTransactionLoading ? (
+                {isTransactionLoading || !transaction ? (
                   <Skeleton width={50} />
                 ) : (
-                  transaction?.initial_currency
+                  transaction.initial_currency
                 )}
               </Typography>
               <Typography variant="h4" color="#B1ACA5">
-                {isTransactionLoading ? (
+                {isTransactionLoading || !transaction ? (
                   <Skeleton width={50} />
                 ) : (
-                  formatNumber(transaction!.amount_sent, {
+                  formatNumber(transaction.amount_sent, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })
@@ -194,12 +194,12 @@ export default function RemittanceDetails({
             )}
           </Typography>
           <Typography variant="p3r">
-            {isTransactionLoading ? (
+            {isTransactionLoading || !transaction ? (
               <Skeleton width={50} />
             ) : (
               `${formatMessage({ id: 'transactionFee' })}: ${
-                transaction!.initial_currency
-              } ${formatNumber(transaction!.transaction_fee, {
+                transaction.initial_currency
+              } ${formatNumber(transaction.transaction_fee, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}`
