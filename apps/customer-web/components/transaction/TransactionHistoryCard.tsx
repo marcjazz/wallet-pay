@@ -1,12 +1,12 @@
 import { Avatar, Box, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import {
-  RemittanceTransaction,
-  TransactionStatus,
-} from 'apps/customer-web/app/remittance/[remittance_id]/page';
 import Image from 'next/image';
 import { AlertCircle, CheckCircle, RefreshCcw } from 'react-feather';
 import { useIntl } from 'react-intl';
+import {
+  RemittanceTransaction,
+  TransactionStatus,
+} from '../../app/remittance/[remittance_id]/page';
 
 interface TransactionHistoryCardProps {
   transaction: RemittanceTransaction;

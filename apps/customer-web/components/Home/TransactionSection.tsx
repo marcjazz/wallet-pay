@@ -2,7 +2,7 @@ import { Box, Button, Typography } from '@mui/material';
 import {
   RemittanceTransaction,
   TransactionStatus,
-} from 'apps/customer-web/app/remittance/[remittance_id]/page';
+} from '../../app/remittance/[remittance_id]/page';
 import { useEffect, useState } from 'react';
 import { ChevronRight as ChevronRightIcon } from 'react-feather';
 import { useIntl } from 'react-intl';

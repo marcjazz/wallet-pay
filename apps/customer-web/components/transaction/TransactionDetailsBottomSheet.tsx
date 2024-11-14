@@ -1,6 +1,6 @@
 import RemittanceDetails, {
   RemittanceTransaction,
-} from 'apps/customer-web/app/remittance/[remittance_id]/page';
+} from '../../app/remittance/[remittance_id]/page';
 import BottomSheet from '../shared/BottomSheet';
 
 interface TransactionDetailsBottomSheetProps {

@@ -1,6 +1,6 @@
 import { Box, Divider } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { RemittanceStep } from 'apps/customer-web/app/remittance/page';
+import { RemittanceStep } from '../../app/remittance/page';
 
 interface RemittanceStepperProps {
   currentStep: RemittanceStep;

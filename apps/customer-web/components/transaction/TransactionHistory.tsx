@@ -4,27 +4,25 @@ import {
   IconButton,
   InputAdornment,
   OutlinedInput,
-  TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
+import Scrollbars from 'rc-scrollbars';
+import { useEffect, useState } from 'react';
 import {
   ChevronLeft as ChevronLeftIcon,
   Search as SearchIcon,
   Sliders as SlidersIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { UpDialogTransition } from '../shared/dialog-transition';
-import TransactionList from './TransactionList';
-import { useEffect, useState } from 'react';
 import {
   RemittanceTransaction,
   TransactionStatus,
-} from 'apps/customer-web/app/remittance/[remittance_id]/page';
-import { SUPPORTED_CURRENCY } from '../remittance/amount/ChangeCurrencyMenu';
+} from '../../app/remittance/[remittance_id]/page';
 import { CurrencyEnum } from '../Home/MainCard';
 import { SupportedPayoutMethod } from '../remittance/amount/SendAmountStep';
-import Scrollbars from 'rc-scrollbars';
+import { UpDialogTransition } from '../shared/dialog-transition';
+import TransactionList from './TransactionList';
 
 interface TransactionHistoryProps {
   isMenuOpen: boolean;
