@@ -187,10 +187,10 @@ export default function RemittanceDetails({
             </Box>
           </Box>
           <Typography variant="l3r" color="#BABDBE">
-            {isTransactionLoading ? (
+            {isTransactionLoading || !transaction ? (
               <Skeleton width={50} />
             ) : (
-              `1 ${transaction?.initial_currency} = ${transaction?.exchange_rate} XAF`
+              `1 ${transaction.initial_currency} = ${transaction.exchange_rate} XAF`
             )}
           </Typography>
           <Typography variant="p3r">
