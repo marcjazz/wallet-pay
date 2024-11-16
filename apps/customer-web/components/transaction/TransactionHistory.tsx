@@ -15,10 +15,8 @@ import {
   Sliders as SlidersIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import {
-  RemittanceTransaction,
-  TransactionStatus,
-} from '../../app/remittance/[remittance_id]/page';
+import { RemittanceTransaction } from '../../app/remittance/page';
+import { TransactionStatus } from '../../types';
 import { CurrencyEnum } from '../Home/MainCard';
 import { SupportedPayoutMethod } from '../remittance/amount/SendAmountStep';
 import { UpDialogTransition } from '../shared/dialog-transition';

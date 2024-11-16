@@ -5,20 +5,31 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { CurrencyEnum } from '../../components/Home/MainCard';
 import Footer from '../../components/layout/footer/Footer';
 import SendAmountStep, {
   AmountStepData,
+  SupportedPayoutMethod,
 } from '../../components/remittance/amount/SendAmountStep';
 import ReceiverStep, {
   Receiver,
 } from '../../components/remittance/receiver/ReceiverStep';
 import RemittanceStepper from '../../components/remittance/RemittanceStepper';
 import TransferSummary from '../../components/remittance/summary/TransferSummary';
+import { RemittanceStep, TransactionStatus } from '../../types';
 
-export enum RemittanceStep {
-  amount = 1,
-  recipient = 2,
-  summary = 3,
+export interface RemittanceTransaction {
+  cybrid_transaction_id: string;
+  amount_sent: number;
+  amount_received: number;
+  exchange_rate: number;
+  transaction_fee: number;
+  receiver: Receiver;
+  status: TransactionStatus;
+  initial_currency: CurrencyEnum;
+  payout_method: SupportedPayoutMethod;
+  initiated_at: string;
+  settled_at?: string;
 }
 
 export default function Transactions() {

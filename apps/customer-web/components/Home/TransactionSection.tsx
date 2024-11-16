@@ -1,15 +1,13 @@
 import { Box, Button, Typography } from '@mui/material';
-import {
-  RemittanceTransaction,
-  TransactionStatus,
-} from '../../app/remittance/[remittance_id]/page';
+import Scrollbars from 'rc-scrollbars';
 import { useEffect, useState } from 'react';
 import { ChevronRight as ChevronRightIcon } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { RemittanceTransaction } from '../../app/remittance/page';
+import { TransactionStatus } from '../../types';
 import { SupportedPayoutMethod } from '../remittance/amount/SendAmountStep';
 import TransactionList from '../transaction/TransactionList';
 import { CurrencyEnum } from './MainCard';
-import Scrollbars from 'rc-scrollbars';
 
 interface TransactionSectionProps {
   openAllHistory: () => void;

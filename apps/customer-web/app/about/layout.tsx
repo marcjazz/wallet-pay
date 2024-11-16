@@ -1,15 +1,6 @@
-import { notFound } from 'next/navigation';
 import { PropsWithChildren } from 'react';
 
-interface Testing {
-  hello?: string;
-}
-
-export default function Layout({
-  hello,
-  children,
-}: PropsWithChildren<Testing>) {
-  // if (!hello) return notFound();
+export default function Layout({ children }: PropsWithChildren) {
   return (
     <div>
       <h1>About</h1>

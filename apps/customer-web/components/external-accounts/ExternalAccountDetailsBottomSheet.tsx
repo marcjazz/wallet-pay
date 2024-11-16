@@ -1,10 +1,8 @@
 import { Box, Chip, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useIntl } from 'react-intl';
-import {
-  ExternalAccount,
-  ExternalAccountVerificationStatus,
-} from '../../app/external-accounts/page';
+import { ExternalAccount } from '../../app/external-accounts/page';
+import { ExternalAccountVerificationStatus } from '../../types';
 import BottomSheet from '../shared/BottomSheet';
 import { kycChipVariants } from './ExternalAccountCard';
 

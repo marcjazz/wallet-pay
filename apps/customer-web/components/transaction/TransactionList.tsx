@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { RemittanceTransaction } from '../../app/remittance/[remittance_id]/page';
+import { RemittanceTransaction } from '../../app/remittance/page';
 import TransactionDetailsBottomSheet from './TransactionDetailsBottomSheet';
 import TransactionHistoryCard from './TransactionHistoryCard';
 

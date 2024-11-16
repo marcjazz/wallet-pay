@@ -3,10 +3,8 @@ import { useTheme } from '@xafpay/theme';
 import Image from 'next/image';
 import { AlertCircle, CheckCircle, RefreshCcw } from 'react-feather';
 import { useIntl } from 'react-intl';
-import {
-  RemittanceTransaction,
-  TransactionStatus,
-} from '../../app/remittance/[remittance_id]/page';
+import { RemittanceTransaction } from '../../app/remittance/page';
+import { TransactionStatus } from '../../types';
 
 interface TransactionHistoryCardProps {
   transaction: RemittanceTransaction;

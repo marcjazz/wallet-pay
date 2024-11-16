@@ -11,12 +11,7 @@ import ExternalAccountCard from '../../components/external-accounts/ExternalAcco
 import ExternalAccountDetailsBottomSheet from '../../components/external-accounts/ExternalAccountDetailsBottomSheet';
 import NewExternalAccountBottomSheet from '../../components/external-accounts/NewExternalAccountBottomSheet';
 import Footer from '../../components/layout/footer/Footer';
-
-export enum ExternalAccountVerificationStatus {
-  UNVERIFIED = 'UNVERIFIED',
-  VERIFIED = 'VERIFIED',
-  PENDING = 'PENDING',
-}
+import { ExternalAccountVerificationStatus } from '../../types';
 
 export interface ExternalAccount {
   cybrid_external_account_id: string;

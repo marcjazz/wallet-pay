@@ -1,6 +1,6 @@
 import { Box, Divider } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { RemittanceStep } from '../../app/remittance/page';
+import { RemittanceStep } from '../../types';
 
 interface RemittanceStepperProps {
   currentStep: RemittanceStep;
@@ -33,14 +33,17 @@ export default function RemittanceStepper({
               onClick={() => {
                 if (step === 1) setCurrentStep(step);
                 else {
-                  if (maxAccessibleStep >= step) setCurrentStep(step);
+                  if (maxAccessibleStep >= (step as number))
+                    setCurrentStep(step as number);
                 }
               }}
               sx={{
                 height: '8px',
                 width: '34px',
                 backgroundColor:
-                  currentStep >= step ? theme.palette.primary.main : '#B6D6FE',
+                  currentStep >= (step as number)
+                    ? theme.palette.primary.main
+                    : '#B6D6FE',
                 borderRadius: 1.25,
               }}
             />

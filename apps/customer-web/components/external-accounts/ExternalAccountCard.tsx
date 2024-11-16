@@ -7,10 +7,8 @@ import {
   RefreshCcw,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import {
-  ExternalAccount,
-  ExternalAccountVerificationStatus,
-} from '../../app/external-accounts/page';
+import { ExternalAccount } from '../../app/external-accounts/page';
+import { ExternalAccountVerificationStatus } from '../../types';
 
 export const kycChipVariants: Record<
   ExternalAccountVerificationStatus,
