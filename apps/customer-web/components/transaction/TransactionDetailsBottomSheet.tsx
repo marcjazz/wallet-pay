@@ -1,6 +1,5 @@
-import RemittanceDetails, {
-  RemittanceTransaction,
-} from '../../app/remittance/[remittance_id]/page';
+import { RemittanceTransaction } from '../../app/remittance/page';
+import RemittanceDetail from '../remittance/details/RemittanceDetail';
 import BottomSheet from '../shared/BottomSheet';
 
 interface TransactionDetailsBottomSheetProps {
@@ -16,7 +15,7 @@ export default function TransactionDetailsBottomSheet({
       open={!!selectedTransaction}
       closeBottomSheet={closeBottomSheet}
     >
-      <RemittanceDetails transaction={selectedTransaction} />
+      <RemittanceDetail transaction={selectedTransaction} />
     </BottomSheet>
   );
 }
