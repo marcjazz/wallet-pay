@@ -159,10 +159,7 @@ export class AuthService {
     );
 
     await this.prismaService.log.create({
-      data: {
-        refresh_token: refreshToken,
-        PersonHasRole: { connect: { person_has_role_id: userId } },
-      },
+      data: { PersonHasRole: { connect: { person_has_role_id: userId } } },
     });
     return new AuthTokensDto({
       refresh_token: refreshToken,
@@ -263,9 +260,13 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
       });
     } catch (error) {
-      throw new ForbiddenException(
+      throw new UnauthorizedException(
         `Error validating token (type: ${type}): ${error.message}`
       );
+    }
+
+    if (payload.type !== type) {
+      throw new UnauthorizedException('Invalid  bearer token type!');
     }
 
     // find lastest log
@@ -278,7 +279,7 @@ export class AuthService {
     });
 
     if (!log) {
-      throw new NotFoundException('Invalid token payload!');
+      throw new UnauthorizedException('Invalid token payload!');
     }
 
     // Generate new tokens
