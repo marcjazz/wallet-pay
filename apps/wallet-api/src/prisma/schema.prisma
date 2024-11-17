@@ -33,17 +33,17 @@ model CybridCustomerAudit {
 }
 
 model CybridAccount {
-  cybrid_account_id           String                      @id @default(cuid()) @db.VarChar(36)
-  cybrid_account_guid         String                      @unique @db.VarChar(45)
+  cybrid_account_id           String                  @id @default(cuid()) @db.VarChar(36)
+  cybrid_account_guid         String                  @unique @db.VarChar(45)
   name                        String
   balance                     Float
   currency                    CybridSupportedCurrency
-  is_active                   Boolean                     @default(true) @db.Boolean
+  is_active                   Boolean                 @default(true) @db.Boolean
   cybrid_customer_id          String
-  CybridCustomer              CybridCustomer              @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CybridAccount_CybridCustomer1")
+  CybridCustomer              CybridCustomer          @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CybridAccount_CybridCustomer1")
   // account_type                CybridAccountType
-  CreatedByCybridTransactions CybridTransaction[]         @relation("cybridaccountTocybridtransaction_created_by")
-  CybridTransactions          CybridTransaction[]         @relation("cybridaccountTocybridtransaction_cybrid_account_id")
+  CreatedByCybridTransactions CybridTransaction[]     @relation("cybridaccountTocybridtransaction_created_by")
+  CybridTransactions          CybridTransaction[]     @relation("cybridaccountTocybridtransaction_cybrid_account_id")
 
   @@index([cybrid_customer_id], map: "fk_CybridAccount_CybridCustomer1_idx")
   @@map("cybrid_accounts")
@@ -98,7 +98,7 @@ model CybridTransaction {
   local_customer_id            String?
   LocalCustomer                LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
   receiver_payout_info_id      String?
-  ReceiverPayoutInfo           CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counter_party_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
+  ReceiverPayoutInfo           CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counterparty_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
   receiver_bank_payout_info_id String?
   ReceiverBankPayoutInfo       ReceiverBankPayoutInfo? @relation(fields: [receiver_bank_payout_info_id], references: [receiver_bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_BankInfo1")
   cybrid_account_id            String?
@@ -275,7 +275,7 @@ model PersonHasRoleAudit {
 }
 
 model CybridCounterparty {
-  cybrid_counter_party_id  String              @id @default(cuid()) @db.VarChar(36)
+  cybrid_counterparty_id   String              @id @default(cuid()) @db.VarChar(36)
   fullname                 String              @db.VarChar(45)
   phone_number             String              @db.VarChar(45)
   national_id_number       String?             @db.VarChar(45)
@@ -335,7 +335,7 @@ model StripeTransaction {
   local_customer_id       String?                 @db.VarChar(36)
   LocalCustomer           LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_LocalCustomer1")
   receiver_payout_info_id String?                 @db.VarChar(36)
-  ReceiverPayoutInfo      CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counter_party_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_ReceiverPayoutInfo1")
+  ReceiverPayoutInfo      CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counterparty_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_ReceiverPayoutInfo1")
   bank_payout_info_id     String?                 @db.VarChar(36)
   BankPayoutInfo          ReceiverBankPayoutInfo? @relation(fields: [bank_payout_info_id], references: [receiver_bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_StripeTransaction_BankPayoutInfo1")
 

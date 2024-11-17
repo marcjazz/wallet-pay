@@ -14,6 +14,7 @@ import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.fil
 import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
 import { AccountsModule } from '../modules/accounts/accounts.module';
 import { TransactionsModule } from '../modules/transactions/transactions.module';
+import { CounterpartiesModule } from '../modules/counterparties/counterparties.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { TransactionsModule } from '../modules/transactions/transactions.module'
     UsersModule,
     AccountsModule,
     TransactionsModule,
+    CounterpartiesModule,
   ],
   controllers: [AppController],
   providers: [

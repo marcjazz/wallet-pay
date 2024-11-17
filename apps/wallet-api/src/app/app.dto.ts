@@ -1,32 +1,14 @@
-import { WorkflowBankModel } from '@cybrid/cybrid-api-bank-typescript';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
-export class CreatedWorkFlowDto implements WorkflowBankModel {
+
+export class SearchQueryDto {
+  @IsString()
+  @IsOptional()
   @ApiPropertyOptional()
-  guid?: string;
+  search?: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  bank_guid?: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  customer_guid?: string | null;
-
-  @ApiPropertyOptional()
-  type?: string;
-
-  @ApiPropertyOptional()
-  state?: string;
-
-  @ApiPropertyOptional({ nullable: true })
-  failure_code?: string | null;
-
-  @ApiPropertyOptional()
-  created_at?: string;
-
-  @ApiPropertyOptional()
-  updated_at?: string;
-
-  constructor(props: CreatedWorkFlowDto) {
+  constructor(props: SearchQueryDto) {
     Object.assign(this, props);
   }
 }

@@ -13,10 +13,7 @@ import {
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import {
-  $Enums,
-  CybridCounterparty
-} from '@prisma/client';
+import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -86,52 +83,49 @@ export class TransactionsService {
       },
     } = customerAccount;
 
-    let receiverPayoutInfo: CybridCounterparty | null = null;
-    if (receiver) {
-      if (receiver.cybrid_counterparty_id) {
-        receiverPayoutInfo =
-          await this.prismaService.cybridCounterparty.findUnique({
-            where: { cybrid_counter_party_id: receiver.cybrid_counterparty_id },
-          });
+    let counterpartyCreateInput = null;
+    // if (receiver) {
+    if (receiver?.cybrid_counterparty_id) {
+      const cybridCounterparty =
+        await this.prismaService.cybridCounterparty.findUnique({
+          where: { cybrid_counterparty_id: receiver.cybrid_counterparty_id },
+        });
 
-        if (!receiverPayoutInfo) {
-          throw new NotFoundException(
-            `Counterparty not found! omit 'cybrid_counterparty_id' to create a new.`
-          );
-        }
-      } else {
-        const counterparty = await this.cybridService.createCounterparty(
-          customerGuid,
-          {
-            type: PostCounterpartyBankModelTypeEnum.Individual,
-            name: { full: receiver.fullname },
-          }
-        );
-
-        const counterpartyVerification =
-          await this.cybridService.verifyIdentity(customerGuid, {
-            counterparty_guid: counterparty.guid,
-            type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
-            method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
-          });
-
-        if (counterpartyVerification.outcome === 'failed') {
-          throw new UnauthorizedException(
-            `Potential faulty receiver detected!`
-          );
-        }
-
-        receiverPayoutInfo = await this.prismaService.cybridCounterparty.create(
-          {
-            data: {
-              ...receiver,
-              person_id: personId,
-              cybrid_counterparty_guid: counterparty.guid as string,
-            },
-          }
+      if (!cybridCounterparty) {
+        throw new NotFoundException(
+          `Counterparty not found! omit 'cybrid_counterparty_id' to create a new.`
         );
       }
+      counterpartyCreateInput = cybridCounterparty;
+    } else if (receiver) {
+      const counterparty = await this.cybridService.createCounterparty(
+        customerGuid,
+        {
+          type: PostCounterpartyBankModelTypeEnum.Individual,
+          name: { full: receiver.fullname },
+        }
+      );
+
+      const counterpartyVerification = await this.cybridService.verifyIdentity(
+        customerGuid,
+        {
+          counterparty_guid: counterparty.guid,
+          type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
+          method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
+        }
+      );
+
+      if (counterpartyVerification.outcome === 'failed') {
+        throw new UnauthorizedException(`Potential faulty receiver detected!`);
+      }
+
+      counterpartyCreateInput = {
+        ...receiver,
+        person_id: personId,
+        cybrid_counterparty_guid: counterparty.guid as string,
+      };
     }
+    // }
 
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
@@ -149,7 +143,7 @@ export class TransactionsService {
         transfer_type: transferType,
         quote_guid: fundingTransferQuote.guid as string,
         // adjusting transfer payload accordingly
-        ...(isBookTransfer && receiverPayoutInfo
+        ...(isBookTransfer && counterpartyCreateInput
           ? {
               source_account_guid: payload.cybrid_source_account_id,
               source_participants: [
@@ -168,7 +162,7 @@ export class TransactionsService {
                 },
                 {
                   amount: payload.amount,
-                  guid: receiverPayoutInfo.cybrid_counterparty_guid,
+                  guid: counterpartyCreateInput.cybrid_counterparty_guid as string,
                   type: PostTransferParticipantBankModelTypeEnum.Counterparty,
                 },
               ],
@@ -206,15 +200,8 @@ export class TransactionsService {
             },
           },
           // adjusting our database transaction payload accordingly
-          ...(isBookTransfer && receiverPayoutInfo
-            ? {
-                ReceiverPayoutInfo: {
-                  connect: {
-                    cybrid_counter_party_id:
-                      receiverPayoutInfo.cybrid_counter_party_id,
-                  },
-                },
-              }
+          ...(isBookTransfer
+            ? {}
             : {
                 CybridExternalAccount: {
                   connect: {
@@ -229,6 +216,36 @@ export class TransactionsService {
         data: { balance: customerFiatAccount.platform_available as number },
         where: { cybrid_account_id: cybridAccount.cybrid_account_id },
       }),
+      ...(counterpartyCreateInput
+        ? [
+            this.prismaService.cybridCounterparty.upsert({
+              create: {
+                fullname: counterpartyCreateInput.fullname,
+                phone_number: counterpartyCreateInput.phone_number,
+                national_id_number: counterpartyCreateInput.national_id_number,
+                cybrid_counterparty_guid:
+                  counterpartyCreateInput.cybrid_counterparty_guid,
+                Person: {
+                  connect: { person_id: counterpartyCreateInput.person_id },
+                },
+              },
+              update: {
+                fullname: counterpartyCreateInput.fullname,
+                phone_number: counterpartyCreateInput.phone_number,
+                national_id_number: counterpartyCreateInput.national_id_number,
+              },
+              where: receiver?.cybrid_counterparty_id
+                ? { cybrid_counterparty_id: receiver.cybrid_counterparty_id }
+                : {
+                    person_id_fullname_phone_number: {
+                      person_id: personId,
+                      fullname: counterpartyCreateInput.fullname,
+                      phone_number: counterpartyCreateInput.phone_number,
+                    },
+                  },
+            }),
+          ]
+        : []),
     ]);
 
     return new CybridTransactionEntity({
@@ -259,7 +276,7 @@ export class TransactionsService {
         LocalCustomer: personFullnameSelect,
         ReceiverPayoutInfo: {
           ...personFullnameSelect,
-          where: { fullname: search },
+          where: { fullname: { search } },
         },
       },
       where: { status, initiated_by: initiatedBy },
