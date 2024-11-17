@@ -45,4 +45,4 @@ Thumbs.db
 .next
 
 # package locks
-# /package-lock.json
+/package-lock.json
