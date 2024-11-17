@@ -1,8 +1,10 @@
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   FormControl,
+  FormControlLabel,
   FormHelperText,
   FormLabel,
   InputAdornment,
@@ -41,6 +43,7 @@ export default function RegisterPartTwo({
     password: '',
     username: '',
     country: 'United States',
+    hasAcceptedTerms: false,
   };
 
   const validationSchema = Yup.object({
@@ -53,6 +56,10 @@ export default function RegisterPartTwo({
     country: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
       .matches(/^United States$/, formatMessage({ id: 'invalidCountry' })),
+    hasAcceptedTerms: Yup.boolean().oneOf(
+      [true],
+      formatMessage({ id: 'acceptTerms' })
+    ),
   });
 
   const formik = useFormik({
@@ -135,6 +142,57 @@ export default function RegisterPartTwo({
           />
           <FormHelperText>
             {formik.touched.country && formik.errors.country}
+          </FormHelperText>
+        </FormControl>
+        <FormControl
+          required
+          error={Boolean(
+            formik.touched.hasAcceptedTerms && formik.errors.hasAcceptedTerms
+          )}
+        >
+          <FormControlLabel
+            onChange={(_, checked: boolean) =>
+              formik.setFieldValue('hasAcceptedTerms', checked)
+            }
+            control={<Checkbox checked={formik.values.hasAcceptedTerms} />}
+            label={
+              <Typography variant="p2r">
+                {formatMessage({ id: 'accept' })}
+                <Typography
+                  variant="p2r"
+                  sx={{
+                    color: theme.palette.primary.main,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                  }}
+                  component="a"
+                  href="https://policy.xafshop.com"
+                  target="_blank"
+                >
+                  {formatMessage({ id: 'our' })}
+                </Typography>
+                {formatMessage({ id: 'and' })}
+                <Typography
+                  variant="p2r"
+                  sx={{
+                    color: theme.palette.primary.main,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                  }}
+                  component="a"
+                  href="https://www.cybrid.xyz/en/privacy-policy"
+                  target="_blank"
+                >
+                  {formatMessage({ id: 'partners' })}
+                </Typography>
+                {formatMessage({ id: 'termsAndConditions2' })}
+              </Typography>
+            }
+          />
+          <FormHelperText>
+            {formik.touched.hasAcceptedTerms && formik.errors.hasAcceptedTerms}
           </FormHelperText>
         </FormControl>
       </Box>

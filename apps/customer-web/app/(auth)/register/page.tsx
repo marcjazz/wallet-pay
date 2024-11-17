@@ -24,6 +24,7 @@ export interface SecurityInfo {
   password: string;
   username: string;
   country: string;
+  hasAcceptedTerms: boolean;
 }
 
 export default function Register() {

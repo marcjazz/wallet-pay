@@ -167,4 +167,10 @@ export const website = {
   CADCountry: 'Canada',
   somethingWentWrongPleaseRefresh:
     'Something went wrong. Please refresh the page',
+  acceptTerms: 'You must accept the terms and conditions',
+  accept: 'Accept ',
+  our: 'our',
+  and: ' and ',
+  partners: "partners'",
+  termsAndConditions2: ' terms and conditions',
 };
