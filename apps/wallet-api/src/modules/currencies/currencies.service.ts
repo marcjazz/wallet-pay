@@ -1,0 +1,233 @@
+import { HttpService } from '@nestjs/axios';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { Prisma } from '@prisma/client';
+import { roundNumber } from '../../helpers/utils';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CurrencyEntity, ForexCurrencyEntity } from './currency.dto';
+
+type Rates = Record<string, number>;
+type Rate = { code: string; value: number };
+
+interface ICurrencyRate {
+  ms: number;
+  base: 'XAF';
+  updated: string;
+  results: Rates;
+}
+
+@Injectable()
+export class CurrenciesService {
+  constructor(
+    private httpService: HttpService,
+    private prismaService: PrismaService
+  ) {
+    this.monitor();
+  }
+
+  async findAll(is_active?: boolean): Promise<CurrencyEntity[]> {
+    const currencies = await this.prismaService.supportedCurrency.findMany({
+      where: { is_active },
+    });
+    return currencies.map((currency) => new CurrencyEntity(currency));
+  }
+
+  @Cron(
+    process.env.NODE_ENV === 'development'
+      ? CronExpression.EVERY_2_HOURS
+      : CronExpression.EVERY_MINUTE
+  )
+  async monitor() {
+    try {
+      const currencies = await this.prismaService.supportedCurrency.findMany({
+        select: {
+          currency: true,
+          xaf_rate: true,
+          last_updated: true,
+        },
+      });
+      const initialCurrencies: Prisma.SupportedCurrencyCreateManyInput[] = [
+        {
+          currency: 'USD',
+          xaf_rate: 0,
+          last_updated: new Date(),
+          created_by: '',
+        },
+      ];
+      const rates = await this.fetchAll(
+        (currencies.length > 0 ? currencies : initialCurrencies).map(
+          (_) => _.currency
+        )
+      );
+      const conversionRates = await this.convertRates(rates);
+      if (currencies.length > 0)
+        await this.prismaService.$transaction(
+          initialCurrencies.map(({ currency }) =>
+            this.prismaService.supportedCurrency.update({
+              data: {
+                xaf_rate: conversionRates.find((_) => _.code === currency)
+                  ?.value,
+              },
+              where: { currency },
+            })
+          )
+        );
+      else
+        await this.prismaService.supportedCurrency.createMany({
+          data: initialCurrencies.map(
+            ({ currency: currency_acronym, ...currency }) => ({
+              ...currency,
+              currency: currency_acronym,
+              xaf_rate:
+                conversionRates.find((_) => _.code === currency_acronym)
+                  ?.value ?? 0,
+            })
+          ),
+          skipDuplicates: true,
+        });
+    } catch (error) {
+      console.log(error.cause);
+      Logger.error(error, CurrenciesService.name);
+    }
+  }
+
+  async findUnsupported(): Promise<ForexCurrencyEntity[]> {
+    const supportedCurrencies = await this.findAll();
+    const resp = await this.httpService.axiosRef.get<{
+      currencies: Record<string, string>;
+      ms: number;
+    }>(`/currencies`);
+    return Object.entries(resp.data.currencies)
+      .map(([currency, currency_name]) => ({
+        currency,
+        currency_name,
+      }))
+      .filter(
+        (_) => !supportedCurrencies.find((sc) => sc.currency === _.currency)
+      );
+  }
+
+  /**
+   * Add new supported currencies to platform
+   * @param newCurrencies currencies to be added
+   * @param created_by the person add the new currencies
+   */
+  async addMany(newCurrencies: ForexCurrencyEntity[], created_by: string) {
+    const currencies = await this.fetchAll(
+      newCurrencies.map((_) => _.currency)
+    );
+    const conversionRates = await this.convertRates(currencies);
+    console.log({ conversionRates, currencies });
+    await this.prismaService.supportedCurrency.createMany({
+      data: newCurrencies.map(
+        ({ currency: currency_acronym, ...currency }) => ({
+          ...currency,
+          created_by,
+          currency: currency_acronym,
+          xaf_rate:
+            conversionRates.find((_) => _.code === currency_acronym)?.value ??
+            0,
+          last_updated: new Date(),
+        })
+      ),
+      skipDuplicates: true,
+    });
+  }
+
+  async updateCurrencyState(
+    currencyId: string,
+    activate: boolean,
+    createdBy: string
+  ) {
+    const currency = await this.prismaService.supportedCurrency.findFirst({
+      select: {
+        xaf_rate: true,
+        currency: true,
+        last_updated: true,
+        is_active: true,
+      },
+      where: { supported_currency_id: currencyId, is_active: !activate },
+    });
+    if (!currency) throw new NotFoundException();
+    await this.prismaService.supportedCurrency.update({
+      data: {
+        is_active: activate,
+        SupportedCurrencyAudits: {
+          create: {
+            ...currency,
+            audited_by: createdBy,
+          },
+        },
+      },
+      where: { supported_currency_id: currencyId },
+    });
+  }
+
+  async updateCurrenciesState(
+    currencyIds: string[],
+    activate: boolean,
+    created_by: string
+  ) {
+    const currencies = await this.prismaService.supportedCurrency.findMany({
+      select: {
+        xaf_rate: true,
+        currency: true,
+        last_updated: true,
+        is_active: true,
+        supported_currency_id: true,
+      },
+      where: {
+        supported_currency_id: { in: currencyIds },
+        is_active: !activate,
+      },
+    });
+    await this.prismaService.$transaction([
+      this.prismaService.supportedCurrency.updateMany({
+        data: { is_active: activate },
+        where: { supported_currency_id: { in: currencyIds } },
+      }),
+      this.prismaService.supportedCurrencyAudit.createMany({
+        data: currencies.map((currency) => ({
+          ...currency,
+          audited_by: created_by,
+        })),
+      }),
+    ]);
+  }
+
+  private async fetchAll(currencies: string[]) {
+    const { data } = await this.httpService.axiosRef.get<ICurrencyRate>(
+      `/fetch-multi`,
+      {
+        params: {
+          from: 'XAF',
+          to: currencies.reduce(
+            (codes, code, i) =>
+              codes.concat(code, i < currencies.length - 1 ? ',' : ''),
+            ''
+          ),
+        },
+      }
+    );
+    return data.results;
+  }
+
+  /**
+   * convert from `1 XAF = x Currency`  to `1 Currency = x XAF` format
+   * @param rates payload returned by the `fetchAll` API
+   * @returns an array of converted `Rate` where `Rate` is an object of two properties `code` and `value`
+   */
+  private async convertRates(rates: Rates): Promise<Rate[]> {
+    // const { bonus_percentage } =
+    //   await this.prismaService.platformSetting.findFirst();
+    const bonus_percentage = 0;
+    return Object.keys(rates).map((code) => {
+      const value = rates[code];
+      const rate = Number(1 / value);
+      return {
+        code,
+        value: roundNumber(rate + (bonus_percentage * rate) / 100),
+      };
+    });
+  }
+}

@@ -349,10 +349,10 @@ model StripeTransaction {
 
 model SupportedCurrency {
   supported_currency_id   String                   @id @default(cuid()) @db.VarChar(36)
-  currency                String                   @db.VarChar(3)
+  currency                String                   @unique @db.VarChar(3)
   is_active               Boolean                  @default(true) @db.Boolean
   xaf_rate                Float
-  last_updated            DateTime                 @db.Timestamp()
+  last_updated            DateTime                 @default(now()) @db.Timestamp()
   created_at              DateTime                 @default(now()) @db.Timestamp()
   created_by              String
   CreatedBy               PersonHasRole            @relation(fields: [created_by], references: [person_has_role_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrency_PersonHasRole1")
@@ -366,7 +366,8 @@ model SupportedCurrency {
 model SupportedCurrencyAudit {
   supported_currency_audit_id String            @id @default(cuid()) @db.VarChar(36)
   is_active                   Boolean           @db.Boolean
-  audited_at                  DateTime          @db.Timestamp()
+  last_updated                DateTime          @default(now()) @db.Timestamp()
+  audited_at                  DateTime          @default(now()) @db.Timestamp()
   supported_currency_id       String
   SupportedCurrency           SupportedCurrency @relation(fields: [supported_currency_id], references: [supported_currency_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_SupportedCurrencyAudit_SupportedCurrency1")
   audited_by                  String

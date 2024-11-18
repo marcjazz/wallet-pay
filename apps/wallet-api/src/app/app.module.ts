@@ -15,6 +15,7 @@ import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
 import { AccountsModule } from '../modules/accounts/accounts.module';
 import { TransactionsModule } from '../modules/transactions/transactions.module';
 import { CounterpartiesModule } from '../modules/counterparties/counterparties.module';
+import { CurrenciesModule } from '../modules/currencies/currencies.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CounterpartiesModule } from '../modules/counterparties/counterparties.m
     AccountsModule,
     TransactionsModule,
     CounterpartiesModule,
+    CurrenciesModule
   ],
   controllers: [AppController],
   providers: [
