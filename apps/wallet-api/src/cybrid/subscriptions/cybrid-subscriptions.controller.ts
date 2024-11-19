@@ -37,7 +37,7 @@ export class CybridSubscriptionsController {
       const [eventType] = eventObject.event_type.split('.');
 
       const eventTypeMap: Record<string, string> = {
-        transfer: cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE,
+        transfer: cybridJobs.TRANSFER_STATUS_UPDATE,
         identity_verification: cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE,
       };
       const event = eventTypeMap[eventType];

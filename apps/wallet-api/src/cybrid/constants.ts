@@ -41,7 +41,6 @@ export const cybridConstants = {
 
 
 export const cybridJobs = {
-  PULLING_CYBRID_CUSTOMER: 'pulling-cybrid-customer',
   IDENTITY_VERIFICATION_STATUS_UPDATE: 'identity-verification-status-update',
   TRANSFER_STATUS_UPDATE: 'cybrid-transfer-status-update',
 };

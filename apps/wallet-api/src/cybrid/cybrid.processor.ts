@@ -146,7 +146,7 @@ export class CybridProcessor {
     await this.prismaService.$transaction(prismaPromises);
 
     this.logger.log(
-      `Successfully pulled ongoing transaction from cybrid and updated database`
+      `Successfully pulled ${status} transaction from cybrid and updated database`
     );
   }
 }

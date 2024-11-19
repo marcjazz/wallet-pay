@@ -18,6 +18,8 @@ interface ICurrencyRate {
 
 @Injectable()
 export class CurrenciesService {
+  private readonly logger = new Logger(CurrenciesService.name);
+
   constructor(
     private httpService: HttpService,
     private prismaService: PrismaService
@@ -39,6 +41,18 @@ export class CurrenciesService {
   )
   async monitor() {
     try {
+      const admin = await this.prismaService.personHasRole.findFirst({
+        where: {
+          Person: { email: process.env.ADMIN_EMAIL || 'admin@xafpay.com' },
+        },
+      });
+      if (!admin) {
+        this.logger.error(
+          'Failed to run currency cron job: No admin account was found.'
+        );
+        return;
+      }
+
       const currencies = await this.prismaService.supportedCurrency.findMany({
         select: {
           currency: true,
@@ -81,6 +95,7 @@ export class CurrenciesService {
               xaf_rate:
                 conversionRates.find((_) => _.code === currency_acronym)
                   ?.value ?? 0,
+              created_by: admin.person_has_role_id,
             })
           ),
           skipDuplicates: true,
@@ -117,7 +132,6 @@ export class CurrenciesService {
       newCurrencies.map((_) => _.currency)
     );
     const conversionRates = await this.convertRates(currencies);
-    console.log({ conversionRates, currencies });
     await this.prismaService.supportedCurrency.createMany({
       data: newCurrencies.map(
         ({ currency: currency_acronym, ...currency }) => ({

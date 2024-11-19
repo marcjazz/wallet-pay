@@ -49,7 +49,7 @@ export class CurrenciesController {
   ) {
     return await this.currenciesService.addMany(
       newCurrencies,
-      request.user?.person_id as string
+      request.user?.id as string
     );
   }
 

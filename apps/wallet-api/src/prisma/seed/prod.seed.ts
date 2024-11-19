@@ -11,7 +11,7 @@ async function main() {
 
   const admin = await prisma.person.create({
     data: {
-      email: 'admin@xafpay.com',
+      email: process.env.ADMIN_EMAIL || 'admin@xafpay.com',
       birthdate: new Date(),
       first_name: 'XafPay',
       last_name: 'Admin',
