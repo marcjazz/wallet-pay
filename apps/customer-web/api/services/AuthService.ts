@@ -4,12 +4,13 @@ import {
   AuthTokensDto,
   SignUpDto,
   ForgotPasswordDto,
+  RefreshTokenDto,
 } from '../types';
 
 /**
  * Service for authentication-related API calls.
  */
-export class AuthenticationService {
+export class AuthService {
   constructor(private apiClient: ApiClient) {}
 
   async signIn(payload: SignInDto): Promise<AuthTokensDto> {
@@ -27,5 +28,10 @@ export class AuthenticationService {
 
   async forgotPassword(payload: ForgotPasswordDto): Promise<void> {
     await this.apiClient.post('/api/v1/auth/forgot-password', payload);
+  }
+
+
+  async refreshToken(payload: RefreshTokenDto): Promise<AuthTokensDto> {
+    return this.apiClient.post<AuthTokensDto>("/api/v1/auth/refresh-token", payload);
   }
 }
