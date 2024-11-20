@@ -1,7 +1,7 @@
 import { SearchQueryDto } from '../../app/app.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 
-export class CounterpartiesService {
+export class RecieversService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAll(query?: SearchQueryDto) {

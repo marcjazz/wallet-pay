@@ -7,7 +7,7 @@ import { HttpExceptionFilter } from '../exception-filters/http-exception.filter'
 import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.filter';
 import { MailerModule } from '../mailer/mailer.module';
 import { AccountsModule } from '../modules/accounts/accounts.module';
-import { CounterpartiesModule } from '../modules/counterparties/counterparties.module';
+import { ReceiversModule } from '../modules/receivers/receivers.module';
 import { CurrenciesModule } from '../modules/currencies/currencies.module';
 import { TransactionsModule } from '../modules/transactions/transactions.module';
 import { UsersModule } from '../modules/users/users.module';
@@ -36,7 +36,7 @@ import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
     UsersModule,
     AccountsModule,
     TransactionsModule,
-    CounterpartiesModule,
+    ReceiversModule,
     CurrenciesModule
   ],
   controllers: [AppController],

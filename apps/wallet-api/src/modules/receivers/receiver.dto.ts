@@ -3,10 +3,10 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { IsOptional, IsPhoneNumber, IsString } from 'class-validator';
 
-export class CounterpartyEntity {
+export class ReceiverEntity {
   @IsString()
   @ApiProperty()
   fullname: string;
@@ -22,10 +22,12 @@ export class CounterpartyEntity {
 
   @IsString()
   @ApiProperty()
+  @Expose({ name: 'receiver_id' })
   cybrid_counterparty_id: string;
 
   @IsString()
   @ApiProperty()
+  @Expose({ name: 'receiver_guid' })
   cybrid_counterparty_guid: string;
 
   @Exclude()
@@ -35,7 +37,7 @@ export class CounterpartyEntity {
   @ApiProperty()
   created_at: Date;
 
-  constructor(props: CounterpartyEntity) {
+  constructor(props: ReceiverEntity) {
     Object.assign(this, props);
   }
 }

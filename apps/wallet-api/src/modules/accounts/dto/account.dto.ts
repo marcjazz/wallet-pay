@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { $Enums, CybridAccount, CybridExternalAccount } from '@prisma/client';
 import { IsEnum, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
 import { CybridAccountEnum } from '../../../types/cybrid/enums';
+import { Expose } from 'class-transformer';
 
 export class CybridAccountEntity implements CybridAccount {
   @ApiProperty()
@@ -216,6 +217,7 @@ export class ReceiverPayoutInfoDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional()
+  @Expose({ name: 'receiver_id' })
   cybrid_counterparty_id: string | null = null;
 
   constructor(props: ReceiverPayoutInfoDto) {
