@@ -32,8 +32,6 @@
     "@tanstack/react-query": "^5.54.1",
     "@tchakoumi/handy-components": "^0.0.1",
     "@prisma/client": "^5.19.0",
-    "@tanstack/react-query": "^5.54.1",
-    "@tchakoumi/handy-components": "^0.0.1",
     "@wallet/source": "file:",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
@@ -62,7 +60,8 @@
     "yup": "^1.4.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "xhr2": "^0.2.1"
+    "xhr2": "^0.2.1",
+    "sharp": "^0.33.5",
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
