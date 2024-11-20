@@ -8,16 +8,16 @@ export interface ReceiverPayoutInfoDto {
   national_id_number?: string | null;
   /** Receiver's phone number. */
   phone_number: string;
-  /** Unique ID for the Cybrid counterparty, if applicable. */
-  cybrid_counterparty_id?: string | null;
+  /** Unique ID for the receiver, if applicable. */
+  receiver_id?: string | null;
 }
 
 export interface ReceiverEntity {
   fullname: string;
   national_id_number: string | null;
   phone_number: string;
-  cybrid_counterparty_id: string;
-  cybrid_counterparty_guid: string;
+  receiver_id: string;
+  receiver_guid: string;
   person_id: string;
   created_at: Date;
 }
