@@ -1,10 +1,10 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableEntityException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -173,7 +173,7 @@ export class AuthService {
     type: TokenType = AuthService.ACCESS_TOKEN_TYPE
   ): Promise<Express.User> {
     if (payload.type !== type) {
-      throw new ForbiddenException('Invalid token type!');
+      throw new UnprocessableEntityException('Invalid token type!');
     }
 
     const personHasRole = await this.prismaService.personHasRole.findUnique({

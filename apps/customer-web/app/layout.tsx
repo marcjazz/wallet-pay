@@ -1,4 +1,5 @@
 import { AppLayout } from '../components/AppLayout';
+import { ReactQueryProvider } from '../context/ReactQueryProvider';
 import '../public/styles/global.scss';
 
 export const metadata = {
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppLayout>{children}</AppLayout>
+        <ReactQueryProvider>
+          <AppLayout>{children}</AppLayout>
+        </ReactQueryProvider>
       </body>
     </html>
   );
