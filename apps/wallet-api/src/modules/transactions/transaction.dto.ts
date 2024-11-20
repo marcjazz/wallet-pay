@@ -12,6 +12,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { OTPPayloadDto } from '../../app/two-fa/dto/two-fa.dto';
@@ -46,8 +47,8 @@ export class InitiateTransferDto {
   otp: OTPPayloadDto;
 
   @IsOptional()
-  @ValidateNested()
   @Type(() => ReceiverPayoutInfoDto)
+  @ValidateIf((o) => o.transfer_type === 'Book')
   @ApiPropertyOptional({ type: ReceiverPayoutInfoDto })
   receiver: ReceiverPayoutInfoDto | null = null;
 

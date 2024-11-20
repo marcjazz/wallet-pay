@@ -10,8 +10,7 @@ import {
   Injectable,
   NotFoundException,
   NotImplementedException,
-  UnauthorizedException,
-  UnprocessableEntityException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
@@ -43,48 +42,25 @@ export class TransactionsService {
       transferType == PostTransferBankModelTransferTypeEnum.InstantFunding ||
       transferType == PostTransferBankModelTransferTypeEnum.Funding;
 
-    let customerAccount = null;
-    if (isBookTransfer) {
-      if (!receiver) {
-        throw new UnprocessableEntityException(
-          `Receiver must be provided for ${transferType} transfer type`
-        );
-      }
-
-      customerAccount = await this.prismaService.cybridAccount.findFirst({
-        select: { CybridCustomer: { include: { CybridAccounts: true } } },
-        where: {
-          cybrid_account_id: payload.cybrid_source_account_id,
-          CybridCustomer: { person_id: personId },
-        },
-      });
-    } else if (isFundingTransfer) {
-      customerAccount =
-        await this.prismaService.cybridExternalAccount.findFirst({
-          include: { CybridCustomer: { include: { CybridAccounts: true } } },
-          where: {
-            cybrid_external_account_id: payload.cybrid_source_account_id,
-            CybridCustomer: { person_id: personId },
-          },
-        });
-    } else
+    if (isBookTransfer || isFundingTransfer) {
       throw new NotImplementedException(
         `${transferType} transfers not implemented yet!`
       );
+    }
+
+    const customerAccount = await this.getCustomerAccount(
+      personId,
+      payload.cybrid_source_account_id,
+      transferType
+    );
 
     if (!customerAccount) {
       throw new NotFoundException('Source bank account not found!');
     }
 
-    const {
-      CybridCustomer: {
-        CybridAccounts: [cybridAccount],
-        cybrid_customer_guid: customerGuid,
-      },
-    } = customerAccount;
+    const { accountId, customerGuid, accountGuid } = customerAccount;
 
     let counterpartyCreateInput = null;
-    // if (receiver) {
     if (receiver?.cybrid_counterparty_id) {
       const cybridCounterparty =
         await this.prismaService.cybridCounterparty.findUnique({
@@ -125,7 +101,6 @@ export class TransactionsService {
         cybrid_counterparty_guid: counterparty.guid as string,
       };
     }
-    // }
 
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
@@ -168,7 +143,7 @@ export class TransactionsService {
               ],
             }
           : {
-              fiat_account_guid: cybridAccount.cybrid_account_guid,
+              fiat_account_guid: accountGuid,
               external_bank_account_guid: payload.cybrid_source_account_id,
             }),
       }
@@ -176,7 +151,7 @@ export class TransactionsService {
 
     const customerFiatAccount = await this.cybridService.getAccount(
       customerGuid,
-      cybridAccount.cybrid_account_guid
+      accountGuid
     );
 
     const [cybridTransaction] = await this.prismaService.$transaction([
@@ -190,13 +165,13 @@ export class TransactionsService {
           cybrid_transaction_guid: fundingTransfer.guid as string,
           status: fundingTransfer.state as $Enums.CybridTransactionStatus,
           InitiatedBy: {
-            connect: { cybrid_account_id: cybridAccount.cybrid_account_id },
+            connect: { cybrid_account_id: accountId },
           },
           CybridAccount: {
             connect: {
               cybrid_account_id: isBookTransfer
                 ? payload.cybrid_source_account_id
-                : cybridAccount.cybrid_account_id,
+                : accountId,
             },
           },
           // adjusting our database transaction payload accordingly
@@ -214,7 +189,7 @@ export class TransactionsService {
       }),
       this.prismaService.cybridAccount.update({
         data: { balance: customerFiatAccount.platform_available as number },
-        where: { cybrid_account_id: cybridAccount.cybrid_account_id },
+        where: { cybrid_account_id: accountId },
       }),
       ...(counterpartyCreateInput
         ? [
@@ -293,5 +268,67 @@ export class TransactionsService {
         });
       }
     );
+  }
+
+  private async getCustomerAccount(
+    personId: string,
+    sourceAccountId: string,
+    transferType: PostTransferBankModelTransferTypeEnum
+  ) {
+    type CustomerAccountType = {
+      accountId: string;
+      customerGuid: string;
+      accountGuid: string;
+    };
+
+    let customerAccount: CustomerAccountType | null = null;
+    if (transferType === PostTransferBankModelTransferTypeEnum.Book) {
+      const cybridAccount = await this.prismaService.cybridAccount.findFirst({
+        select: {
+          cybrid_account_id: true,
+          cybrid_account_guid: true,
+          CybridCustomer: {
+            select: { cybrid_customer_guid: true, CybridAccounts: true },
+          },
+        },
+        where: {
+          cybrid_account_id: sourceAccountId,
+          CybridCustomer: { person_id: personId },
+        },
+      });
+      if (cybridAccount) {
+        customerAccount = {
+          accountGuid: cybridAccount.cybrid_account_guid,
+          accountId: cybridAccount.cybrid_account_id,
+          customerGuid: cybridAccount.CybridCustomer.cybrid_customer_guid,
+        };
+      }
+    } else {
+      const externalAccount =
+        await this.prismaService.cybridExternalAccount.findFirst({
+          select: {
+            CybridCustomer: {
+              select: { cybrid_customer_guid: true, CybridAccounts: true },
+            },
+          },
+          where: {
+            cybrid_external_account_id: sourceAccountId,
+            CybridCustomer: { person_id: personId },
+          },
+        });
+      if (externalAccount) {
+        const {
+          CybridCustomer: {
+            CybridAccounts: [{ cybrid_account_guid, cybrid_account_id }],
+          },
+        } = externalAccount;
+        customerAccount = {
+          accountId: cybrid_account_id,
+          accountGuid: cybrid_account_guid,
+          customerGuid: externalAccount.CybridCustomer.cybrid_customer_guid,
+        };
+      }
+    }
+    return customerAccount;
   }
 }
