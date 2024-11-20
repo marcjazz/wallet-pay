@@ -61,7 +61,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "xhr2": "^0.2.1",
-    "sharp": "^0.33.5",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
