@@ -36,12 +36,12 @@ CREATE TYPE "cybrid_transfer_status" AS ENUM ('storing', 'reviewing', 'pending',
 
 -- CreateTable
 CREATE TABLE "bank_payout_info" (
-    "bank_payout_info_id" VARCHAR(36) NOT NULL,
+    "receiver_bank_payout_info_id" VARCHAR(36) NOT NULL,
     "holder_name" VARCHAR(45) NOT NULL,
     "bank_name" VARCHAR(45) NOT NULL,
     "iban_number" VARCHAR(45) NOT NULL,
 
-    CONSTRAINT "bank_payout_info_pkey" PRIMARY KEY ("bank_payout_info_id")
+    CONSTRAINT "bank_payout_info_pkey" PRIMARY KEY ("receiver_bank_payout_info_id")
 );
 
 -- CreateTable
@@ -60,8 +60,6 @@ CREATE TABLE "cybrid_accounts" (
     "cybrid_account_guid" VARCHAR(45) NOT NULL,
     "name" TEXT NOT NULL,
     "balance" DOUBLE PRECISION NOT NULL,
-    "identity_verification_guid" VARCHAR(45),
-    "verification_status" "identity_verification_status",
     "currency" "cybrid_supported_currency" NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "cybrid_customer_id" TEXT NOT NULL,
@@ -88,6 +86,7 @@ CREATE TABLE "cybrid_external_accounts" (
     "cybrid_external_account_guid" VARCHAR(45) NOT NULL,
     "name" TEXT NOT NULL,
     "balance" DOUBLE PRECISION NOT NULL,
+    "mask" VARCHAR(4),
     "status" "cybrid_external_acccount_status" NOT NULL,
     "identity_verification_guid" VARCHAR(45),
     "verification_status" "identity_verification_status",
@@ -110,13 +109,20 @@ CREATE TABLE "cybrid_transactions" (
     "initiated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "settled_at" TIMESTAMP,
     "local_customer_id" TEXT,
-    "payout_info_id" TEXT,
-    "bank_info_id" TEXT,
+    "receiver_payout_info_id" TEXT,
+    "receiver_bank_payout_info_id" TEXT,
     "cybrid_account_id" TEXT,
     "cybrid_external_account_id" TEXT,
     "initiated_by" TEXT NOT NULL,
 
     CONSTRAINT "cybrid_transactions_pkey" PRIMARY KEY ("cybrid_transaction_id")
+);
+
+-- CreateTable
+CREATE TABLE "CybridSubscriptionEvent" (
+    "event_guid" TEXT NOT NULL,
+    "event_type" TEXT NOT NULL,
+    "organization_guid" TEXT NOT NULL
 );
 
 -- CreateTable
@@ -150,7 +156,6 @@ CREATE TABLE "logs" (
     "login_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "logout_at" TIMESTAMP,
     "method" VARCHAR(45) NOT NULL DEFAULT 'local',
-    "refresh_token" VARCHAR(255) NOT NULL,
     "person_has_role_id" TEXT NOT NULL,
 
     CONSTRAINT "logs_pkey" PRIMARY KEY ("log_id")
@@ -233,13 +238,15 @@ CREATE TABLE "person_has_role_audits" (
 
 -- CreateTable
 CREATE TABLE "receiver_payout_info" (
-    "receiver_payout_info_id" VARCHAR(36) NOT NULL,
+    "cybrid_counterparty_id" VARCHAR(36) NOT NULL,
     "fullname" VARCHAR(45) NOT NULL,
     "phone_number" VARCHAR(45) NOT NULL,
     "national_id_number" VARCHAR(45),
+    "cybrid_counterparty_guid" VARCHAR(45) NOT NULL,
+    "person_id" TEXT NOT NULL,
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "receiver_payout_info_pkey" PRIMARY KEY ("receiver_payout_info_id")
+    CONSTRAINT "receiver_payout_info_pkey" PRIMARY KEY ("cybrid_counterparty_id")
 );
 
 -- CreateTable
@@ -247,7 +254,6 @@ CREATE TABLE "roles" (
     "role_id" VARCHAR(36) NOT NULL,
     "title" VARCHAR(45) NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "subdomain" VARCHAR(45),
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
 
@@ -291,7 +297,7 @@ CREATE TABLE "supported_currencies" (
     "currency" VARCHAR(3) NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "xaf_rate" DOUBLE PRECISION NOT NULL,
-    "last_updated" TIMESTAMP NOT NULL,
+    "last_updated" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
 
@@ -302,7 +308,8 @@ CREATE TABLE "supported_currencies" (
 CREATE TABLE "supported_currency_audits" (
     "supported_currency_audit_id" VARCHAR(36) NOT NULL,
     "is_active" BOOLEAN NOT NULL,
-    "audited_at" TIMESTAMP NOT NULL,
+    "last_updated" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "audited_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "supported_currency_id" TEXT NOT NULL,
     "audited_by" TEXT NOT NULL,
 
@@ -337,7 +344,7 @@ CREATE INDEX "fk_ExternalAccount_CybridCustomer1_idx" ON "cybrid_external_accoun
 CREATE UNIQUE INDEX "cybrid_transactions_cybrid_transaction_guid_key" ON "cybrid_transactions"("cybrid_transaction_guid");
 
 -- CreateIndex
-CREATE INDEX "fk_CybridTransaction_BankInfo1_idx" ON "cybrid_transactions"("bank_info_id");
+CREATE INDEX "fk_CybridTransaction_BankInfo1_idx" ON "cybrid_transactions"("receiver_bank_payout_info_id");
 
 -- CreateIndex
 CREATE INDEX "fk_CybridTransaction_CybridAccount1_idx" ON "cybrid_transactions"("initiated_by");
@@ -352,7 +359,10 @@ CREATE INDEX "fk_CybridTransaction_CybridExternalAccount1_idx" ON "cybrid_transa
 CREATE INDEX "fk_CybridTransaction_LocalCustomer1_idx" ON "cybrid_transactions"("local_customer_id");
 
 -- CreateIndex
-CREATE INDEX "fk_CybridTransaction_PayoutInfo1_idx" ON "cybrid_transactions"("payout_info_id");
+CREATE INDEX "fk_CybridTransaction_PayoutInfo1_idx" ON "cybrid_transactions"("receiver_payout_info_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CybridSubscriptionEvent_event_guid_key" ON "CybridSubscriptionEvent"("event_guid");
 
 -- CreateIndex
 CREATE INDEX "fk_LocalCustomer_Person1_idx" ON "local_customers"("person_id");
@@ -400,13 +410,13 @@ CREATE INDEX "fk_PersonHasRoleAudit_PersonHasRole1_idx" ON "person_has_role_audi
 CREATE INDEX "fk_PersonHasRoleAudit_PersonHasRole2_idx" ON "person_has_role_audits"("audited_by");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "receiver_payout_info_person_id_fullname_phone_number_key" ON "receiver_payout_info"("person_id", "fullname", "phone_number");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "roles_title_key" ON "roles"("title");
 
 -- CreateIndex
 CREATE INDEX "fk_Role_Person1_idx" ON "roles"("created_by");
-
--- CreateIndex
-CREATE UNIQUE INDEX "roles_title_subdomain_key" ON "roles"("title", "subdomain");
 
 -- CreateIndex
 CREATE INDEX "fk_RoleAudit_Person1_idx" ON "role_audits"("audited_by");
@@ -428,6 +438,9 @@ CREATE INDEX "fk_StripeTransaction_ReceiverPayoutInfo1_idx" ON "stripe_transacti
 
 -- CreateIndex
 CREATE INDEX "fk_StripeTransaction_SupportedCurrency1_idx" ON "stripe_transactions"("initial_currency");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "supported_currencies_currency_key" ON "supported_currencies"("currency");
 
 -- CreateIndex
 CREATE INDEX "fk_SupportedCurrency_PersonHasRole1_idx" ON "supported_currencies"("created_by");
@@ -457,10 +470,10 @@ ALTER TABLE "cybrid_external_accounts" ADD CONSTRAINT "fk_ExternalAccount_Cybrid
 ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_LocalCustomer1" FOREIGN KEY ("local_customer_id") REFERENCES "local_customers"("local_customer_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_PayoutInfo1" FOREIGN KEY ("payout_info_id") REFERENCES "receiver_payout_info"("receiver_payout_info_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_PayoutInfo1" FOREIGN KEY ("receiver_payout_info_id") REFERENCES "receiver_payout_info"("cybrid_counterparty_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_BankInfo1" FOREIGN KEY ("bank_info_id") REFERENCES "bank_payout_info"("bank_payout_info_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_BankInfo1" FOREIGN KEY ("receiver_bank_payout_info_id") REFERENCES "bank_payout_info"("receiver_bank_payout_info_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_CybridAccount2" FOREIGN KEY ("cybrid_account_id") REFERENCES "cybrid_accounts"("cybrid_account_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -511,6 +524,9 @@ ALTER TABLE "person_has_role_audits" ADD CONSTRAINT "fk_PersonHasRoleAudit_Perso
 ALTER TABLE "person_has_role_audits" ADD CONSTRAINT "fk_PersonHasRoleAudit_PersonHasRole2" FOREIGN KEY ("audited_by") REFERENCES "person_has_roles"("person_has_role_id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
+ALTER TABLE "receiver_payout_info" ADD CONSTRAINT "fk_ReceiverPayoutInfo_Person" FOREIGN KEY ("person_id") REFERENCES "persons"("person_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "roles" ADD CONSTRAINT "fk_Role_Person1" FOREIGN KEY ("created_by") REFERENCES "persons"("person_id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
@@ -529,10 +545,10 @@ ALTER TABLE "stripe_transactions" ADD CONSTRAINT "fk_StripeTransaction_PersonHas
 ALTER TABLE "stripe_transactions" ADD CONSTRAINT "fk_StripeTransaction_LocalCustomer1" FOREIGN KEY ("local_customer_id") REFERENCES "local_customers"("local_customer_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "stripe_transactions" ADD CONSTRAINT "fk_StripeTransaction_ReceiverPayoutInfo1" FOREIGN KEY ("receiver_payout_info_id") REFERENCES "receiver_payout_info"("receiver_payout_info_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "stripe_transactions" ADD CONSTRAINT "fk_StripeTransaction_ReceiverPayoutInfo1" FOREIGN KEY ("receiver_payout_info_id") REFERENCES "receiver_payout_info"("cybrid_counterparty_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "stripe_transactions" ADD CONSTRAINT "fk_StripeTransaction_BankPayoutInfo1" FOREIGN KEY ("bank_payout_info_id") REFERENCES "bank_payout_info"("bank_payout_info_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "stripe_transactions" ADD CONSTRAINT "fk_StripeTransaction_BankPayoutInfo1" FOREIGN KEY ("bank_payout_info_id") REFERENCES "bank_payout_info"("receiver_bank_payout_info_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "supported_currencies" ADD CONSTRAINT "fk_SupportedCurrency_PersonHasRole1" FOREIGN KEY ("created_by") REFERENCES "person_has_roles"("person_has_role_id") ON DELETE CASCADE ON UPDATE NO ACTION;
