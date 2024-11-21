@@ -13,11 +13,16 @@ export interface ReceiverPayoutInfoDto {
 }
 
 export interface ReceiverEntity {
+  /** Full name of the receiver. */
   fullname: string;
-  national_id_number: string | null;
+  /** National ID number of the receiver (optional). */
+  national_id_number?: string | null;
+  /** Receiver's phone number. */
   phone_number: string;
+  /** Unique receiver ID. */
   receiver_id: string;
+  /** Globally unique receiver GUID. */
   receiver_guid: string;
-  person_id: string;
-  created_at: Date;
+  /** Timestamp of creation. */
+  created_at: string;
 }

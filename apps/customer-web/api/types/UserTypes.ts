@@ -1,4 +1,4 @@
-import { Gender, Language } from "./enums";
+import { Gender, Language } from "./EnumTypes";
 
 /**
  * Entity representing a user.

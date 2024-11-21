@@ -36,12 +36,12 @@ export enum OTPUsage {
  * Enum for transfer types.
  */
 export enum TransferType {
-  FUNDING = 'funding',
+  // FUNDING = 'funding',
   BOOK = 'book',
-  CRYPTO = 'crypto',
+  // CRYPTO = 'crypto',
   INSTANT_FUNDING = 'instant_funding',
-  INTER_ACCOUNT = 'inter_account',
-  LIGHTNING = 'lightning',
+  // INTER_ACCOUNT = 'inter_account',
+  // LIGHTNING = 'lightning',
 }
 
 /**
@@ -77,4 +77,33 @@ export enum VerificationStatus {
   REVIEWING = 'REVIEWING',
   EXPIRED = 'EXPIRED',
   COMPLETED = 'COMPLETED',
+}
+
+/**
+ * Enum for external account statuses.
+ */
+export enum ExternalAccountStatus {
+  STORING = 'STORING',
+  COMPLETED = 'COMPLETED',
+  UNVERIFIED = 'UNVERIFIED',
+  FAILED = 'FAILED',
+  REFRESH_REQUIRED = 'REFRESH_REQUIRED',
+  DELETING = 'DELETING',
+  DELETED = 'DELETED',
+}
+
+/**
+ * Enum for account types.
+ */
+export enum AccountType {
+  FIAT = 'fiat',
+  EXTERNAL = 'external',
+}
+
+/**
+ * Enum for currencies.
+ */
+export enum Currency {
+  USD = 'USD',
+  CAD = 'CAD',
 }
