@@ -142,6 +142,17 @@ export class AuthTokensDto {
   }
 }
 
-export class RefreshTokenDto extends PickType(AuthTokensDto, [
-  'refresh_token',
-]) {}
+export class AccessTokenResponse extends PickType(AuthTokensDto, [
+  'access_token',
+]) {
+  @ApiProperty({ description: 'token duration in milliseconds' })
+  expires_in: number;
+
+  @ApiProperty({ type: 'Bearer' })
+  token_type = 'Bearer' as const;
+
+  constructor(props: AccessTokenResponse) {
+    super(props);
+    Object.assign(this, props);
+  }
+}

@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,18 +17,17 @@ import {
   ApiNoContentResponse,
   ApiOperation,
   ApiPreconditionFailedResponse,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { OTPEntity } from '../two-fa/dto/two-fa.dto';
 import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { SkipAuth } from './auth.decorator';
 import {
+  AccessTokenResponse,
   AuthTokensDto,
   ForgotPasswordDto,
-  RefreshTokenDto,
   ResetPasswordDto,
   SignInDto,
   SignUpDto,
@@ -51,7 +51,7 @@ export class AuthController {
   @Post('sign-in')
   @UseGuards(LocalGuard)
   @ApiBody({ type: SignInDto })
-  @ApiResponse({ status: 201, type: AuthTokensDto })
+  @ApiCreatedResponse({ type: AccessTokenResponse })
   @ApiOperation({
     summary: 'Sign in to authenticate a user',
   })
@@ -62,12 +62,22 @@ export class AuthController {
     description:
       'Precondition failed, user account must be activated before signing in.',
   })
-  async signIn(@Req() req: Request) {
-    return this.authService.login(req.user as Express.User);
+  async signIn(@Req() req: Request, @Res() res: Response) {
+    const tokens = await this.authService.login(req.user as Express.User);
+    // Set new Http-Only cookies
+    this.setCookies(tokens, res);
+
+    return res.send(
+      new AccessTokenResponse({
+        expires_in: 900000, // 15 minutes
+        token_type: 'Bearer',
+        access_token: tokens.access_token,
+      })
+    );
   }
 
   @Post('sign-up')
-  @ApiResponse({ status: 201, type: AuthTokensDto })
+  @ApiCreatedResponse({ type: AccessTokenResponse })
   @ApiOperation({
     summary: 'Create a new user',
   })
@@ -75,9 +85,20 @@ export class AuthController {
     description:
       'Conflict, user email is already registered with another account.',
   })
-  async signUp(@Body() newUser: SignUpDto) {
+  async signUp(@Body() newUser: SignUpDto, @Res() res: Response) {
     const user = await this.authService.registerUser(newUser);
-    return this.authService.login(user);
+
+    const tokens = await this.authService.login(user);
+    // Set new Http-Only cookies
+    this.setCookies(tokens, res);
+
+    return res.send(
+      new AccessTokenResponse({
+        expires_in: 900000, // 15 minutes
+        token_type: 'Bearer',
+        access_token: tokens.access_token,
+      })
+    );
   }
 
   @Post('forgot-password')
@@ -94,14 +115,58 @@ export class AuthController {
     await this.authService.resetPassword(payload);
   }
 
-  @Post('refresh-token')
+  @Post('refresh')
+  @ApiCreatedResponse({ type: AccessTokenResponse })
   @ApiOperation({
     summary: 'Request for new access token.',
   })
-  @ApiCreatedResponse({ type: AuthTokensDto })
-  async requestAccessToken(
-    @Body() payload: RefreshTokenDto
-  ): Promise<AuthTokensDto> {
-    return await this.authService.refreshAuthTokens(payload.refresh_token);
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = req.cookies?.refresh_token; // Get from Http-Only cookie
+    if (!refreshToken) {
+      return res.status(403).send({
+        statusCode: 403,
+        timestamp: new Date().toISOString(),
+        message: 'Refresh token not found!',
+        path: req.url,
+      });
+    }
+
+    const tokens = await this.authService.refreshAuthTokens(refreshToken);
+    // Set new Http-Only cookies
+    this.setCookies(tokens, res);
+
+    return res.send(
+      new AccessTokenResponse({
+        expires_in: 900000, // 15 minutes
+        token_type: 'Bearer',
+        access_token: tokens.access_token,
+      })
+    );
+  }
+
+  @Post('logout')
+  @ApiCreatedResponse({
+    schema: { properties: { messaage: { type: 'string' } } },
+  })
+  @ApiOperation({
+    summary: 'Close user session.',
+  })
+  async logout(@Req() req: Request, @Res() res: Response) {
+    //update database
+    await this.authService.logout(req.user?.id as string);
+
+    // clear credentials from cookies
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+
+    return res.send({ message: 'Logged out successfully' });
+  }
+
+  private setCookies(tokens: AuthTokensDto, res: Response) {
+    res.cookie('refresh_token', tokens.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
   }
 }

@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
   UnauthorizedException,
-  UnprocessableEntityException
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -23,7 +23,6 @@ import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { RoleEnum } from './auth.decorator';
 import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
-import { RolesService } from './roles.service';
 
 @Injectable()
 export class AuthService {
@@ -37,8 +36,7 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
     private readonly otpService: OTPService,
-    private readonly cybridService: CybridService,
-    private readonly rolesService: RolesService
+    private readonly cybridService: CybridService
   ) {}
 
   async validateUser(
@@ -146,6 +144,12 @@ export class AuthService {
 
       this.logger.debug(`Successfully sent requested otp user!`);
     }
+
+    // create login log
+    await this.prismaService.log.create({
+      data: { PersonHasRole: { connect: { person_has_role_id: user.id } } },
+    });
+
     return this.generateTokens(user.id);
   }
 
@@ -156,12 +160,9 @@ export class AuthService {
     );
     const accessToken = this.jwtService.sign(
       { sub: userId, type: AuthService.ACCESS_TOKEN_TYPE },
-      { expiresIn: '1h' }
+      { expiresIn: '15m' }
     );
 
-    await this.prismaService.log.create({
-      data: { PersonHasRole: { connect: { person_has_role_id: userId } } },
-    });
     return new AuthTokensDto({
       refresh_token: refreshToken,
       access_token: accessToken,
@@ -285,5 +286,12 @@ export class AuthService {
 
     // Generate new tokens
     return this.generateTokens(payload.sub);
+  }
+
+  async logout(userId: string) {
+    await this.prismaService.log.updateMany({
+      data: { logout_at: new Date() },
+      where: { person_has_role_id: userId, logout_at: null },
+    });
   }
 }
