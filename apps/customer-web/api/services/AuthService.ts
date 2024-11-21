@@ -1,11 +1,10 @@
-import { ApiClient } from './ApiClient';
 import {
-  SignInDto,
-  AuthTokensDto,
-  SignUpDto,
+  AccessTokenResponse,
   ForgotPasswordDto,
-  RefreshTokenDto,
+  SignInDto,
+  SignUpDto
 } from '../types';
+import { ApiClient } from './ApiClient';
 
 /**
  * Service for authentication-related API calls.
@@ -13,8 +12,8 @@ import {
 export class AuthService {
   constructor(private apiClient: ApiClient) {}
 
-  async signIn(payload: SignInDto): Promise<AuthTokensDto> {
-    const tokens = await this.apiClient.post<AuthTokensDto>(
+  async signIn(payload: SignInDto): Promise<AccessTokenResponse> {
+    const tokens = await this.apiClient.post<AccessTokenResponse>(
       '/api/v1/auth/sign-in',
       payload
     );
@@ -22,16 +21,18 @@ export class AuthService {
     return tokens;
   }
 
-  async signUp(payload: SignUpDto): Promise<AuthTokensDto> {
-    return this.apiClient.post<AuthTokensDto>('/api/v1/auth/sign-up', payload);
+  async signUp(payload: SignUpDto): Promise<AccessTokenResponse> {
+    return this.apiClient.post<AccessTokenResponse>(
+      '/api/v1/auth/sign-up',
+      payload
+    );
   }
 
   async forgotPassword(payload: ForgotPasswordDto): Promise<void> {
     await this.apiClient.post('/api/v1/auth/forgot-password', payload);
   }
 
-
-  async refreshToken(payload: RefreshTokenDto): Promise<AuthTokensDto> {
-    return this.apiClient.post<AuthTokensDto>("/api/v1/auth/refresh-token", payload);
+  async refreshToken(): Promise<AccessTokenResponse> {
+    return this.apiClient.post<AccessTokenResponse>('/api/v1/auth/refresh', {});
   }
 }
