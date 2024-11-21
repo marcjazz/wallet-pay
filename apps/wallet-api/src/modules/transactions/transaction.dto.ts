@@ -16,7 +16,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { OTPPayloadDto } from '../../app/two-fa/dto/two-fa.dto';
-import { ReceiverPayoutInfoDto } from '../accounts/dto/account.dto';
+import { ReceiverPayoutInfoDto } from '../receivers/receiver.dto';
 
 export class InitiateTransferDto {
   @IsString()
