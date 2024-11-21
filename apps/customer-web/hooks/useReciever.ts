@@ -5,7 +5,7 @@ import { ReceiverService } from '@/api/services/ReceiverService';
 import { ReceiverEntity } from '@/api/types';
 import { useQuery } from '@tanstack/react-query';
 
-const apiClient = new ApiClient('https://api.xafpay.com');
+const apiClient = new ApiClient(process.env.API_BASE_URL || 'https://api.xafpay.com');
 const receiverService = new ReceiverService(apiClient);
 
 /**

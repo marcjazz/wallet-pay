@@ -5,7 +5,7 @@ import { UserService } from '@/api/services/UserService';
 import { UserEntity } from '@/api/types/';
 import { ApiClient } from '@/api/services/ApiClient';
 
-const apiClient = new ApiClient('https://api.xafpay.com');
+const apiClient = new ApiClient(process.env.API_BASE_URL || 'https://api.xafpay.com');
 const userService = new UserService(apiClient);
 
 /**

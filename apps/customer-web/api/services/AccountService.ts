@@ -11,7 +11,7 @@ import {
 /**
  * Service for interacting with `/accounts` endpoints.
  */
-export class AccountsService {
+export class AccountService {
   constructor(private apiClient: ApiClient) {}
 
   /**
