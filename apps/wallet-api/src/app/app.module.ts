@@ -1,14 +1,17 @@
-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
-
 import { BullModule } from '@nestjs/bull';
+import {
+  ClassSerializerInterceptor,
+  Module
+} from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+
 import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
 import { HttpExceptionFilter } from '../exception-filters/http-exception.filter';
 import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.filter';
 import { MailerModule } from '../mailer/mailer.module';
 import { AccountsModule } from '../modules/accounts/accounts.module';
-import { ReceiversModule } from '../modules/receivers/receivers.module';
 import { CurrenciesModule } from '../modules/currencies/currencies.module';
+import { ReceiversModule } from '../modules/receivers/receivers.module';
 import { TransactionsModule } from '../modules/transactions/transactions.module';
 import { UsersModule } from '../modules/users/users.module';
 import { PrismaModule } from '../prisma/prisma.module';

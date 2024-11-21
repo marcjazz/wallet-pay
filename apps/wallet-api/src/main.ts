@@ -34,6 +34,7 @@ async function bootstrap() {
       .setDescription('Detailed description of XAFPAY internal APIs.')
       .setVersion('1.0')
       .addBearerAuth()
+      .addCookieAuth('refresh_token')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('docs', app, document, {
