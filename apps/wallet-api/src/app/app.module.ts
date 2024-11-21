@@ -37,7 +37,7 @@ import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
     AccountsModule,
     TransactionsModule,
     ReceiversModule,
-    CurrenciesModule
+    CurrenciesModule,
   ],
   controllers: [AppController],
   providers: [

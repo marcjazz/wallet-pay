@@ -1,24 +1,26 @@
 import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    Patch,
-    Post,
-    Query,
-    Req
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
 } from '@nestjs/common';
 import {
-    ApiNoContentResponse,
-    ApiOperation,
-    ApiResponse,
-    ApiTags
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { RoleEnum, Roles, SkipAuth } from '../../app/auth/auth.decorator';
 import { CurrenciesService } from './currencies.service';
 import { CurrencyEntity, ForexCurrencyEntity } from './currency.dto';
 
+@ApiBearerAuth()
 @ApiTags('Currencies')
 @Controller('currencies')
 @Roles(RoleEnum.ADMIN)

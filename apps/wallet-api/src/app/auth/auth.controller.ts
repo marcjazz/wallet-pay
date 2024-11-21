@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -145,6 +146,8 @@ export class AuthController {
   }
 
   @Post('logout')
+  @SkipAuth(false)
+  @ApiBearerAuth()
   @ApiCreatedResponse({
     schema: { properties: { messaage: { type: 'string' } } },
   })
