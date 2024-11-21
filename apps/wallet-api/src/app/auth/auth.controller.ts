@@ -72,6 +72,7 @@ export class AuthController {
       new AccessTokenResponse({
         expires_in: 900000, // 15 minutes
         token_type: 'Bearer',
+        issued_at: tokens.issued_at,
         access_token: tokens.access_token,
       })
     );
@@ -97,6 +98,7 @@ export class AuthController {
       new AccessTokenResponse({
         expires_in: 900000, // 15 minutes
         token_type: 'Bearer',
+        issued_at: tokens.issued_at,
         access_token: tokens.access_token,
       })
     );
@@ -140,6 +142,7 @@ export class AuthController {
       new AccessTokenResponse({
         expires_in: 900000, // 15 minutes
         token_type: 'Bearer',
+        issued_at: tokens.issued_at,
         access_token: tokens.access_token,
       })
     );

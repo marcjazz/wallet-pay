@@ -166,6 +166,7 @@ export class AuthService {
     return new AuthTokensDto({
       refresh_token: refreshToken,
       access_token: accessToken,
+      issued_at: Date.now()
     });
   }
 

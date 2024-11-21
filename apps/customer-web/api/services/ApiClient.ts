@@ -1,12 +1,13 @@
 import axios, { AxiosInstance } from 'axios';
+import { AccessTokenResponse } from '../types';
+import { AuthService } from './AuthService';
 
 export class ApiClient {
   private client: AxiosInstance;
+  private isRefreshing = false;
+  private refreshSubscribers: ((token: AccessTokenResponse) => void)[] = [];
 
-  constructor(
-    baseURL: string,
-    private authToken = localStorage.getItem('xfp_token')
-  ) {
+  constructor(baseURL: string, private authToken?: AccessTokenResponse) {
     this.client = axios.create({
       baseURL,
       headers: {
@@ -15,16 +16,49 @@ export class ApiClient {
     });
 
     // Request interceptor to add Authorization header
-    this.client.interceptors.request.use((config) => {
+    this.client.interceptors.request.use(async (config) => {
       if (this.authToken) {
-        config.headers.Authorization = `Bearer ${this.authToken}`;
+        const { issued_at, expires_in } = this.authToken;
+        const isTokenExpired = Date.now() >= issued_at + expires_in;
+
+        if (isTokenExpired) {
+          this.authToken = await this.handleTokenRefresh();
+        }
+
+        config.headers.Authorization = `Bearer ${this.authToken.access_token}`;
       }
       return config;
     });
   }
 
-  setAuthToken(token: string): void {
+  setAuthToken(token: AccessTokenResponse): void {
     this.authToken = token;
+  }
+
+  private async handleTokenRefresh(): Promise<AccessTokenResponse> {
+    if (this.isRefreshing) {
+      return new Promise((resolve) => {
+        this.refreshSubscribers.push(resolve);
+      });
+    }
+
+    this.isRefreshing = true;
+
+    try {
+      const authService = new AuthService(this); // Use the authentication service
+      const tokenResp = await authService.refreshToken();
+      this.setAuthToken(tokenResp);
+
+      // Notify all subscribers with the new token
+      this.refreshSubscribers.forEach((callback) => callback(tokenResp));
+      this.refreshSubscribers = [];
+      return tokenResp;
+    } catch (error) {
+      this.authToken = undefined; // Clear tokens on failure
+      throw error;
+    } finally {
+      this.isRefreshing = false;
+    }
   }
 
   async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {

@@ -1,4 +1,4 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 import {
   CybridSupportedCountry,
   PersonGender,
@@ -137,13 +137,16 @@ export class AuthTokensDto {
   @ApiProperty()
   refresh_token: string;
 
+  @ApiProperty({ type: Number, description: 'Issuance date in milliseconds' })
+  issued_at: number;
+
   constructor(props: AuthTokensDto) {
     Object.assign(this, props);
   }
 }
 
-export class AccessTokenResponse extends PickType(AuthTokensDto, [
-  'access_token',
+export class AccessTokenResponse extends OmitType(AuthTokensDto, [
+  'refresh_token',
 ]) {
   @ApiProperty({ description: 'token duration in milliseconds' })
   expires_in: number;

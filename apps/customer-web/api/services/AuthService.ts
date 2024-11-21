@@ -2,7 +2,7 @@ import {
   AccessTokenResponse,
   ForgotPasswordDto,
   SignInDto,
-  SignUpDto
+  SignUpDto,
 } from '../types';
 import { ApiClient } from './ApiClient';
 
@@ -13,19 +13,21 @@ export class AuthService {
   constructor(private apiClient: ApiClient) {}
 
   async signIn(payload: SignInDto): Promise<AccessTokenResponse> {
-    const tokens = await this.apiClient.post<AccessTokenResponse>(
+    const tokenResp = await this.apiClient.post<AccessTokenResponse>(
       '/api/v1/auth/sign-in',
       payload
     );
-    this.apiClient.setAuthToken(tokens.access_token); // Set token for future requests
-    return tokens;
+    this.apiClient.setAuthToken(tokenResp); // Set token for future requests
+    return tokenResp;
   }
 
   async signUp(payload: SignUpDto): Promise<AccessTokenResponse> {
-    return this.apiClient.post<AccessTokenResponse>(
+    const tokenResp = await this.apiClient.post<AccessTokenResponse>(
       '/api/v1/auth/sign-up',
       payload
     );
+    this.apiClient.setAuthToken(tokenResp); // Set token for future requests
+    return tokenResp;
   }
 
   async forgotPassword(payload: ForgotPasswordDto): Promise<void> {
@@ -33,6 +35,11 @@ export class AuthService {
   }
 
   async refreshToken(): Promise<AccessTokenResponse> {
-    return this.apiClient.post<AccessTokenResponse>('/api/v1/auth/refresh', {});
+    const tokenResp = await this.apiClient.post<AccessTokenResponse>(
+      '/api/v1/auth/refresh',
+      {}
+    );
+    this.apiClient.setAuthToken(tokenResp); // Set token for future requests
+    return tokenResp;
   }
 }

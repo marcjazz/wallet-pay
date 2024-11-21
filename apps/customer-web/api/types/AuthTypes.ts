@@ -11,7 +11,7 @@ export interface SignUpDto {
   /** Strong password. */
   password: string;
   /** Country code. */
-  country: "USA" | "CANADA";
+  country: 'USA' | 'CANADA';
   /** Unique username. */
   username: string;
   /** User's first name. */
@@ -23,9 +23,9 @@ export interface SignUpDto {
   /** User's birthdate in ISO format. */
   birthdate: string;
   /** User's gender. */
-  gender: "MALE" | "FEMALE" | "OTHER";
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
   /** Preferred language for the user. */
-  preferred_language: "EN_US" | "FR";
+  preferred_language: 'EN_US' | 'FR';
 }
 
 export interface AccessTokenResponse {
@@ -33,8 +33,10 @@ export interface AccessTokenResponse {
   access_token: string;
   /** The expiration time in milliseconds. */
   expires_in: number;
+  /** Issuance date in milliseconds. */
+  issued_at: number;
   /** Token type, always `Bearer`. */
-  token_type: "Bearer";
+  token_type: 'Bearer';
 }
 
 export interface LogoutResponse {
