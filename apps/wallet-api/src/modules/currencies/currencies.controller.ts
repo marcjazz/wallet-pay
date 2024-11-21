@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseBoolPipe,
   Patch,
   Post,
   Query,
@@ -31,7 +32,7 @@ export class CurrenciesController {
   @SkipAuth()
   @ApiResponse({ status: 200, type: [CurrencyEntity] })
   @ApiOperation({ summary: 'Fetch all supported currencies' })
-  async getCurrencies(@Query('is_active') isActive?: boolean) {
+  async getCurrencies(@Query('is_active', ParseBoolPipe) isActive?: boolean) {
     return await this.currenciesService.findAll(isActive);
   }
 

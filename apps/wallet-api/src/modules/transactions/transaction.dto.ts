@@ -139,7 +139,7 @@ export class QueryTransactionDto {
 
   @IsOptional()
   @IsIn(['date', 'amount'])
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: ['date', 'amount'] })
   order_by?: 'date' | 'amount';
 
   @IsOptional()

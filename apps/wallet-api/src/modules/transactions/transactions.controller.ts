@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -70,5 +71,12 @@ export class TransactionsController {
       params,
       req.user?.id as string
     );
+  }
+
+  @Get(':id')
+  @ApiCreatedResponse({ type: CybridTransactionEntity })
+  @ApiOperation({ summary: 'Get transaction' })
+  async getTransaction(@Param('id') transactionId: string) {
+    return this.transactionsService.getTransaction(transactionId);
   }
 }
