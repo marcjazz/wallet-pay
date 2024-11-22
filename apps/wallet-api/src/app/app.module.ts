@@ -1,8 +1,6 @@
 import { BullModule } from '@nestjs/bull';
-import {
-  ClassSerializerInterceptor,
-  Module
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
@@ -22,19 +20,21 @@ import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
 
 @Module({
   imports: [
-    BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT),
-      },
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+        },
+      }),
     }),
     PrismaModule,
-    MailerModule.forRoot({
-      secure: process.env.NODE_ENV === 'production',
-      host: process.env.EMAIL_HOST,
-      pass: process.env.EMAIL_PASS,
-      user: process.env.APP_EMAIL,
-    }),
+    MailerModule,
     AuthModule,
     UsersModule,
     AccountsModule,

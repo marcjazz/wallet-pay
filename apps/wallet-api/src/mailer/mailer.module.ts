@@ -1,67 +1,54 @@
-import {
-  DynamicModule,
-  Global,
-  InternalServerErrorException,
-  Logger,
-  Module,
-} from '@nestjs/common';
-import { createTransport } from 'nodemailer';
-import { MailerOptions } from './mailer.interface';
-import { MailerService } from './mailer.service';
 import { BullModule } from '@nestjs/bull';
+import { Global, Logger, Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { createTransport } from 'nodemailer';
 import { mailerConstants } from './constant';
 import { MailerProcessor } from './mailer.processor';
+import { MailerService } from './mailer.service';
 
 @Global()
-@Module({})
-export class MailerModule {
-  static forRoot({
-    host,
-    secure,
-    pass: authPass,
-    user: authUser,
-  }: MailerOptions): DynamicModule {
-    if (!host || !authUser || !authPass) {
-      throw new InternalServerErrorException(
-        'Mailer host, user and pass not configured!'
-      );
-    }
-
-    const transporter = createTransport({
-      host,
-      secure, // true for port 465, false for other ports
-      port: secure ? 465 : 587,
-      auth: {
-        user: authUser,
-        pass: authPass,
+@Module({
+  imports: [
+    BullModule.registerQueue({
+      name: mailerConstants.QUEUE,
+      defaultJobOptions: {
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
       },
-    });
-    transporter
-      .verify()
-      .then(() =>
-        Logger.log('Transpoter is ready to go 🚀', MailerModule.name)
-      );
+    }),
+  ],
+  providers: [
+    MailerService,
+    MailerProcessor,
+    {
+      provide: mailerConstants.TRANSPOTER,
+      useFactory: async (configService: ConfigService) => {
+        const host = configService.get<string>('EMAIL_HOST');
+        const pass = configService.get<string>('EMAIL_PASS');
+        const user = configService.get<string>('APP_EMAIL');
+        const secure = configService.get<string>('NODE_ENV') === 'production';
 
-    return {
-      module: MailerModule,
-      imports: [
-        BullModule.registerQueue({
-          name: mailerConstants.QUEUE,
-          defaultJobOptions: {
-            attempts: 5,
-            backoff: {
-              type: 'exponential',
-              delay: 5000,
-            },
-          },
-        }),
-      ],
-      providers: [
-        MailerService,
-        MailerProcessor,
-        { useValue: transporter, provide: mailerConstants.TRANSPOTER },
-      ],
-      exports: [MailerService],
-    };
-  }
-}
+        const transporter = createTransport({
+          host,
+          secure,
+          port: secure ? 465 : 587,
+          auth: { user, pass },
+        });
+
+        transporter
+          .verify()
+          .then(() =>
+            Logger.log('Transpoter is ready to go 🚀', MailerModule.name)
+          );
+
+        return transporter;
+      },
+      inject: [ConfigService],
+    },
+  ],
+  exports: [MailerService],
+})
+export class MailerModule {}
