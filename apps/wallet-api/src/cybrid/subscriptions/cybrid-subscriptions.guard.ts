@@ -5,7 +5,7 @@ import {
   Logger,
   RawBodyRequest,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { createHmac } from 'crypto';
@@ -14,7 +14,7 @@ import { CybridSubscriptionEventObjectDto } from './cybrid-subscription.dto';
 
 @Injectable()
 export class CybridSubscriptionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly configService: ConfigService) {}
 
   private readonly logger = new Logger(CybridSubscriptionsGuard.name);
 
@@ -25,7 +25,7 @@ export class CybridSubscriptionsGuard implements CanActivate {
 
     const ALGORITHM = 'sha256';
     const SIGNATURE_HEADER = 'X-Cybrid-Signature';
-    const SIGNING_KEY = process.env.SIGNING_KEY;
+    const SIGNING_KEY = this.configService.get<string>('SIGNING_KEY');
 
     if (!SIGNING_KEY || !request.rawBody) {
       this.logger.error(
@@ -62,8 +62,10 @@ export class CybridSubscriptionsGuard implements CanActivate {
 
       return (
         !errors.length &&
-        eventObject.organization_guid === process.env.CYBRID_ORGANIZATION_ID &&
-        eventObject.sandbox === (process.env.NODE_ENV !== 'production')
+        eventObject.organization_guid ===
+          this.configService.get('CYBRID_ORGANIZATION_ID') &&
+        eventObject.sandbox ===
+          (this.configService.get('NODE_ENV') !== 'production')
       );
     } catch (error) {
       this.logger.error(`Invalid subscription event object: ${error.message}`);

@@ -23,6 +23,7 @@ import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { RoleEnum } from './auth.decorator';
 import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +37,8 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
     private readonly otpService: OTPService,
-    private readonly cybridService: CybridService
+    private readonly cybridService: CybridService,
+    private readonly configService: ConfigService
   ) {}
 
   async validateUser(
@@ -89,7 +91,9 @@ export class AuthService {
         birthdate: new Date(payload.birthdate),
         password: bcrypt.hashSync(
           password,
-          bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS))
+          bcrypt.genSaltSync(
+            Number(this.configService.get<number>('SALT_ROUNDS'))
+          )
         ),
         PersonHasRoles: {
           create: {
@@ -166,7 +170,7 @@ export class AuthService {
     return new AuthTokensDto({
       refresh_token: refreshToken,
       access_token: accessToken,
-      issued_at: Date.now()
+      issued_at: Date.now(),
     });
   }
 
@@ -241,7 +245,9 @@ export class AuthService {
       data: {
         password: bcrypt.hashSync(
           password,
-          bcrypt.genSaltSync(Number(process.env.SALT_ROUNDS))
+          bcrypt.genSaltSync(
+            Number(this.configService.get<number>('SALT_ROUNDS'))
+          )
         ),
         PersonAudits: {
           create: {
@@ -260,7 +266,7 @@ export class AuthService {
 
     try {
       payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_SECRET,
+        secret: this.configService.get('JWT_SECRET'),
       });
     } catch (error) {
       throw new UnauthorizedException(

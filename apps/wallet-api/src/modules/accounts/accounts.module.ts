@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TwoFAModule } from '../../app/two-fa/two-fa.module';
-import { CybridDynamicModule } from '../../cybrid/cybrid.module';
+import { CybridModule } from '../../cybrid/cybrid.module';
 import { AccountsController } from './accounts.controller';
 import { AccountsService } from './accounts.service';
 
 @Module({
-  imports: [TwoFAModule, CybridDynamicModule],
+  imports: [TwoFAModule, CybridModule],
   controllers: [AccountsController],
   providers: [AccountsService],
   exports: [AccountsService],

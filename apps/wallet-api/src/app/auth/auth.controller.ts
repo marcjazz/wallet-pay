@@ -35,6 +35,7 @@ import {
 } from './auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './local/local.guard';
+import { ConfigService } from '@nestjs/config';
 
 @SkipAuth()
 @Controller('auth')
@@ -47,7 +48,10 @@ import { LocalGuard } from './local/local.guard';
   description: 'Internal server error. An unexpected exception was thrown',
 })
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post('sign-in')
   @UseGuards(LocalGuard)
@@ -171,7 +175,7 @@ export class AuthController {
   private setCookies(tokens: AuthTokensDto, res: Response) {
     res.cookie('refresh_token', tokens.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: this.configService.get('NODE_ENV') === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }

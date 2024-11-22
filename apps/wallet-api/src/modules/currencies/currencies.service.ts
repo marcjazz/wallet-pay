@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { roundNumber } from '../../helpers/utils';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CurrencyEntity, ForexCurrencyEntity } from './currency.dto';
+import { ConfigService } from '@nestjs/config';
 
 type Rates = Record<string, number>;
 type Rate = { code: string; value: number };
@@ -21,8 +22,9 @@ export class CurrenciesService {
   private readonly logger = new Logger(CurrenciesService.name);
 
   constructor(
-    private httpService: HttpService,
-    private prismaService: PrismaService
+    private readonly httpService: HttpService,
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService
   ) {
     this.monitor();
   }
@@ -35,15 +37,17 @@ export class CurrenciesService {
   }
 
   @Cron(
-    process.env.NODE_ENV === 'development'
-      ? CronExpression.EVERY_2_HOURS
-      : CronExpression.EVERY_MINUTE
+    process.env.NODE_ENV === 'production'
+      ? CronExpression.EVERY_MINUTE
+      : CronExpression.EVERY_2_HOURS
   )
   async monitor() {
     try {
       const admin = await this.prismaService.personHasRole.findFirst({
         where: {
-          Person: { email: process.env.ADMIN_EMAIL || 'admin@xafpay.com' },
+          Person: {
+            email: this.configService.get('ADMIN_EMAIL', 'admin@xafpay.com'),
+          },
         },
       });
       if (!admin) {

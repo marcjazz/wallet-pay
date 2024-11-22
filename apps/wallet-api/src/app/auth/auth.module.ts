@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { CybridDynamicModule } from '../../cybrid/cybrid.module';
+import { CybridModule } from '../../cybrid/cybrid.module';
 import { TwoFAModule } from '../two-fa/two-fa.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -12,11 +13,14 @@ import { RolesService } from './roles.service';
 @Module({
   imports: [
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory(configService: ConfigService) {
+        return { secret: configService.get('JWT_SECRET') };
+      },
     }),
     TwoFAModule,
-    CybridDynamicModule,
+    CybridModule,
   ],
   providers: [AuthService, RolesService, JwtStrategy, LocalStrategy],
   controllers: [AuthController],

@@ -22,6 +22,7 @@ import {
 } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { ApiScopeType, CybridAuthResponse } from '../types/cybrid';
+import { ConfigService } from '@nestjs/config';
 
 export class CybridConfiguration {
   private readonly logger = new Logger(CybridConfiguration.name);
@@ -30,7 +31,8 @@ export class CybridConfiguration {
   constructor(
     private readonly httpService: HttpService,
     private readonly configuration: Configuration,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly configService: ConfigService
   ) {}
 
   async getInstance<T extends typeof BaseAPI>(
@@ -86,26 +88,12 @@ export class CybridConfiguration {
   ): Promise<string> {
     const authResp = await this.getBankLevelAccessToken();
 
-    // Get stored value if available
-    // let customerTokens: Record<
-    //   string,
-    //   Array<CybridAuthResponse>
-    // > = await this.cacheManager.get(this.CUSTOMER_TOKENs);
-
-    //checks if we have a cached token for this customer with the required scopes
-    // const customerCachedToken = (customerTokens[customerGuid] ?? []).find(
-    //   (auth) =>
-    //     scopes.every((scope) => auth.scope.includes(scope)) &&
-    //     new Date(auth.created_at).getTime() + auth.expires_in > Date.now()
-    // );
-    // if (customerCachedToken) {
-    //   return customerCachedToken;
-    // }
-
     const resp = await this.httpService.axiosRef
       .post<{ access_token: string }>(
-        process.env.CYBRID_TOKEN_ENDPOINT ||
-          `https://id.sandbox.cybrid.app/api/customer_tokens`,
+        this.configService.get(
+          'CYBRID_CUSTOMER_LEVEL_TOKEN_ENDPOINT',
+          'https://id.sandbox.cybrid.app/api/customer_tokens'
+        ),
         {
           scopes,
           customer_guid: customerGuid,
@@ -123,10 +111,6 @@ export class CybridConfiguration {
           { cause: error }
         );
       });
-    // const customerTokenResp: CybridAuthResponse = {
-    //   access_token: resp.data.access_token,
-    //   s
-    // }
 
     return resp.data.access_token;
   }
@@ -152,8 +136,10 @@ export class CybridConfiguration {
     ) {
       const resp = await this.httpService.axiosRef
         .post<CybridAuthResponse>(
-          process.env.CYBRID_TOKEN_ENDPOINT ||
-            `https://id.sandbox.cybrid.app/api/customer_tokens`,
+          this.configService.get(
+            'CYBRID_BANK_LEVEL_TOKEN_ENDPOINT',
+            `https://id.sandbox.cybrid.app/oauth/token`
+          ),
           {
             grant_type: 'client_credentials',
             scope: 'customers:write customers:execute customers:read',

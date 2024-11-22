@@ -10,8 +10,9 @@ import {
   Injectable,
   NotFoundException,
   NotImplementedException,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { $Enums } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -25,7 +26,8 @@ import {
 export class TransactionsService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly cybridService: CybridService
+    private readonly cybridService: CybridService,
+    private readonly configService: ConfigService
   ) {}
 
   async initiateTransfer(
@@ -128,11 +130,15 @@ export class TransactionsService {
                   type: PostTransferParticipantBankModelTypeEnum.Customer,
                 },
               ],
-              destination_account_guid: process.env.CYBRID_BANK_ACCOUNT_ID,
+              destination_account_guid: this.configService.get(
+                'CYBRID_BANK_ACCOUNT_ID'
+              ),
               destination_participants: [
                 {
                   amount: payload.amount,
-                  guid: process.env.CYBRID_BANK_ACCOUNT_ID as string,
+                  guid: this.configService.get<string>(
+                    'CYBRID_BANK_ACCOUNT_ID'
+                  ) as string,
                   type: PostTransferParticipantBankModelTypeEnum.Bank,
                 },
                 {
