@@ -1,14 +1,14 @@
 'use client';
 
-import { ApiClient } from '@/api/services/ApiClient';
+import { ApiClient } from '../api/services/ApiClient';
 import {
   GetTransactionsQueryParams,
   TransactionService,
-} from '@/api/services/TransactionService';
+} from '../api/services/TransactionService';
 import {
   CybridTransactionEntity,
   InitiateTransferDto,
-} from '@/api/types/TransactionTypes';
+} from '../api/types/TransactionTypes';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
 const transactionService = new TransactionService(

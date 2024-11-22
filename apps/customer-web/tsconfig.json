@@ -16,10 +16,7 @@
         "name": "next"
       }
     ],
-    "types": ["jest", "node"],
-    "paths": {
-      "@/*": ["apps/customer-web/*"]
-    }
+    "types": ["jest", "node"]
   },
   "include": [
     "**/*.ts",

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { AccountService } from '@/api/services/AccountService';
+import { AccountService } from '../api/services/AccountService';
 import {
   CybridAccountEntity,
   ExternalBankAccountEntity,
@@ -9,8 +9,8 @@ import {
   IdentityVerificationEntity,
   CreateWorkflowDto,
   CreateExternalAccountDto,
-} from '@/api/types/AccountTypes';
-import { ApiClient } from '@/api/services/ApiClient';
+} from '../api/types/AccountTypes';
+import { ApiClient } from '../api/services/ApiClient';
 
 const accountsService = new AccountService(
   new ApiClient(process.env.API_BASE_URL || 'https://api.xafpay.com')

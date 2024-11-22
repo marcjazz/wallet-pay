@@ -1,8 +1,8 @@
 'use client';
 
-import { ApiClient } from '@/api/services/ApiClient';
-import { ReceiverService } from '@/api/services/ReceiverService';
-import { ReceiverEntity } from '@/api/types';
+import { ApiClient } from '../api/services/ApiClient';
+import { ReceiverService } from '../api/services/ReceiverService';
+import { ReceiverEntity } from '../api/types';
 import { useQuery } from '@tanstack/react-query';
 
 const apiClient = new ApiClient(process.env.API_BASE_URL || 'https://api.xafpay.com');
