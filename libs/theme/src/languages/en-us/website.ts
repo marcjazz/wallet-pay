@@ -175,4 +175,5 @@ export const website = {
   termsAndConditions2: ' terms and conditions',
   female: 'Female',
   male: 'Male',
+  other: 'Other',
 };
