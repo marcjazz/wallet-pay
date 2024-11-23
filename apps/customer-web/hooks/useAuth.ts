@@ -5,7 +5,12 @@ import { ApiClient } from '../api/services/ApiClient';
 import { AuthService } from '../api/services/AuthService';
 import { AccessTokenResponse, SignInDto, SignUpDto } from '../api/types';
 
-const apiClient = new ApiClient(process.env.API_BASE_URL || 'https://api.xafpay.com');
+//TODO: REMOVE LOCAL LINK
+const apiClient = new ApiClient(
+  process.env.NX_PUBLIC_API_BASE_URL ||
+    'http://10.183.29.85:3000' ||
+    'https://api.xafpay.com'
+);
 const authService = new AuthService(apiClient);
 
 /**
