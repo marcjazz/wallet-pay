@@ -6,7 +6,7 @@ import {
   Post,
   Req,
   Res,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -100,7 +100,7 @@ export class AuthController {
     // Set new Http-Only cookies
     this.setCookies(tokens, res);
 
-    return res.send(
+    res.status(HttpStatus.CREATED).json(
       new AccessTokenResponse({
         expires_in: 900000, // 15 minutes
         token_type: 'Bearer',
