@@ -10,6 +10,7 @@ export class ApiClient {
   constructor(baseURL: string, private authToken?: AccessTokenResponse) {
     this.client = axios.create({
       baseURL,
+      withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
       },

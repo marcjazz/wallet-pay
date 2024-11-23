@@ -14,7 +14,10 @@ import { AppModule } from './app/app.module';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: {
-      origin: /^(?:[a-zA-Z0-9-]+\.)*xafpay\.com$/,
+      origin:
+        process.env.NODE_ENV === 'production'
+          ? /^(?:[a-zA-Z0-9-]+\.)*xafpay\.com$/
+          : /^http:\/\/localhost/,
       credentials: true,
     },
   });
