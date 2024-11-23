@@ -1,19 +1,20 @@
 'use client';
 
-import { ApiClient } from '../api/services/ApiClient';
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+import { API_BASE_URL } from '../constants';
+import { ApiClient } from '../services/ApiClient';
 import {
   GetTransactionsQueryParams,
   TransactionService,
-} from '../api/services/TransactionService';
+} from '../services/TransactionService';
 import {
   CybridTransactionEntity,
   InitiateTransferDto,
-} from '../api/types/TransactionTypes';
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+} from '../types/TransactionTypes';
 
-const transactionService = new TransactionService(
-  new ApiClient(process.env.API_BASE_URL || 'https://api.xafpay.com')
-);
+//TODO: REMOVE LOCAL LINK
+const apiClient = ApiClient.getInstance(API_BASE_URL);
+const transactionService = new TransactionService(apiClient);
 
 /**
  * Hook for fetching transactions with optional filters and sorting.

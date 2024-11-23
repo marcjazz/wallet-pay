@@ -6,10 +6,15 @@ export class ApiClient {
   private client: AxiosInstance;
   private isRefreshing = false;
   private refreshSubscribers: ((token: AccessTokenResponse) => void)[] = [];
+  private static currentInstance: ApiClient;
 
-  constructor(baseURL: string, private authToken?: AccessTokenResponse) {
+  private constructor(
+    baseURL: string,
+    private authToken?: AccessTokenResponse
+  ) {
     this.client = axios.create({
       baseURL,
+      withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -69,5 +74,15 @@ export class ApiClient {
   async post<T>(url: string, data: unknown): Promise<T> {
     const res = await this.client.post<T>(url, data);
     return res.data;
+  }
+
+  static getInstance(
+    baseURL: string,
+    authToken?: AccessTokenResponse
+  ): ApiClient {
+    if (!ApiClient.currentInstance) {
+      ApiClient.currentInstance = new ApiClient(baseURL, authToken);
+    }
+    return ApiClient.currentInstance;
   }
 }

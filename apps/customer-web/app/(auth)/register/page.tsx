@@ -4,8 +4,10 @@ import { Box, Divider, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
+import { Country, Gender } from '../../../api/types/EnumTypes';
 import RegisterPartOne from '../../../components/auth/register/RegisterPartOne';
 import RegisterPartTwo from '../../../components/auth/register/RegisterPartTwo';
+import { useSignUp } from '../../../api/hooks/useAuth';
 
 enum Step {
   personal = 1,
@@ -15,6 +17,7 @@ enum Step {
 export interface PersonalInfo {
   firstName: string;
   lastName: string;
+  gender: Gender;
   email: string;
   dateOfBirth: string;
   USNumber: string;
@@ -23,7 +26,7 @@ export interface PersonalInfo {
 export interface SecurityInfo {
   password: string;
   username: string;
-  country: string;
+  country: Country;
   hasAcceptedTerms: boolean;
 }
 
@@ -37,8 +40,6 @@ export default function Register() {
   const theme = useTheme();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [maxAccessibleStep, setMaxAccessibleStep] = useState<Step>(1);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleNextStep(storeData: () => void) {
     storeData();
@@ -62,16 +63,32 @@ export default function Register() {
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>();
   const [securityInfo, setSecurityInfo] = useState<SecurityInfo>();
+  const { mutate: signUp, isPending: isSubmitting } = useSignUp();
 
   function submitRegister(data: SecurityInfo) {
+    if (!personalInfo) return;
+
     //TODO: CALL API HERE TO SUBMIT REGISTER
+    //TODO: the accept terms and conditions should be added to payload
+    signUp(
+      {
+        birthdate: personalInfo.dateOfBirth,
+        country: data.country,
+        email: personalInfo.email,
+        first_name: personalInfo.firstName,
+        last_name: personalInfo.lastName,
+        password: data.password,
+        phone_number: `+1${personalInfo.USNumber}`,
+        username: data.username,
+        gender: personalInfo.gender,
+        preferred_language: 'EN_US',
+      },
+      {
+        onSuccess: (data) => console.log(data),
+      }
+    );
     //TODO: USE alert in case of error. will be replaced with proper notifications later
     setSecurityInfo(data);
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      console.log(personalInfo, data);
-    }, 3000);
   }
 
   const currentStepComponent = {
