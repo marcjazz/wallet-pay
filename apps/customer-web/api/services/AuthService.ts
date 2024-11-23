@@ -30,6 +30,10 @@ export class AuthService {
     return tokenResp;
   }
 
+  async verifyEmail(payload: { code: string }): Promise<void> {
+    await this.apiClient.post('/api/v1/auth/verify-email', payload);
+  }
+
   async forgotPassword(payload: ForgotPasswordDto): Promise<void> {
     await this.apiClient.post('/api/v1/auth/forgot-password', payload);
   }

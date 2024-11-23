@@ -27,3 +27,9 @@ export const useSignUp = () =>
     mutationKey: ['singIn'],
     mutationFn: (payload) => authService.signUp(payload),
   });
+
+export const useVerifyEmail = () =>
+  useMutation<void, Error, { code: string }>({
+    mutationKey: ['verifyEmail'],
+    mutationFn: (payload) => authService.verifyEmail(payload),
+  });

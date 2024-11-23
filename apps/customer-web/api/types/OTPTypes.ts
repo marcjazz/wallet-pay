@@ -1,9 +1,11 @@
+import { OTPUsage } from './EnumTypes';
+
 export interface ForgotPasswordDto {
   email: string; // Valid user email
 }
 
 export interface OTPUsageDto {
-  usage: 'verify_email' | 'reset_password' | 'transfer';
+  usage: OTPUsage;
 }
 
 export interface OTPPayloadDto {
@@ -13,7 +15,7 @@ export interface OTPPayloadDto {
 
 export interface OTPEntity {
   otp_id: string;
-  usage: 'verify_email' | 'reset_password' | 'transfer';
+  usage: OTPUsage;
   is_verified: boolean;
   expires_at: string; // ISO date format
   updated_at: string | null;
