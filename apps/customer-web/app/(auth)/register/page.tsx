@@ -4,11 +4,10 @@ import { Box, Divider, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { Country } from '../../../api/types/EnumTypes';
+import { Country, Gender } from '../../../api/types/EnumTypes';
 import RegisterPartOne from '../../../components/auth/register/RegisterPartOne';
 import RegisterPartTwo from '../../../components/auth/register/RegisterPartTwo';
 import { useSignUp } from '../../../hooks/useAuth';
-import { GenderEnum } from '../../../types';
 
 enum Step {
   personal = 1,
@@ -18,7 +17,7 @@ enum Step {
 export interface PersonalInfo {
   firstName: string;
   lastName: string;
-  gender: GenderEnum;
+  gender: Gender;
   email: string;
   dateOfBirth: string;
   USNumber: string;

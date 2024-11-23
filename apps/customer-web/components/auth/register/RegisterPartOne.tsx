@@ -21,12 +21,12 @@ import {
   ArrowLeft as ArrowLeftIcon,
   ArrowRight as ArrowRightIcon,
   Mail as MailIcon,
-  User as UserIcon
+  User as UserIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
+import { Gender } from '../../../api/types';
 import { PersonalInfo } from '../../../app/(auth)/register/page';
-import { GenderEnum } from '../../../types';
 import { preventRouteWhenSubmitting } from '../../shared/utilities';
 
 interface RegisterPartOneProps {
@@ -45,7 +45,7 @@ export default function RegisterPartOne({
   const initialValues: PersonalInfo = {
     firstName: '',
     lastName: '',
-    gender: GenderEnum.MALE,
+    gender: Gender.MALE,
     email: '',
     dateOfBirth: '',
     USNumber: '',
@@ -59,7 +59,7 @@ export default function RegisterPartOne({
       .required(formatMessage({ id: 'requiredField' })),
     gender: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
-      .oneOf(Object.values(GenderEnum), formatMessage({ id: 'invalidGender' })),
+      .oneOf(Object.values(Gender), formatMessage({ id: 'invalidGender' })),
     dateOfBirth: Yup.date()
       .typeError(formatMessage({ id: 'invalidDateFormat' })) // Custom error message for invalid date formats
       .max(new Date(), formatMessage({ id: 'dateOfBirthCannotBeFuture' })) // Ensures the date is not after today
@@ -145,7 +145,7 @@ export default function RegisterPartOne({
         >
           <FormLabel>{formatMessage({ id: 'gender' })}</FormLabel>
           <RadioGroup {...formik.getFieldProps('gender')} row>
-            {Object.values(GenderEnum).map((val, index) => (
+            {Object.values(Gender).map((val, index) => (
               <FormControlLabel
                 value={val}
                 control={<Radio size="small" />}
