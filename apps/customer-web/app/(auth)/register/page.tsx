@@ -4,10 +4,11 @@ import { Box, Divider, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useSignUp } from '../../../api/hooks/useAuth';
 import { Country, Gender } from '../../../api/types/EnumTypes';
+import OTPBottomSheet from '../../../components/auth/forgot-password/OTPBottomSheet';
 import RegisterPartOne from '../../../components/auth/register/RegisterPartOne';
 import RegisterPartTwo from '../../../components/auth/register/RegisterPartTwo';
-import { useSignUp } from '../../../api/hooks/useAuth';
 
 enum Step {
   personal = 1,
@@ -64,6 +65,8 @@ export default function Register() {
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>();
   const [securityInfo, setSecurityInfo] = useState<SecurityInfo>();
   const { mutate: signUp, isPending: isSubmitting } = useSignUp();
+  const [isConfirmEmailBottomSheetOpen, setIsConfirmEmailBottomSheetOpen] =
+    useState(false);
 
   function submitRegister(data: SecurityInfo) {
     if (!personalInfo) return;
@@ -84,7 +87,7 @@ export default function Register() {
         preferred_language: 'EN_US',
       },
       {
-        onSuccess: (data) => console.log(data),
+        onSuccess: (data) => setIsConfirmEmailBottomSheetOpen(true),
       }
     );
     //TODO: USE alert in case of error. will be replaced with proper notifications later
@@ -110,61 +113,69 @@ export default function Register() {
   };
 
   return (
-    <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
-      <Box sx={{ display: 'grid', rowGap: 2.25 }}>
-        <Box
-          sx={{
-            display: 'grid',
-            justifyContent: 'start',
-            alignItems: 'center',
-            gridAutoFlow: 'column',
-            columnGap: 0.5,
-          }}
-        >
-          <Divider
-            onClick={() => setCurrentStep(Step.personal)}
+    <>
+      <OTPBottomSheet
+        isOpen={isConfirmEmailBottomSheetOpen}
+        closeBottomSheet={() => setIsConfirmEmailBottomSheetOpen(false)}
+        confirmText={formatMessage({ id: 'confirmEmail' })}
+        description={formatMessage({ id: 'confirmEmailDescription' })}
+        title={formatMessage({ id: 'confirmEmail' })}
+      />
+      <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
+        <Box sx={{ display: 'grid', rowGap: 2.25 }}>
+          <Box
             sx={{
-              height: '8px',
-              width: '34px',
-              backgroundColor: theme.palette.primary.main,
-              borderRadius: 1.25,
+              display: 'grid',
+              justifyContent: 'start',
+              alignItems: 'center',
+              gridAutoFlow: 'column',
+              columnGap: 0.5,
             }}
-          />
-          <Divider
-            onClick={() => {
-              if (maxAccessibleStep >= Step.security)
-                setCurrentStep(Step.security);
-            }}
-            sx={{
-              height: '8px',
-              width: '34px',
-              backgroundColor:
-                currentStep === Step.security
-                  ? theme.palette.primary.main
-                  : '#B6D6FE',
-              borderRadius: 1.25,
-            }}
-          />
-        </Box>
-        <Typography variant="h1">
-          {formatMessage({ id: 'registerAccountHeader' })}
-          <Typography
-            variant="h1"
-            component="span"
-            sx={{ color: theme.palette.primary.main }}
           >
-            {formatMessage({ id: 'registerAccountHeader2' })}
+            <Divider
+              onClick={() => setCurrentStep(Step.personal)}
+              sx={{
+                height: '8px',
+                width: '34px',
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: 1.25,
+              }}
+            />
+            <Divider
+              onClick={() => {
+                if (maxAccessibleStep >= Step.security)
+                  setCurrentStep(Step.security);
+              }}
+              sx={{
+                height: '8px',
+                width: '34px',
+                backgroundColor:
+                  currentStep === Step.security
+                    ? theme.palette.primary.main
+                    : '#B6D6FE',
+                borderRadius: 1.25,
+              }}
+            />
+          </Box>
+          <Typography variant="h1">
+            {formatMessage({ id: 'registerAccountHeader' })}
+            <Typography
+              variant="h1"
+              component="span"
+              sx={{ color: theme.palette.primary.main }}
+            >
+              {formatMessage({ id: 'registerAccountHeader2' })}
+            </Typography>
+            .
           </Typography>
-          .
-        </Typography>
-        <Typography variant="p1r">
-          {formatMessage({ id: 'registerAccountDescription' })}
-        </Typography>
-      </Box>
+          <Typography variant="p1r">
+            {formatMessage({ id: 'registerAccountDescription' })}
+          </Typography>
+        </Box>
 
-      {currentStepComponent[currentStep]}
+        {currentStepComponent[currentStep]}
 
-      {/* <Box
+        {/* <Box
         sx={{
           display: 'grid',
           rowGap: 1.5,
@@ -227,6 +238,7 @@ export default function Register() {
           </Typography>
         </Typography>
       </Box> */}
-    </Box>
+      </Box>
+    </>
   );
 }
