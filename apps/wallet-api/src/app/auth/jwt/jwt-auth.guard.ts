@@ -1,11 +1,12 @@
 import {
   ExecutionContext,
   ForbiddenException,
-  Injectable
+  Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { MetadataEnum } from '../auth.decorator';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -26,10 +27,21 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest<TUser = Express.User>(
     err: unknown,
     user: Express.User,
-    info: unknown
+    info: unknown,
+    context: ExecutionContext
   ): TUser {
     if (err || info) {
       throw err || new ForbiddenException('Invalid bearer token!');
+    }
+
+    const request = context.switchToHttp().getRequest<Request>();
+    if (
+      !user.is_verified &&
+      !['auth', 'users', 'currencies'].some((path) =>
+        request.url.includes(path)
+      )
+    ) {
+      throw new ForbiddenException('Unverified email!');
     }
 
     return user as TUser;

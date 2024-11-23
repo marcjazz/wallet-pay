@@ -6,8 +6,9 @@ import {
   Post,
   Req,
   Res,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -16,13 +17,15 @@ import {
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiNoContentResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiPreconditionFailedResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { OTPEntity } from '../two-fa/dto/two-fa.dto';
+import { UserEntity } from '../../modules/users/user.dto';
+import { OTPCodeDto, OTPEntity } from '../two-fa/dto/two-fa.dto';
 import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { SkipAuth } from './auth.decorator';
 import {
@@ -35,7 +38,6 @@ import {
 } from './auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './local/local.guard';
-import { ConfigService } from '@nestjs/config';
 
 @SkipAuth()
 @Controller('auth')
@@ -150,6 +152,17 @@ export class AuthController {
         access_token: tokens.access_token,
       })
     );
+  }
+
+  @SkipAuth(false)
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: UserEntity })
+  async verifyEmail(@Req() req: Request, @Body() otpPayload: OTPCodeDto) {
+    const user = req.user as Express.User;
+    await this.authService.verifyEmail(otpPayload.code, user);
+
+    return new UserEntity({ ...user, user_id: user.id });
   }
 
   @Post('logout')
