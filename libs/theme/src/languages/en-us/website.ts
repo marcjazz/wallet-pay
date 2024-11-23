@@ -173,4 +173,6 @@ export const website = {
   and: ' and ',
   partners: "partners'",
   termsAndConditions2: ' terms and conditions',
+  female: 'Female',
+  male: 'Male',
 };

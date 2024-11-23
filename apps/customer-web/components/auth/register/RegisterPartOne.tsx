@@ -2,27 +2,31 @@ import {
   Box,
   Button,
   FormControl,
+  FormControlLabel,
   FormHelperText,
   FormLabel,
   InputAdornment,
   OutlinedInput,
+  Radio,
+  RadioGroup,
   Typography,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { useTheme } from '@xafpay/theme';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowLeft as ArrowLeftIcon,
   ArrowRight as ArrowRightIcon,
   Mail as MailIcon,
-  Phone as PhoneIcon,
-  User as UserIcon,
+  User as UserIcon
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { PersonalInfo } from '../../../app/(auth)/register/page';
+import { GenderEnum } from '../../../types';
 import { preventRouteWhenSubmitting } from '../../shared/utilities';
 
 interface RegisterPartOneProps {
@@ -41,6 +45,7 @@ export default function RegisterPartOne({
   const initialValues: PersonalInfo = {
     firstName: '',
     lastName: '',
+    gender: GenderEnum.MALE,
     email: '',
     dateOfBirth: '',
     USNumber: '',
@@ -52,6 +57,9 @@ export default function RegisterPartOne({
     email: Yup.string()
       .email(formatMessage({ id: 'invalidEmail' }))
       .required(formatMessage({ id: 'requiredField' })),
+    gender: Yup.string()
+      .required(formatMessage({ id: 'requiredField' }))
+      .oneOf(Object.values(GenderEnum), formatMessage({ id: 'invalidGender' })),
     dateOfBirth: Yup.date()
       .typeError(formatMessage({ id: 'invalidDateFormat' })) // Custom error message for invalid date formats
       .max(new Date(), formatMessage({ id: 'dateOfBirthCannotBeFuture' })) // Ensures the date is not after today
@@ -69,10 +77,7 @@ export default function RegisterPartOne({
     initialValues: personalInfo ?? initialValues,
     validationSchema,
     enableReinitialize: true,
-    onSubmit: (values) => {
-      handleNext(values);
-      console.log(values);
-    },
+    onSubmit: (values) => handleNext(values),
   });
 
   return (
@@ -131,6 +136,24 @@ export default function RegisterPartOne({
           <FormHelperText>
             {formik.touched.lastName && formik.errors.lastName}
           </FormHelperText>
+        </FormControl>
+
+        <FormControl
+          required
+          error={Boolean(formik.touched.gender && formik.errors.gender)}
+          disabled={isSubmitting}
+        >
+          <FormLabel>{formatMessage({ id: 'gender' })}</FormLabel>
+          <RadioGroup {...formik.getFieldProps('gender')} row>
+            {Object.values(GenderEnum).map((val, index) => (
+              <FormControlLabel
+                value={val}
+                control={<Radio size="small" />}
+                label={formatMessage({ id: val.toLowerCase() })}
+                key={index}
+              />
+            ))}
+          </RadioGroup>
         </FormControl>
 
         <FormControl
@@ -201,7 +224,7 @@ export default function RegisterPartOne({
             id="USNumber"
             startAdornment={
               <InputAdornment position="start">
-                <PhoneIcon color={theme.palette.grey[200]} size={18} />
+                <Image src="/assets/usa.svg" alt="USA" height={16} width={16} />
               </InputAdornment>
             }
             placeholder={formatMessage({ id: 'USNumber' })}

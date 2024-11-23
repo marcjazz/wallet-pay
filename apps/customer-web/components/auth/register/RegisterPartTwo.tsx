@@ -21,6 +21,7 @@ import {
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
+import { Country } from '../../../api/types';
 import { SecurityInfo } from '../../../app/(auth)/register/page';
 import { preventRouteWhenSubmitting } from '../../shared/utilities';
 
@@ -42,7 +43,7 @@ export default function RegisterPartTwo({
   const initialValues: SecurityInfo = {
     password: '',
     username: '',
-    country: 'United States',
+    country: Country.USA,
     hasAcceptedTerms: false,
   };
 
@@ -55,7 +56,7 @@ export default function RegisterPartTwo({
       .min(3, formatMessage({ id: 'minUsernameCharacters' })),
     country: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
-      .matches(/^United States$/, formatMessage({ id: 'invalidCountry' })),
+      .oneOf(Object.values(Country)),
     hasAcceptedTerms: Yup.boolean().oneOf(
       [true],
       formatMessage({ id: 'acceptTerms' })
