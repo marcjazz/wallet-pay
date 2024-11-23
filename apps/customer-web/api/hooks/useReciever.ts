@@ -1,11 +1,13 @@
 'use client';
 
-import { ApiClient } from '../api/services/ApiClient';
-import { ReceiverService } from '../api/services/ReceiverService';
-import { ReceiverEntity } from '../api/types';
 import { useQuery } from '@tanstack/react-query';
+import { API_BASE_URL } from '../constants';
+import { ApiClient } from '../services/ApiClient';
+import { ReceiverService } from '../services/ReceiverService';
+import { ReceiverEntity } from '../types';
 
-const apiClient = new ApiClient(process.env.API_BASE_URL || 'https://api.xafpay.com');
+//TODO: REMOVE LOCAL LINK
+const apiClient = ApiClient.getInstance(API_BASE_URL);
 const receiverService = new ReceiverService(apiClient);
 
 /**

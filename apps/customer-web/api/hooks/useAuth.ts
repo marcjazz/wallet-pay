@@ -1,16 +1,13 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { ApiClient } from '../api/services/ApiClient';
-import { AuthService } from '../api/services/AuthService';
-import { AccessTokenResponse, SignInDto, SignUpDto } from '../api/types';
+import { API_BASE_URL } from '../constants';
+import { ApiClient } from '../services/ApiClient';
+import { AuthService } from '../services/AuthService';
+import { AccessTokenResponse, SignInDto, SignUpDto } from '../types';
 
 //TODO: REMOVE LOCAL LINK
-const apiClient = new ApiClient(
-  process.env.NX_PUBLIC_API_BASE_URL ||
-    'http://10.183.29.85:3000' ||
-    'https://api.xafpay.com'
-);
+const apiClient = ApiClient.getInstance(API_BASE_URL);
 const authService = new AuthService(apiClient);
 
 /**

@@ -7,7 +7,7 @@ import { useIntl } from 'react-intl';
 import { Country, Gender } from '../../../api/types/EnumTypes';
 import RegisterPartOne from '../../../components/auth/register/RegisterPartOne';
 import RegisterPartTwo from '../../../components/auth/register/RegisterPartTwo';
-import { useSignUp } from '../../../hooks/useAuth';
+import { useSignUp } from '../../../api/hooks/useAuth';
 
 enum Step {
   personal = 1,
