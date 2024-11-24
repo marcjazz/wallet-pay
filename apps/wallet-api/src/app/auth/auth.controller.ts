@@ -112,6 +112,9 @@ export class AuthController {
 
   @Post('forgot-password')
   @ApiCreatedResponse({ type: OTPEntity })
+  @ApiOperation({
+    summary: 'Request for reset password OTP.',
+  })
   async requestTwoFA(@Body() payload: ForgotPasswordDto) {
     const otp = await this.authService.requestForgotPasswordOTP(payload.email);
     return new OTPEntity({ ...otp, usage: otp.usage as TwoFAUsage });

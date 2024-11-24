@@ -4,7 +4,13 @@ import { useMutation } from '@tanstack/react-query';
 import { API_BASE_URL } from '../constants';
 import { ApiClient } from '../services/ApiClient';
 import { AuthService } from '../services/AuthService';
-import { AccessTokenResponse, SignInDto, SignUpDto } from '../types';
+import {
+  AccessTokenResponse,
+  OTPEntity,
+  ResetPasswordDto,
+  SignInDto,
+  SignUpDto,
+} from '../types';
 
 //TODO: REMOVE LOCAL LINK
 const apiClient = ApiClient.getInstance(API_BASE_URL);
@@ -32,4 +38,16 @@ export const useVerifyEmail = () =>
   useMutation<void, Error, { code: string }>({
     mutationKey: ['verifyEmail'],
     mutationFn: (payload) => authService.verifyEmail(payload),
+  });
+
+export const useForgotPassword = () =>
+  useMutation<OTPEntity, Error, { email: string }>({
+    mutationKey: ['forgotPassword'],
+    mutationFn: (payload) => authService.forgotPassword(payload),
+  });
+
+export const useResetPassword = () =>
+  useMutation<void, Error, ResetPasswordDto>({
+    mutationKey: ['resetPassword'],
+    mutationFn: (payload) => authService.resetPassword(payload),
   });

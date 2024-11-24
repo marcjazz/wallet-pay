@@ -13,6 +13,12 @@ export interface OTPPayloadDto {
   code: string;
 }
 
+export interface ResetPasswordDto {
+  new_password: string;
+  otp_id: string;
+  otp_code: string;
+}
+
 export interface OTPEntity {
   otp_id: string;
   usage: OTPUsage;
