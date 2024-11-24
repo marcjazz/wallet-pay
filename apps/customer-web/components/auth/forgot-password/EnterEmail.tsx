@@ -15,11 +15,10 @@ import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { Mail as MailIcon } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import OTPBottomSheet from './OTPBottomSheet';
+import { useForgotPassword } from '../../../api/hooks/useAuth';
 
 export default function EnterEmail() {
   const { formatMessage } = useIntl();
@@ -36,20 +35,20 @@ export default function EnterEmail() {
     email: '',
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const { mutate: forgotPassword, isPending: isSubmitting } =
+    useForgotPassword();
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: (values, { resetForm }) => {
-      //TODO: CALL API HERE TO SUBMIT email
       //TODO: USE alert in case of error. will be replaced with proper notifications later
-      console.log(values);
-      setIsSubmitting(true);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setIsBottomSheetOpen(true);
-      }, 3000);
+      forgotPassword(
+        { email: values.email },
+        {
+          onSuccess: (data) => push(`/reset-password?otp_id=${data.otp_id}`),
+          onError: (error) => alert(error),
+        }
+      );
     },
   });
   const { errors, touched } = formik;
@@ -61,83 +60,74 @@ export default function EnterEmail() {
   };
 
   return (
-    <>
-      <OTPBottomSheet
-        isOpen={isBottomSheetOpen}
-        closeBottomSheet={(isOtpValid) => {
-          setIsBottomSheetOpen(false);
-          if (isOtpValid) push('/reset-password');
-        }}
-      />
-      <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
-        <Box sx={{ display: 'grid', rowGap: 2.25 }}>
-          <Typography variant="h1">
-            {formatMessage({ id: 'forgotYourPassword' })}
-          </Typography>
-          <Typography variant="p1r">
-            {formatMessage({ id: 'forgotPasswordDescription' })}
-          </Typography>
-        </Box>
+    <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
+      <Box sx={{ display: 'grid', rowGap: 2.25 }}>
+        <Typography variant="h1">
+          {formatMessage({ id: 'forgotYourPassword' })}
+        </Typography>
+        <Typography variant="p1r">
+          {formatMessage({ id: 'forgotPasswordDescription' })}
+        </Typography>
+      </Box>
 
-        <Box
-          component="form"
-          onSubmit={formik.handleSubmit}
-          sx={{ display: 'grid', gap: 3 }}
+      <Box
+        component="form"
+        onSubmit={formik.handleSubmit}
+        sx={{ display: 'grid', gap: 3 }}
+      >
+        <FormControl
+          disabled={isSubmitting}
+          required
+          error={!!(touched.email && errors.email)}
         >
-          <FormControl
+          <FormLabel htmlFor="email">
+            {formatMessage({ id: 'email' })}
+          </FormLabel>
+          <OutlinedInput
+            id="email"
+            type="email"
+            startAdornment={
+              <InputAdornment position="start">
+                <MailIcon color={theme.palette.grey[200]} size={18} />
+              </InputAdornment>
+            }
+            {...formik.getFieldProps('email')}
+            placeholder={formatMessage({ id: 'enterEmail' })}
+            autoFocus
+          />
+          <FormHelperText>{touched.email && errors.email}</FormHelperText>
+        </FormControl>
+        <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1.5 }}>
+          <Button
+            fullWidth
+            size="medium"
+            type="submit"
             disabled={isSubmitting}
-            required
-            error={!!(touched.email && errors.email)}
+            endIcon={
+              isSubmitting && <CircularProgress size={20} thickness={23} />
+            }
           >
-            <FormLabel htmlFor="email">
-              {formatMessage({ id: 'email' })}
-            </FormLabel>
-            <OutlinedInput
-              id="email"
-              type="email"
-              startAdornment={
-                <InputAdornment position="start">
-                  <MailIcon color={theme.palette.grey[200]} size={18} />
-                </InputAdornment>
-              }
-              {...formik.getFieldProps('email')}
-              placeholder={formatMessage({ id: 'enterEmail' })}
-              autoFocus
-            />
-            <FormHelperText>{touched.email && errors.email}</FormHelperText>
-          </FormControl>
-          <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1.5 }}>
-            <Button
-              fullWidth
-              size="medium"
-              type="submit"
-              disabled={isSubmitting}
-              endIcon={
-                isSubmitting && <CircularProgress size={20} thickness={23} />
-              }
+            {formatMessage({ id: 'sendCode' })}
+          </Button>
+          <Typography variant="p2r">
+            {formatMessage({ id: 'backTo' })}
+            <Typography
+              variant="p2r"
+              sx={{
+                color: theme.palette.primary.main,
+                fontWeight: 500,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                textDecoration: 'none',
+              }}
+              href="/login"
+              component={Link}
+              onClick={preventRouteWhenSubmitting}
             >
-              {formatMessage({ id: 'sendCode' })}
-            </Button>
-            <Typography variant="p2r">
-              {formatMessage({ id: 'backTo' })}
-              <Typography
-                variant="p2r"
-                sx={{
-                  color: theme.palette.primary.main,
-                  fontWeight: 500,
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  textDecoration: 'none',
-                }}
-                href="/login"
-                component={Link}
-                onClick={preventRouteWhenSubmitting}
-              >
-                {formatMessage({ id: 'login' })}
-              </Typography>
+              {formatMessage({ id: 'login' })}
             </Typography>
-          </Box>
+          </Typography>
         </Box>
       </Box>
-    </>
+    </Box>
   );
 }

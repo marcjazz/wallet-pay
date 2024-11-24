@@ -7,19 +7,37 @@ import {
   FormControl,
   FormHelperText,
   FormLabel,
+  InputAdornment,
   OutlinedInput,
   Typography,
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Key } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
+import { useResetPassword } from '../../../api/hooks/useAuth';
 
 export default function ResetPassword() {
   const { formatMessage } = useIntl();
+  const { push } = useRouter();
+  const query = useSearchParams();
+  const otpId = query.get('otp_id');
+
+  useEffect(() => {
+    if (!otpId) {
+      push('/forgot-password');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otpId]);
+
   const validationSchema = Yup.object({
+    otp: Yup.string()
+      .required(formatMessage({ id: 'requiredField' }))
+      .matches(/^\d{5}$/, formatMessage({ id: 'invalidOTP' })),
     password: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
       .min(3, formatMessage({ id: 'minPasswordCharacters' })),
@@ -30,23 +48,31 @@ export default function ResetPassword() {
   });
 
   const initialValues = {
+    otp: '',
     password: '',
     confirmPassword: '',
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: resetPassword, isPending: isSubmitting } = useResetPassword();
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: (values, { resetForm }) => {
-      //TODO: CALL API HERE TO SUBMIT reset password
       //TODO: USE alert in case of error. will be replaced with proper notifications later
-      setIsSubmitting(true);
-      setTimeout(() => {
-        resetForm();
-        setIsSubmitting(false);
-        console.log(values);
-      }, 3000);
+      resetPassword(
+        {
+          otp_code: values.otp,
+          new_password: values.password,
+          otp_id: otpId as string,
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+            push('/login');
+          },
+          onError: (error) => alert(error),
+        }
+      );
     },
   });
   const { errors, touched } = formik;
@@ -57,6 +83,29 @@ export default function ResetPassword() {
       event.preventDefault();
     }
   };
+
+  const [countdown, setCountdown] = useState(60);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
+  const [isCountingDown, setIsCountingDown] = useState(false);
+  function resendOtp() {
+    //TODO: CALL API TO RESEND OTP with OTPUsage.RESET_PASSWORD
+    setIsResendingOtp(true);
+    setTimeout(() => {
+      setIsResendingOtp(false);
+      setCountdown(60);
+      setIsCountingDown(true);
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === 0) {
+            clearInterval(interval);
+            setIsCountingDown(false);
+            return 60;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }, 3000);
+  }
 
   return (
     <Box sx={{ display: 'grid', gap: 6, padding: '30px 16px 10px 16px' }}>
@@ -74,6 +123,57 @@ export default function ResetPassword() {
         onSubmit={formik.handleSubmit}
         sx={{ display: 'grid', gap: 3 }}
       >
+        <FormControl
+          error={Boolean(touched.otp && errors.otp)}
+          required
+          fullWidth
+          disabled={isSubmitting}
+        >
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              justifyItems: 'end',
+              alignItems: 'end',
+            }}
+          >
+            <FormLabel htmlFor="otp">{formatMessage({ id: 'otp' })}</FormLabel>
+            {!isSubmitting && (
+              <Button
+                onClick={resendOtp}
+                variant="text"
+                size="small"
+                disabled={isResendingOtp || isCountingDown}
+                sx={{
+                  typography: 'l3r',
+                  color: theme.palette.primary.main,
+                  cursor: 'pointer',
+                  py: 0,
+                  '&:disabled': {
+                    color: 'black',
+                  },
+                }}
+              >
+                {isCountingDown
+                  ? `${formatMessage({ id: 'resendIn' })} (${countdown}s)`
+                  : formatMessage({ id: 'resendEmail' })}
+              </Button>
+            )}
+          </Box>
+          <OutlinedInput
+            id="otp"
+            {...formik.getFieldProps('otp')}
+            placeholder={formatMessage({ id: 'enterOtp' })}
+            autoFocus
+            endAdornment={
+              <InputAdornment position="end">
+                <Key size="20" color={theme.palette.grey[200]} />
+              </InputAdornment>
+            }
+          />
+          <FormHelperText error>{touched.otp && errors.otp}</FormHelperText>
+        </FormControl>
+
         <FormControl
           disabled={isSubmitting}
           required
