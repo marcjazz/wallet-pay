@@ -1,0 +1,45 @@
+FROM node:18-alpine as builder
+
+# #set the working directory
+WORKDIR /app
+
+# # install app dependencies
+COPY package.json ./
+
+# #clean install dependecies
+RUN npm install && npm run migrate-reset
+
+# RUN npm install --omit=dev && npm run migrate-reset
+
+# COPY workspace configs
+COPY ./tsconfig.base.json ./
+COPY ./nx.json ./
+
+# COPY REQUIRED LIBS AND CONCERNED APP
+COPY /libs ./libs
+COPY ./apps/wallet-api ./apps/wallet-api
+
+# # build Landing app
+# RUN npx nx run customer-web:build:production
+
+# Serve api app
+# RUN npx nx run wallet-api:serve
+
+# #DELETE SOURCE CODE FROM CONTAINER
+# RUN rm -r ./apps
+# RUN rm -r ./libs
+# RUN rm nx.json
+# RUN rm package.json
+# RUN rm package-lock.json
+# RUN rm tsconfig.base.json
+
+# # expose port 3000 to outer environment
+EXPOSE 5000
+
+# # run app
+# WORKDIR /app/dist/apps/customer-web
+# RUN npm run build
+
+# Serve api app
+CMD ["npx", "nx", "run", "wallet-api:serve"]
+# CMD ["npm", "start"]

@@ -13,7 +13,6 @@ import {
   VerifyCybridAccountDto,
 } from '../types/AccountTypes';
 
-//TODO: REMOVE LOCAL LINK
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const accountsService = new AccountService(apiClient);
 

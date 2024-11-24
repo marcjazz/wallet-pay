@@ -6,7 +6,6 @@ import { ApiClient } from '../services/ApiClient';
 import { UserService } from '../services/UserService';
 import { UserEntity } from '../types';
 
-//TODO: REMOVE LOCAL LINK
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const userService = new UserService(apiClient);
 

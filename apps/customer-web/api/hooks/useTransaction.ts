@@ -12,7 +12,6 @@ import {
   InitiateTransferDto,
 } from '../types/TransactionTypes';
 
-//TODO: REMOVE LOCAL LINK
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const transactionService = new TransactionService(apiClient);
 
