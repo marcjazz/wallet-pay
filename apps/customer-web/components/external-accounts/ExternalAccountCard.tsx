@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import {
   AlertTriangle,
@@ -7,18 +7,20 @@ import {
   RefreshCcw,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { ExternalAccount } from '../../app/external-accounts/page';
+import { useVerifyAccount } from '../../api/hooks/useAccounts';
+import { AccountType, VerificationStatus } from '../../api/types';
+import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
 
 export const kycChipVariants: Record<
-  ExternalAccountVerificationStatus,
+  VerificationStatus,
   { color: string; icon: JSX.Element }
 > = {
-  UNVERIFIED: {
+  EXPIRED: {
     color: 'error',
     icon: <AlertTriangle size={12} color="white" />,
   },
-  VERIFIED: {
+  COMPLETED: {
     color: 'primary',
     icon: <CheckCircle size={12} color="#157CFB" />,
   },
@@ -26,22 +28,48 @@ export const kycChipVariants: Record<
     color: 'warning',
     icon: <RefreshCcw size={12} />,
   },
+  REVIEWING: {
+    color: 'warning',
+    icon: <RefreshCcw size={12} />,
+  },
+  STORING: {
+    color: 'warning',
+    icon: <RefreshCcw size={12} />,
+  },
+  WAITING: {
+    color: 'warning',
+    icon: <RefreshCcw size={12} />,
+  },
 };
 
 interface ExternalAccountCardProps {
-  externalAccount: ExternalAccount;
+  externalAccount: ExternalBankAccountEntity;
   handleSelect: () => void;
+  refetchExternalAccounts: () => void;
 }
 export default function ExternalAccountCard({
   externalAccount,
   handleSelect,
+  refetchExternalAccounts,
 }: ExternalAccountCardProps) {
   const { formatMessage } = useIntl();
   const theme = useTheme();
 
+  const { mutate: handleVerifyAccount, isPending: isVerifyingAccount } =
+    useVerifyAccount();
+
   const verifyAccount = (cybrid_external_account_id: string) => {
-    //TODO: CALL API HERE TO VERIFY ACCOUNT
-    alert('Verifying Account');
+    handleVerifyAccount(
+      {
+        account_type: AccountType.EXTERNAL,
+        external_bank_account_id: cybrid_external_account_id,
+      },
+      {
+        onSuccess: () => refetchExternalAccounts(),
+        // TODO: USE alert in case of error. will be replaced with proper notifications later
+        onError: (error) => alert(error.message),
+      }
+    );
   };
 
   return (
@@ -64,72 +92,51 @@ export default function ExternalAccountCard({
             justifyItems: 'start',
           }}
         >
-          <Typography>{`${formatMessage({ id: 'account' })} ${
-            externalAccount.account_currency
-          }`}</Typography>
-          {/* {externalAccount.is_default && (
-            <Chip
-              label={formatMessage({ id: 'main' })}
-              size="small"
-              color="warning"
-              sx={{
-                bgcolor: theme.palette['secondary'].light,
-                color: theme.palette['secondary'].main,
-              }}
-            />
-          )} */}
+          <Typography>{externalAccount.name}</Typography>
           <Chip
             onClick={() => {
-              if (
-                externalAccount.verification_status ===
-                ExternalAccountVerificationStatus.UNVERIFIED
-              )
+              if (externalAccount.verification_status === null)
                 verifyAccount(externalAccount.cybrid_external_account_id);
             }}
-            label={formatMessage({ id: externalAccount.verification_status })}
+            label={formatMessage({
+              id:
+                externalAccount.verification_status ||
+                ExternalAccountVerificationStatus.UNVERIFIED,
+            })}
             size="small"
             sx={{
               typography: 'l3r',
               bgcolor:
                 theme.palette[
                   externalAccount.verification_status ===
-                  ExternalAccountVerificationStatus.VERIFIED
+                  VerificationStatus.COMPLETED
                     ? 'primary'
-                    : externalAccount.verification_status ===
-                      ExternalAccountVerificationStatus.UNVERIFIED
+                    : externalAccount.verification_status === null
                     ? 'error'
                     : 'secondary'
                 ].light,
               color:
                 externalAccount.verification_status ===
-                ExternalAccountVerificationStatus.VERIFIED
+                VerificationStatus.COMPLETED
                   ? theme.palette['primary'].main
-                  : externalAccount.verification_status ===
-                    ExternalAccountVerificationStatus.UNVERIFIED
+                  : externalAccount.verification_status === null
                   ? 'white'
                   : 'default',
             }}
-            icon={kycChipVariants[externalAccount.verification_status].icon}
+            icon={
+              isVerifyingAccount ? (
+                <CircularProgress size={12} thickness={4} />
+              ) : !externalAccount.verification_status ? (
+                <AlertTriangle size={12} color="white" />
+              ) : (
+                kycChipVariants[externalAccount.verification_status].icon
+              )
+            }
           />
         </Box>
 
-        {/* <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: 'auto 1fr',
-            alignItems: 'center',
-            justifyItems: 'start',
-            columnGap: 0.5,
-          }}
-        >
-          <Typography variant="h6" color="#BABDBE">
-            {externalAccount.account_currency}
-          </Typography> */}
         <Typography variant="h3" color="#BABDBE">
-          {`********${externalAccount.account_number}`.replace(
-            /(.{4})(?=.)/g,
-            '$1 '
-          )}
+          {`********${externalAccount.mask}`.replace(/(.{4})(?=.)/g, '$1 ')}
         </Typography>
         {/* </Box> */}
       </Box>

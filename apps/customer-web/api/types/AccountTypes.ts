@@ -1,8 +1,8 @@
 import {
-    AccountType,
-    Currency,
-    ExternalAccountStatus,
-    VerificationStatus,
+  AccountType,
+  Currency,
+  ExternalAccountStatus,
+  VerificationStatus,
 } from './EnumTypes';
 
 /**
@@ -151,4 +151,19 @@ export interface CreateExternalAccountDto {
   plaid_account_mask: string;
   /** Currency of the account. */
   currency: Currency;
+}
+
+/**
+ * Entity representing a Plaid connection workflow.
+ */
+export interface WorkflowEntity {
+  guid?: string;
+  bank_guid?: string | null;
+  customer_guid?: string | null;
+  type?: string;
+  state?: string;
+  failure_code?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  plaid_link_token?: string | null;
 }

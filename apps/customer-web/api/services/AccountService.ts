@@ -1,12 +1,13 @@
-import { ApiClient } from './ApiClient';
 import {
+  CreateExternalAccountDto,
+  CreateWorkflowDto,
   CybridAccountEntity,
   ExternalBankAccountEntity,
-  VerifyCybridAccountDto,
   IdentityVerificationEntity,
-  CreateWorkflowDto,
-  CreateExternalAccountDto,
+  VerifyCybridAccountDto,
+  WorkflowEntity,
 } from '../types/AccountTypes';
+import { ApiClient } from './ApiClient';
 
 /**
  * Service for interacting with `/accounts` endpoints.
@@ -51,8 +52,8 @@ export class AccountService {
    * @param payload Workflow initialization details.
    * @returns Workflow creation confirmation (empty object).
    */
-  async createWorkflow(payload: CreateWorkflowDto): Promise<void> {
-    return this.apiClient.post<void>(
+  async createWorkflow(payload: CreateWorkflowDto): Promise<WorkflowEntity> {
+    return this.apiClient.post<WorkflowEntity>(
       '/api/v1/accounts/init-plaid-connect',
       payload
     );

@@ -11,6 +11,7 @@ import {
   ExternalBankAccountEntity,
   IdentityVerificationEntity,
   VerifyCybridAccountDto,
+  WorkflowEntity,
 } from '../types/AccountTypes';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
@@ -35,10 +36,15 @@ export const useCybridAccounts = () => {
  * Hook for fetching all external bank accounts.
  */
 export const useExternalAccounts = () => {
-  return useQuery<ExternalBankAccountEntity[], Error>({
+  const tt = useQuery<ExternalBankAccountEntity[], Error>({
     queryKey: ['externalAccounts'],
     queryFn: () => accountsService.findAllExternals(),
+    // initialData: [],
   });
+  const { isError, error } = tt;
+  //TODO: USE alert in case of error. will be replaced with proper notifications later
+  if (isError) alert(error.message);
+  return tt;
 };
 
 /**
@@ -57,7 +63,7 @@ export const useVerifyAccount = () => {
  * Hook for initializing a Plaid connection workflow.
  */
 export const useCreateWorkflow = () => {
-  return useMutation<void, Error, CreateWorkflowDto>({
+  return useMutation<WorkflowEntity, Error, CreateWorkflowDto>({
     mutationKey: ['createWorkflow'],
     mutationFn: (payload) => accountsService.createWorkflow(payload),
   });
