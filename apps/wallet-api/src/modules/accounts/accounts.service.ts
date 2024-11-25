@@ -83,15 +83,7 @@ export class AccountsService {
       });
     } else {
       await this.prismaService.cybridCustomer.update({
-        data: {
-          ...verificationPayload,
-          CybridAccounts: {
-            updateMany: {
-              data: verificationPayload,
-              where: { cybrid_customer_id: customer.cybrid_customer_id },
-            },
-          },
-        },
+        data: verificationPayload,
         where: { cybrid_customer_id: customer.cybrid_customer_id },
       });
     }
