@@ -1,6 +1,8 @@
 import {
   AccessTokenResponse,
   ForgotPasswordDto,
+  OTPEntity,
+  ResetPasswordDto,
   SignInDto,
   SignUpDto,
 } from '../types';
@@ -30,8 +32,16 @@ export class AuthService {
     return tokenResp;
   }
 
-  async forgotPassword(payload: ForgotPasswordDto): Promise<void> {
-    await this.apiClient.post('/api/v1/auth/forgot-password', payload);
+  async verifyEmail(payload: { code: string }): Promise<void> {
+    await this.apiClient.post('/api/v1/auth/verify-email', payload);
+  }
+
+  async forgotPassword(payload: ForgotPasswordDto): Promise<OTPEntity> {
+    return await this.apiClient.post('/api/v1/auth/forgot-password', payload);
+  }
+
+  async resetPassword(payload: ResetPasswordDto): Promise<void> {
+    await this.apiClient.post('/api/v1/auth/reset-password', payload);
   }
 
   async refreshToken(): Promise<AccessTokenResponse> {

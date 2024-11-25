@@ -100,7 +100,7 @@ export class ResetPasswordDto {
 
   @ApiProperty()
   @IsStrongPassword()
-  password: string;
+  new_password: string;
 
   constructor(props: ResetPasswordDto) {
     Object.assign(this, props);

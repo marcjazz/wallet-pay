@@ -2,10 +2,11 @@
 
 import { Box, Divider, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useSignUp } from '../../../api/hooks/useAuth';
-import { Country, Gender } from '../../../api/types/EnumTypes';
+import { useSignUp, useVerifyEmail } from '../../../api/hooks/useAuth';
+import { Country, Gender, OTPUsage } from '../../../api/types/EnumTypes';
 import OTPBottomSheet from '../../../components/auth/forgot-password/OTPBottomSheet';
 import RegisterPartOne from '../../../components/auth/register/RegisterPartOne';
 import RegisterPartTwo from '../../../components/auth/register/RegisterPartTwo';
@@ -39,6 +40,7 @@ export default function Register() {
 
   const { formatMessage } = useIntl();
   const theme = useTheme();
+  const { push } = useRouter();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [maxAccessibleStep, setMaxAccessibleStep] = useState<Step>(1);
 
@@ -70,9 +72,8 @@ export default function Register() {
 
   function submitRegister(data: SecurityInfo) {
     if (!personalInfo) return;
-
-    //TODO: CALL API HERE TO SUBMIT REGISTER
     //TODO: the accept terms and conditions should be added to payload
+    //TODO: USE alert in case of error. will be replaced with proper notifications later
     signUp(
       {
         birthdate: personalInfo.dateOfBirth,
@@ -88,9 +89,9 @@ export default function Register() {
       },
       {
         onSuccess: (data) => setIsConfirmEmailBottomSheetOpen(true),
+        onError: (error) => alert(error),
       }
     );
-    //TODO: USE alert in case of error. will be replaced with proper notifications later
     setSecurityInfo(data);
   }
 
@@ -112,11 +113,25 @@ export default function Register() {
     ),
   };
 
+  const { mutate: verifyEmail, isPending: isVerifyingEmail } = useVerifyEmail();
+  function submitOTP(otp?: string) {
+    if (!otp) return setIsConfirmEmailBottomSheetOpen(false);
+    verifyEmail(
+      { code: otp },
+      {
+        onSuccess: () => push('/'),
+        onError: (error) => alert(error),
+      }
+    );
+  }
+
   return (
     <>
       <OTPBottomSheet
         isOpen={isConfirmEmailBottomSheetOpen}
-        closeBottomSheet={() => setIsConfirmEmailBottomSheetOpen(false)}
+        isSubmitting={isVerifyingEmail}
+        otpUsage={OTPUsage.VERIFY_EMAIL}
+        closeBottomSheet={submitOTP}
         confirmText={formatMessage({ id: 'confirmEmail' })}
         description={formatMessage({ id: 'confirmEmailDescription' })}
         title={formatMessage({ id: 'confirmEmail' })}
@@ -174,70 +189,6 @@ export default function Register() {
         </Box>
 
         {currentStepComponent[currentStep]}
-
-        {/* <Box
-        sx={{
-          display: 'grid',
-          rowGap: 1.5,
-        }}
-      >
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 2.25,
-          }}
-        >
-          <Button
-            onClick={handleBackStep}
-            variant="text"
-            size="medium"
-            sx={{ justifySelf: 'start' }}
-            disabled={currentStep === MIN_STEP || isSubmitting}
-            startIcon={
-              <ArrowLeft
-                color={
-                  currentStep === MIN_STEP
-                    ? theme.palette.primary.light
-                    : theme.palette.primary.dark
-                }
-                size="24"
-              />
-            }
-          >
-            Back
-          </Button>
-
-          <Button
-            onClick={handleNextStep}
-            variant="contained"
-            size="medium"
-            sx={{ justifySelf: 'end' }}
-            disabled={isSubmitting || currentStep === MAX_STEPS}
-            endIcon={<ArrowRight size="24" />}
-          >
-            Next
-          </Button>
-        </Box>
-
-        <Typography variant="p2r" sx={{ justifySelf: 'center' }}>
-          {formatMessage({ id: 'dontHaveAnAccount' })}
-          <Typography
-            variant="p2r"
-            sx={{
-              color: theme.palette.primary.main,
-              fontWeight: 500,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              textDecoration: 'none',
-            }}
-            href="/register"
-            component={Link}
-            onClick={preventRouteWhenSubmitting}
-          >
-            {formatMessage({ id: 'register' })}
-          </Typography>
-        </Typography>
-      </Box> */}
       </Box>
     </>
   );

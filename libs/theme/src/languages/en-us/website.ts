@@ -179,4 +179,5 @@ export const website = {
   confirmEmail: 'Confirm Email',
   confirmEmailDescription:
     'A confirmation email has been sent to your email address. Please enter the code to verify your account.',
+  gender: 'Gender',
 };

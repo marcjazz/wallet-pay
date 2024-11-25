@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
   CybridCustomerStatus,
@@ -23,7 +24,6 @@ import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { RoleEnum } from './auth.decorator';
 import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -221,7 +221,7 @@ export class AuthService {
     return otp;
   }
 
-  async resetPassword({ otp_code, otp_id, password }: ResetPasswordDto) {
+  async resetPassword({ otp_code, otp_id, new_password }: ResetPasswordDto) {
     const user = await this.prismaService.personHasRole.findFirst({
       include: { Person: true },
       where: { OTPs: { some: { otp_id } } },
@@ -244,7 +244,7 @@ export class AuthService {
     await this.prismaService.person.update({
       data: {
         password: bcrypt.hashSync(
-          password,
+          new_password,
           bcrypt.genSaltSync(
             Number(this.configService.get<number>('SALT_ROUNDS'))
           )

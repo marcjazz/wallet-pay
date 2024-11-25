@@ -9,38 +9,41 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material';
-import { BottomSheet } from '@tchakoumi/handy-components';
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { Key } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
+import { OTPUsage } from '../../../api/types';
+import BottomSheet from '../../shared/BottomSheet';
 
 interface OTPBottomSheetProps {
   isOpen: boolean;
-  closeBottomSheet: (isOtpValid: boolean) => void;
+  closeBottomSheet: (isOtpValid?: string) => void;
+  otpUsage: OTPUsage;
   title?: string;
   description?: string;
   confirmText?: string;
+  isSubmitting?: boolean;
 }
 
 export default function OTPBottomSheet({
   isOpen,
   closeBottomSheet,
   title,
+  otpUsage,
   description,
   confirmText,
+  isSubmitting,
 }: OTPBottomSheetProps) {
   const { formatMessage } = useIntl();
   const theme = useTheme();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const validationSchema = Yup.object({
     otp: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
-      .matches(/^\d{4}$/, formatMessage({ id: 'invalidOTP' })),
+      .matches(/^\d{5}$/, formatMessage({ id: 'invalidOTP' })),
   });
 
   const initialValues = {
@@ -51,15 +54,8 @@ export default function OTPBottomSheet({
     initialValues,
     validationSchema,
     onSubmit: (values, { resetForm }) => {
-      //TODO: CALL API HERE TO SUBMIT OTP
-      setIsSubmitting(true);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        // TODO: if the otp validation was correct, send true, else false
-        // TODO: send the otp value to the parent component, to be used in the API call, the parent might have to verify the otp before executing the transaction.
-        closeBottomSheet(true);
-        resetForm();
-      }, 3000);
+      closeBottomSheet(values.otp);
+      resetForm();
     },
   });
   const { errors, touched } = formik;
@@ -68,7 +64,7 @@ export default function OTPBottomSheet({
   const [isResendingOtp, setIsResendingOtp] = useState(false);
   const [isCountingDown, setIsCountingDown] = useState(false);
   function resendOtp() {
-    //TODO: CALL API TO RESEND OTP
+    //TODO: CALL API TO RESEND OTP with otpUsage
     setIsResendingOtp(true);
     setTimeout(() => {
       setIsResendingOtp(false);
@@ -90,7 +86,7 @@ export default function OTPBottomSheet({
   return (
     <BottomSheet
       open={isOpen}
-      closeBottomSheet={() => closeBottomSheet(false)}
+      closeBottomSheet={closeBottomSheet}
       disableSwipeToClose
       sx={{
         backgroundColor: 'green',
@@ -149,7 +145,6 @@ export default function OTPBottomSheet({
           </Box>
           <OutlinedInput
             id="otp"
-            type="number"
             {...formik.getFieldProps('otp')}
             placeholder={formatMessage({ id: 'enterOtp' })}
             autoFocus
@@ -177,7 +172,7 @@ export default function OTPBottomSheet({
             size="small"
             variant="text"
             disabled={isSubmitting}
-            onClick={() => closeBottomSheet(false)}
+            onClick={() => closeBottomSheet()}
           >
             {formatMessage({ id: 'cancel' })}
           </Button>
