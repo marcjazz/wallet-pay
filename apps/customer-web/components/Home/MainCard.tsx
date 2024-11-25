@@ -1,4 +1,10 @@
-import { Box, Button, Skeleton, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Skeleton,
+  Typography,
+} from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -8,8 +14,12 @@ import {
   Plus as PlusIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { useCybridAccounts } from '../../api/hooks/useAccounts';
+import {
+  useCybridAccounts,
+  useVerifyAccount,
+} from '../../api/hooks/useAccounts';
 import { useCurrencies } from '../../api/hooks/useCurrency';
+import { AccountType } from '../../api/types';
 import { CybridAccountEntity } from '../../api/types/AccountTypes';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
@@ -68,6 +78,9 @@ export default function MainCard() {
 
   const [isDepositBottomSheetOpen, setIsDepositBottomSheetOpen] =
     useState(false);
+
+  const { mutate: verifyAccount, isPending: isVerifyingAccount } =
+    useVerifyAccount();
 
   return (
     <>
@@ -166,38 +179,58 @@ export default function MainCard() {
                   )?.xaf_rate
             }XAF`}</Typography>
           )}
-          <Box
-            sx={{
-              backgroundColor: '#157CFB',
-              padding: '24px 16px',
-              borderRadius: 1.5,
-              justifySelf: 'stretch',
-              display: 'grid',
-              gridAutoFlow: 'column',
-            }}
-          >
-            {majorActions.map(({ action, icon, title }, index) => (
+          {activeAccount &&
+            (activeAccount.verification_status !== null ? (
               <Box
-                component={Button}
-                variant="text"
-                key={index}
                 sx={{
+                  backgroundColor: '#157CFB',
+                  padding: '24px 16px',
+                  borderRadius: 1.5,
+                  justifySelf: 'stretch',
                   display: 'grid',
-                  justifyItems: 'center',
-                  padding: 0,
-                  '&:hover': {
-                    background: 'transparent',
-                  },
+                  gridAutoFlow: 'column',
                 }}
-                onClick={action}
               >
-                {icon}
-                <Typography variant="p1m" sx={{ color: 'white' }}>
-                  {title}
-                </Typography>
+                {majorActions.map(({ action, icon, title }, index) => (
+                  <Box
+                    component={Button}
+                    variant="text"
+                    key={index}
+                    sx={{
+                      display: 'grid',
+                      justifyItems: 'center',
+                      padding: 0,
+                      '&:hover': {
+                        background: 'transparent',
+                      },
+                    }}
+                    onClick={action}
+                  >
+                    {icon}
+                    <Typography variant="p1m" sx={{ color: 'white' }}>
+                      {title}
+                    </Typography>
+                  </Box>
+                ))}
               </Box>
+            ) : (
+              // TODO: REMOVE LATER AND PUT IN MANAGE ACCOUNTS PAGE
+              <Button
+                color="warning"
+                fullWidth
+                onClick={() =>
+                  verifyAccount({ account_type: AccountType.FIAT })
+                }
+                disabled={isVerifyingAccount}
+                endIcon={
+                  isVerifyingAccount && (
+                    <CircularProgress size={20} thickness={23} />
+                  )
+                }
+              >
+                Verify Now
+              </Button>
             ))}
-          </Box>
         </Box>
       </Box>
     </>
