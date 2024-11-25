@@ -15,13 +15,16 @@ import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
+import { useSignIn } from '../../../api/hooks/useAuth';
 import styles from './login.module.css';
 
 export default function Login() {
   const { formatMessage } = useIntl();
+  const { push } = useRouter();
+
   const validationSchema = Yup.object({
     email: Yup.string()
       .email(formatMessage({ id: 'invalidEmail' }))
@@ -36,19 +39,19 @@ export default function Login() {
     password: '',
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: signIn, isPending: isSubmitting } = useSignIn();
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: (values, { resetForm }) => {
-      //TODO: CALL API HERE TO SUBMIT LOGIN
-      //TODO: USE alert in case of error. will be replaced with proper notifications later
-      console.log(values);
-      setIsSubmitting(true);
-      setTimeout(() => {
-        resetForm();
-        setIsSubmitting(false);
-      }, 3000);
+    onSubmit: (values, { setFieldValue }) => {
+      signIn(values, {
+        onSuccess: () => push('/'),
+        onError: (error) => {
+          //TODO: USE alert in case of error. will be replaced with proper notifications later
+          alert(error.message);
+          setFieldValue('password', '');
+        },
+      });
     },
   });
   const { errors, touched } = formik;
