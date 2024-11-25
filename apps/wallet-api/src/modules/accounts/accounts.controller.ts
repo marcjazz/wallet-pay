@@ -15,11 +15,9 @@ import {
 } from '@nestjs/swagger';
 import { $Enums } from '@prisma/client';
 import { Request } from 'express';
-import { OTPService } from '../../app/two-fa/otp/otp.service';
 import { CybridAccountEnum } from '../../types/cybrid/enums';
 import { AccountsService } from './accounts.service';
 import {
-  CreatedWorkFlowDto,
   CreateExternalAccountDto,
   CreateWorkflowDto,
   CybridAccountEntity,
@@ -34,10 +32,7 @@ import {
 @ApiTags('Accounts')
 @Controller('accounts')
 export class AccountsController {
-  constructor(
-    private readonly otpService: OTPService,
-    private readonly accountsService: AccountsService
-  ) {}
+  constructor(private readonly accountsService: AccountsService) {}
 
   @Get()
   @ApiOkResponse({ type: [CybridAccountEntity] })
@@ -106,7 +101,7 @@ export class AccountsController {
   }
 
   @Post('init-plaid-connect')
-  @ApiCreatedResponse({ type: CreatedWorkFlowDto })
+  @ApiCreatedResponse({ type: WorkflowEntity })
   @ApiOperation({
     summary: "Connect to customer's external bank account by starting a flow.",
   })

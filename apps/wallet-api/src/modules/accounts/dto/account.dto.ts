@@ -105,12 +105,6 @@ export class IdentityVerificationEntity {
   }
 }
 
-export class CreatedWorkFlowDto implements WorkflowBankModel {
-  constructor(props: CreatedWorkFlowDto) {
-    Object.assign(this, props);
-  }
-}
-
 export class WorkflowEntity implements WorkflowBankModel {
   @ApiPropertyOptional()
   guid?: string;
