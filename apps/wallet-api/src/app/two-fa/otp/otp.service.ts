@@ -20,7 +20,7 @@ export class OTPService implements ITwoFAService<OTP> {
           this.configService.get('NODE_ENV') === 'test'
             ? '55555'
             : generateOtp(5),
-        expires_at: new Date(Date.now() + 120_000), // 2min validity
+        expires_at: new Date(Date.now() + 300_000), // 5min validity
         PersonHasRole: { connect: { person_has_role_id: userId } },
       },
     });
