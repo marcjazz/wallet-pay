@@ -1,5 +1,5 @@
-import { Menu, MenuItem, MenuList, Typography } from '@mui/material';
-import { Account } from './MainCard';
+import { Menu, MenuItem, MenuList } from '@mui/material';
+import { CybridAccountEntity } from '../../api/types/AccountTypes';
 
 export default function AccountMenu({
   closeMenu,
@@ -11,8 +11,8 @@ export default function AccountMenu({
   closeMenu: () => void;
   anchorEl: HTMLElement | null;
   isOpen: boolean;
-  onSelect: (selected_cybrid_account_id: string) => void;
-  accounts: Account[];
+  onSelect: (account: CybridAccountEntity) => void;
+  accounts: CybridAccountEntity[];
 }) {
   return (
     <Menu
@@ -29,17 +29,20 @@ export default function AccountMenu({
       onClose={closeMenu}
     >
       <MenuList dense disablePadding>
-        {accounts.map(({ cybrid_account_id, currency }) => (
-          <MenuItem
-            key={cybrid_account_id}
-            onClick={() => onSelect(cybrid_account_id)}
-            sx={{
-              typography: 'button',
-            }}
-          >
-            {`${currency}`}
-          </MenuItem>
-        ))}
+        {accounts.map((account) => {
+          const { cybrid_account_id, currency } = account;
+          return (
+            <MenuItem
+              key={cybrid_account_id}
+              onClick={() => onSelect(account)}
+              sx={{
+                typography: 'button',
+              }}
+            >
+              {`${currency}`}
+            </MenuItem>
+          );
+        })}
       </MenuList>
     </Menu>
   );
