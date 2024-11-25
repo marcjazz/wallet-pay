@@ -41,12 +41,12 @@ export default function EnterEmail() {
     initialValues,
     validationSchema,
     onSubmit: (values, { resetForm }) => {
-      //TODO: USE alert in case of error. will be replaced with proper notifications later
       forgotPassword(
         { email: values.email },
         {
           onSuccess: (data) => push(`/reset-password?otp_id=${data.otp_id}`),
-          onError: (error) => alert(error),
+          //TODO: USE alert in case of error. will be replaced with proper notifications later
+          onError: (error) => alert(error.message),
         }
       );
     },

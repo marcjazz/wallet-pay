@@ -58,7 +58,6 @@ export default function ResetPassword() {
     initialValues,
     validationSchema,
     onSubmit: (values, { resetForm }) => {
-      //TODO: USE alert in case of error. will be replaced with proper notifications later
       resetPassword(
         {
           otp_code: values.otp,
@@ -70,7 +69,8 @@ export default function ResetPassword() {
             resetForm();
             push('/login');
           },
-          onError: (error) => alert(error),
+          //TODO: USE alert in case of error. will be replaced with proper notifications later
+          onError: (error) => alert(error.message),
         }
       );
     },
