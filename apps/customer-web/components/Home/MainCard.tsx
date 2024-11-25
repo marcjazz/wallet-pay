@@ -43,8 +43,11 @@ export default function MainCard() {
   const { formatNumber, formatMessage } = useIntl();
   const { push } = useRouter();
 
-  const { data: accounts, isLoading: isActiveAccountLoading } =
-    useCybridAccounts();
+  const {
+    data: accounts,
+    isLoading: isActiveAccountLoading,
+    refetch: refetchAccounts,
+  } = useCybridAccounts();
 
   useEffect(() => {
     if (accounts && accounts.length > 0) {
@@ -219,7 +222,14 @@ export default function MainCard() {
                 color="warning"
                 fullWidth
                 onClick={() =>
-                  verifyAccount({ account_type: AccountType.FIAT })
+                  verifyAccount(
+                    { account_type: AccountType.FIAT },
+                    {
+                      onSuccess: () => refetchAccounts(),
+                      // TODO: USE alert in case of error. will be replaced with proper notifications later
+                      onError: (error) => alert(error.message),
+                    }
+                  )
                 }
                 disabled={isVerifyingAccount}
                 endIcon={
