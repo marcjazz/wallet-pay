@@ -12,6 +12,11 @@ export class ApiClient {
     baseURL: string,
     private authToken?: AccessTokenResponse
   ) {
+    const storedToken = localStorage.getItem('authToken');
+    if (storedToken) {
+      this.authToken = JSON.parse(storedToken);
+    }
+
     this.client = axios.create({
       baseURL,
       withCredentials: true,
@@ -38,6 +43,7 @@ export class ApiClient {
 
   setAuthToken(token: AccessTokenResponse): void {
     this.authToken = token;
+    localStorage.setItem('authToken', JSON.stringify(token));
   }
 
   private async handleTokenRefresh(): Promise<AccessTokenResponse> {
