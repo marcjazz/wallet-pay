@@ -1,8 +1,8 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
+import Mail from 'nodemailer/lib/mailer';
 import { mailerConstants } from './constant';
-import { ISendTextMail } from './mailer.interface';
 
 @Injectable()
 export class MailerService {
@@ -16,7 +16,7 @@ export class MailerService {
   async sendText({
     from = 'PAY.XAFSHOP LLC support@xafshop.com',
     ...payload
-  }: ISendTextMail) {
+  }: Mail.Options) {
     this.logger.debug('Add text-mailer job to queue...');
 
     this.mailerQueue.add('text-mailer', { ...payload, from });

@@ -4,10 +4,3 @@ export interface MailerOptions {
   host?: string;
   secure: boolean;
 }
-
-export interface ISendTextMail {
-  to: string;
-  from?: string;
-  subject: string;
-  text: string;
-}

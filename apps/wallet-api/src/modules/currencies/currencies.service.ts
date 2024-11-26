@@ -114,7 +114,7 @@ export class CurrenciesService {
         });
       this.logger.log('Successfully fetched currencies from fastforex.com...');
     } catch (error) {
-      console.log(error.cause);
+      console.log(error);
       this.logger.error(error);
     }
   }
