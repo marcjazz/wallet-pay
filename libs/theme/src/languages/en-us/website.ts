@@ -185,4 +185,9 @@ export const website = {
   confirmDeposit: 'Confirm Deposit',
   confirmDepositDescription:
     'Enter the one-time password sent to your email address to confirm the deposit',
+  otpViaEmail: 'One Time Password via email',
+  authenticatorApp: 'Authenticator App',
+  biometrics: 'Biometrics',
+  comingSoon: 'Coming Soon',
+  verificationMethods: 'Two-Factor Authentication Methods',
 };
