@@ -181,4 +181,7 @@ export const website = {
     'A confirmation email has been sent to your email address. Please enter the code to verify your account.',
   gender: 'Gender',
   accountName: 'Account Name',
+  confirmDeposit: 'Confirm Deposit',
+  confirmDepositDescription:
+    'Enter the one-time password sent to your email address to confirm the deposit',
 };

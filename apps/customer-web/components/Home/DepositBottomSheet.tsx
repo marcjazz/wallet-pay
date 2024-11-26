@@ -117,10 +117,12 @@ export default function DepositBottomSheet({
                   formik.resetForm();
                   setIsOtpBottomSheetOpen(false);
                   closeBottomSheet();
+                  alert('hello');
                 },
                 onError: (error) => {
                   //TODO: USE alert in case of error. will be replaced with proper notifications later
                   alert(error.message);
+                  setIsOtpBottomSheetOpen(false);
                 },
               }
             );
@@ -128,8 +130,12 @@ export default function DepositBottomSheet({
             setIsOtpBottomSheetOpen(false);
           }
         }}
+        isSubmitting={isRequestingOtp}
         isOpen={isOtpBottomSheetOpen}
         otpUsage={OTPUsage.TRANSFER}
+        title={formatMessage({ id: 'confirmTransaction' })}
+        confirmText={formatMessage({ id: 'confirmDeposit' })}
+        description={formatMessage({ id: 'confirmDepositDescription' })}
       />
       <BottomSheet
         open={isOpen && !isOtpBottomSheetOpen}
