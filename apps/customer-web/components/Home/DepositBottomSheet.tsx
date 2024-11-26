@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useFormik } from 'formik';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronDown } from 'react-feather';
 import { useIntl } from 'react-intl';
@@ -36,6 +37,7 @@ export default function DepositBottomSheet({
   closeBottomSheet,
   isOpen,
 }: DepositBottomSheetProps) {
+  const { push } = useRouter();
   const { formatMessage } = useIntl();
 
   const { data: externalAccounts, isFetching: isLoadingExternalAccounts } =
@@ -90,11 +92,6 @@ export default function DepositBottomSheet({
     },
   });
   const { errors, touched } = formik;
-
-  const handleAddExternalAccount = () => {
-    //TODO: call api to add external account
-    alert('Feature Is Coming Soon');
-  };
 
   return (
     <>
@@ -157,14 +154,14 @@ export default function DepositBottomSheet({
                 textAlign: 'center',
               }}
             >
-              {formatMessage({ id: 'noExternalAccount' })}
+              {formatMessage({ id: 'noVerifiedExternalAccount' })}
             </Typography>
             <Button
               variant="contained"
               color="primary"
-              onClick={handleAddExternalAccount}
+              onClick={() => push('/external-accounts')}
             >
-              {formatMessage({ id: 'addExternalAccount' })}
+              {formatMessage({ id: 'goToExternalAccounts' })}
             </Button>
           </Box>
         ) : (
