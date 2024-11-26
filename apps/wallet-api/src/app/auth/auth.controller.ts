@@ -74,7 +74,7 @@ export class AuthController {
     // Set new Http-Only cookies
     this.setCookies(tokens, res);
 
-    return res.status(HttpStatus.CREATED).json(
+    res.status(HttpStatus.CREATED).json(
       new AccessTokenResponse({
         expires_in: 900000, // 15 minutes
         token_type: 'Bearer',
@@ -100,7 +100,7 @@ export class AuthController {
     // Set new Http-Only cookies
     this.setCookies(tokens, res);
 
-    return res.status(HttpStatus.CREATED).json(
+    res.status(HttpStatus.CREATED).json(
       new AccessTokenResponse({
         expires_in: 900000, // 15 minutes
         token_type: 'Bearer',
@@ -135,7 +135,7 @@ export class AuthController {
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies?.refresh_token; // Get from Http-Only cookie
     if (!refreshToken) {
-      return res.status(HttpStatus.FORBIDDEN).json({
+      res.status(HttpStatus.FORBIDDEN).json({
         statusCode: HttpStatus.FORBIDDEN,
         timestamp: new Date().toISOString(),
         message: 'Refresh token not found!',
@@ -147,7 +147,7 @@ export class AuthController {
     // Set new Http-Only cookies
     this.setCookies(tokens, res);
 
-    return res.status(HttpStatus.CREATED).json(
+    res.status(HttpStatus.CREATED).json(
       new AccessTokenResponse({
         expires_in: 900000, // 15 minutes
         token_type: 'Bearer',
@@ -185,9 +185,7 @@ export class AuthController {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
 
-    return res
-      .status(HttpStatus.OK)
-      .json({ message: 'Logged out successfully' });
+    res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
   }
 
   private setCookies(tokens: AuthTokensDto, res: Response) {

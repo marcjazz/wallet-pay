@@ -54,14 +54,5 @@ export class CybridModule {
   constructor() {
     // providing ajax feature on server for cybrid dependency
     global.XMLHttpRequest = require('xhr2');
-    process.on('uncaughtException', (error) => {
-      console.error('Uncaught Exception:', error);
-      // Optionally perform cleanup and exit
-    });
-
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-      // Optionally perform cleanup and exit
-    });
   }
 }
