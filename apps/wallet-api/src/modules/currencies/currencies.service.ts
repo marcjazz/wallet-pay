@@ -26,13 +26,20 @@ export class CurrenciesService {
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService
   ) {
-    this.monitor();
+    this.syncCurrencies();
   }
 
   async findAll(is_active?: boolean): Promise<CurrencyEntity[]> {
     const currencies = await this.prismaService.supportedCurrency.findMany({
       where: { is_active },
     });
+
+    // Refetching currencies if needed
+    if (currencies.length === 0) {
+      await this.syncCurrencies();
+      return this.findAll(is_active);
+    }
+
     return currencies.map((currency) => new CurrencyEntity(currency));
   }
 
@@ -41,7 +48,8 @@ export class CurrenciesService {
       ? CronExpression.EVERY_MINUTE
       : CronExpression.EVERY_2_HOURS
   )
-  async monitor() {
+  async syncCurrencies() {
+    this.logger.log('Fetching currencies from fastforex.com...');
     try {
       const admin = await this.prismaService.personHasRole.findFirst({
         where: {
@@ -104,9 +112,10 @@ export class CurrenciesService {
           ),
           skipDuplicates: true,
         });
+      this.logger.log('Successfully fetched currencies from fastforex.com...');
     } catch (error) {
       console.log(error.cause);
-      Logger.error(error, CurrenciesService.name);
+      this.logger.error(error);
     }
   }
 
