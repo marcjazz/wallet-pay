@@ -1,3 +1,4 @@
+import { VerificationStatus } from '../types';
 import {
   CreateExternalAccountDto,
   CreateWorkflowDto,
@@ -27,9 +28,13 @@ export class AccountService {
    * Fetch all external bank accounts.
    * @returns Array of external bank accounts.
    */
-  async findAllExternals(): Promise<ExternalBankAccountEntity[]> {
+  async findAllExternals(
+    verificationStatus?: VerificationStatus
+  ): Promise<ExternalBankAccountEntity[]> {
     return this.apiClient.get<ExternalBankAccountEntity[]>(
-      '/api/v1/accounts/externals'
+      `/api/v1/accounts/externals${
+        verificationStatus ? `?verification_status=${verificationStatus}` : ''
+      }`
     );
   }
 

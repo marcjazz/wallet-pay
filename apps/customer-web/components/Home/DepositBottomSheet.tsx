@@ -19,7 +19,12 @@ import * as Yup from 'yup';
 import { useExternalAccounts } from '../../api/hooks/useAccounts';
 import { useRequestOtp } from '../../api/hooks/useOtp';
 import { useInitiateTransfer } from '../../api/hooks/useTransaction';
-import { Currency, OTPUsage, TransferType } from '../../api/types';
+import {
+  Currency,
+  OTPUsage,
+  TransferType,
+  VerificationStatus,
+} from '../../api/types';
 import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import BottomSheet from '../shared/BottomSheet';
 
@@ -34,7 +39,7 @@ export default function DepositBottomSheet({
   const { formatMessage } = useIntl();
 
   const { data: externalAccounts, isFetching: isLoadingExternalAccounts } =
-    useExternalAccounts();
+    useExternalAccounts(VerificationStatus.COMPLETED);
 
   const validationSchema = Yup.object({
     amount: Yup.number()

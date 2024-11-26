@@ -60,7 +60,8 @@ export class TransactionsService {
       throw new NotFoundException('Source bank account not found!');
     }
 
-    const { customerGuid, accountGuid } = customerAccount;
+    const { customerGuid, accountGuid, externalAccountGuid } = customerAccount;
+    console.log(customerAccount);
     const accountId = payload.cybrid_source_account_id;
 
     let counterpartyCreateInput = null;
@@ -151,7 +152,18 @@ export class TransactionsService {
             }
           : {
               fiat_account_guid: accountGuid,
-              external_bank_account_guid: payload.cybrid_source_account_id,
+              external_bank_account_guid: externalAccountGuid,
+              bank_fiat_account_guid: this.configService.get(
+                'CYBRID_BANK_ACCOUNT_GUID'
+              ),
+              destination_participants: [
+                {
+                  guid: accountGuid,
+                  amount: payload.amount,
+                  type: PostTransferParticipantBankModelTypeEnum.Customer,
+                },
+              ],
+
             }),
       }
     );
@@ -285,7 +297,12 @@ export class TransactionsService {
     type CustomerAccountGuids = {
       customerGuid: string;
       accountGuid: string;
+      externalAccountGuid?: string;
     };
+
+    console.log('sourceAccountId', sourceAccountId);
+    console.log('transferType', transferType);
+    console.log('personId', personId);
 
     let customerAccount: CustomerAccountGuids | null = null;
     if (transferType === PostTransferBankModelTransferTypeEnum.Book) {
@@ -308,9 +325,11 @@ export class TransactionsService {
         };
       }
     } else {
+      console.log('Entered the else block');
       const externalAccount =
         await this.prismaService.cybridExternalAccount.findFirst({
           select: {
+            cybrid_external_account_guid: true,
             CybridCustomer: {
               select: {
                 cybrid_customer_guid: true,
@@ -323,15 +342,19 @@ export class TransactionsService {
             CybridCustomer: { person_id: personId },
           },
         });
+      console.log('externalAccount', externalAccount);
       if (externalAccount) {
         const {
           CybridCustomer: {
+            cybrid_customer_guid,
             CybridAccounts: [{ cybrid_account_guid }],
           },
+          cybrid_external_account_guid,
         } = externalAccount;
         customerAccount = {
           accountGuid: cybrid_account_guid,
-          customerGuid: externalAccount.CybridCustomer.cybrid_customer_guid,
+          customerGuid: cybrid_customer_guid,
+          externalAccountGuid: cybrid_external_account_guid,
         };
       }
     }

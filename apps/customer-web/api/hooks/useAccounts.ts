@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../constants';
 import { AccountService } from '../services/AccountService';
 import { ApiClient } from '../services/ApiClient';
+import { VerificationStatus } from '../types/EnumTypes';
 import {
   CreateExternalAccountDto,
   CreateWorkflowDto,
@@ -35,10 +36,10 @@ export const useCybridAccounts = () => {
 /**
  * Hook for fetching all external bank accounts.
  */
-export const useExternalAccounts = () => {
+export const useExternalAccounts = (verificationStatus?:VerificationStatus) => {
   const tt = useQuery<ExternalBankAccountEntity[], Error>({
     queryKey: ['externalAccounts'],
-    queryFn: () => accountsService.findAllExternals(),
+    queryFn: () => accountsService.findAllExternals(verificationStatus),
     initialData: [],
   });
   const { isError, error } = tt;
