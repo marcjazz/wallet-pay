@@ -54,7 +54,7 @@ export class AccountsController {
     @Req() request: Request,
     @Query(
       'verification_status',
-      new ParseEnumPipe($Enums.IdentityVerificationStatus)
+      new ParseEnumPipe($Enums.IdentityVerificationStatus, { optional: true })
     )
     verificationStatus: $Enums.IdentityVerificationStatus
   ) {
