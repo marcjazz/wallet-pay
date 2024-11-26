@@ -63,7 +63,7 @@ export class CybridSubscriptionsGuard implements CanActivate {
       return (
         !errors.length &&
         eventObject.organization_guid ===
-          this.configService.get('CYBRID_ORGANIZATION_ID') &&
+          this.configService.get('CYBRID_ORGANIZATION_GUID') &&
         eventObject.sandbox ===
           (this.configService.get('NODE_ENV') !== 'production')
       );

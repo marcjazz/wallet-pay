@@ -44,7 +44,7 @@ export class TransactionsService {
       transferType == PostTransferBankModelTransferTypeEnum.InstantFunding ||
       transferType == PostTransferBankModelTransferTypeEnum.Funding;
 
-    if (isBookTransfer || isFundingTransfer) {
+    if (!isBookTransfer && !isFundingTransfer) {
       throw new NotImplementedException(
         `${transferType} transfers not implemented yet!`
       );
@@ -60,7 +60,8 @@ export class TransactionsService {
       throw new NotFoundException('Source bank account not found!');
     }
 
-    const { accountId, customerGuid, accountGuid } = customerAccount;
+    const { customerGuid, accountGuid } = customerAccount;
+    const accountId = payload.cybrid_source_account_id;
 
     let counterpartyCreateInput = null;
     if (receiver?.cybrid_counterparty_id) {
@@ -122,22 +123,22 @@ export class TransactionsService {
         // adjusting transfer payload accordingly
         ...(isBookTransfer && counterpartyCreateInput
           ? {
-              source_account_guid: payload.cybrid_source_account_id,
+              source_account_guid: accountGuid,
               source_participants: [
                 {
+                  guid: accountGuid,
                   amount: payload.amount,
-                  guid: payload.cybrid_source_account_id,
                   type: PostTransferParticipantBankModelTypeEnum.Customer,
                 },
               ],
               destination_account_guid: this.configService.get(
-                'CYBRID_BANK_ACCOUNT_ID'
+                'CYBRID_BANK_ACCOUNT_GUID'
               ),
               destination_participants: [
                 {
                   amount: payload.amount,
                   guid: this.configService.get<string>(
-                    'CYBRID_BANK_ACCOUNT_ID'
+                    'CYBRID_BANK_ACCOUNT_GUID'
                   ) as string,
                   type: PostTransferParticipantBankModelTypeEnum.Bank,
                 },
@@ -281,17 +282,15 @@ export class TransactionsService {
     sourceAccountId: string,
     transferType: PostTransferBankModelTransferTypeEnum
   ) {
-    type CustomerAccountType = {
-      accountId: string;
+    type CustomerAccountGuids = {
       customerGuid: string;
       accountGuid: string;
     };
 
-    let customerAccount: CustomerAccountType | null = null;
+    let customerAccount: CustomerAccountGuids | null = null;
     if (transferType === PostTransferBankModelTransferTypeEnum.Book) {
       const cybridAccount = await this.prismaService.cybridAccount.findFirst({
         select: {
-          cybrid_account_id: true,
           cybrid_account_guid: true,
           CybridCustomer: {
             select: { cybrid_customer_guid: true, CybridAccounts: true },
@@ -305,7 +304,6 @@ export class TransactionsService {
       if (cybridAccount) {
         customerAccount = {
           accountGuid: cybridAccount.cybrid_account_guid,
-          accountId: cybridAccount.cybrid_account_id,
           customerGuid: cybridAccount.CybridCustomer.cybrid_customer_guid,
         };
       }
@@ -314,7 +312,10 @@ export class TransactionsService {
         await this.prismaService.cybridExternalAccount.findFirst({
           select: {
             CybridCustomer: {
-              select: { cybrid_customer_guid: true, CybridAccounts: true },
+              select: {
+                cybrid_customer_guid: true,
+                CybridAccounts: { select: { cybrid_account_guid: true } },
+              },
             },
           },
           where: {
@@ -325,11 +326,10 @@ export class TransactionsService {
       if (externalAccount) {
         const {
           CybridCustomer: {
-            CybridAccounts: [{ cybrid_account_guid, cybrid_account_id }],
+            CybridAccounts: [{ cybrid_account_guid }],
           },
         } = externalAccount;
         customerAccount = {
-          accountId: cybrid_account_id,
           accountGuid: cybrid_account_guid,
           customerGuid: externalAccount.CybridCustomer.cybrid_customer_guid,
         };
