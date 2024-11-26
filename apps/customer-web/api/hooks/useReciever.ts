@@ -6,7 +6,6 @@ import { ApiClient } from '../services/ApiClient';
 import { ReceiverService } from '../services/ReceiverService';
 import { ReceiverEntity } from '../types';
 
-//TODO: REMOVE LOCAL LINK
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const receiverService = new ReceiverService(apiClient);
 

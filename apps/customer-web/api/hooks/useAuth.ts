@@ -12,7 +12,6 @@ import {
   SignUpDto,
 } from '../types';
 
-//TODO: REMOVE LOCAL LINK
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const authService = new AuthService(apiClient);
 

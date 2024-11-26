@@ -73,7 +73,6 @@ export default function Register() {
   function submitRegister(data: SecurityInfo) {
     if (!personalInfo) return;
     //TODO: the accept terms and conditions should be added to payload
-    //TODO: USE alert in case of error. will be replaced with proper notifications later
     signUp(
       {
         birthdate: personalInfo.dateOfBirth,
@@ -89,7 +88,8 @@ export default function Register() {
       },
       {
         onSuccess: (data) => setIsConfirmEmailBottomSheetOpen(true),
-        onError: (error) => alert(error),
+        //TODO: USE alert in case of error. will be replaced with proper notifications later
+        onError: (error) => alert(error.message),
       }
     );
     setSecurityInfo(data);
@@ -120,7 +120,8 @@ export default function Register() {
       { code: otp },
       {
         onSuccess: () => push('/'),
-        onError: (error) => alert(error),
+        //TODO: USE alert in case of error. will be replaced with proper notifications later
+        onError: (error) => alert(error.message),
       }
     );
   }

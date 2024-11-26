@@ -1,6 +1,12 @@
-import { Box, Button, Skeleton, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Skeleton,
+  Typography,
+} from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowUpRight as ArrowUpRightIcon,
   ChevronDown as ChevronDownIcon,
@@ -8,14 +14,23 @@ import {
   Plus as PlusIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
+import {
+  useCybridAccounts,
+  useVerifyAccount,
+} from '../../api/hooks/useAccounts';
+import { useCurrencies } from '../../api/hooks/useCurrency';
+import { AccountType } from '../../api/types';
+import { CybridAccountEntity } from '../../api/types/AccountTypes';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
 
+// TODO: LOOK AT DELETING THIS INTERFACE AND CHANGE INSTANCES TO Currency from api types
 export enum CurrencyEnum {
   USD = 'USD',
   CAD = 'CAD',
 }
 
+// TODO: LOOK AT DELETING THIS INTERFACE and change instances to CybridAccountEntity from api types
 export interface Account {
   cybrid_account_id: string;
   currency: CurrencyEnum;
@@ -28,33 +43,17 @@ export default function MainCard() {
   const { formatNumber, formatMessage } = useIntl();
   const { push } = useRouter();
 
-  //TODO: CALL API TO FETCH ACCOUNTS
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      cybrid_account_id: '1',
-      currency: CurrencyEnum['USD'],
-      account_balance: 352479.9,
-      xaf_conversion_rate: 600,
-      account_number: '7815',
-    },
-    {
-      cybrid_account_id: '2',
-      currency: CurrencyEnum['CAD'],
-      account_balance: 2479.9,
-      xaf_conversion_rate: 400,
-      account_number: '1588',
-    },
-  ]);
+  const { data: accounts, isLoading: isActiveAccountLoading } =
+    useCybridAccounts();
 
-  const [isActiveAccountLoading, setIsActiveAccountLoading] =
-    useState<boolean>(false);
-  const [activeAccount, setActiveAccount] = useState<Account>({
-    cybrid_account_id: '',
-    currency: CurrencyEnum['USD'],
-    account_balance: 352479.9,
-    xaf_conversion_rate: 600,
-    account_number: '7815',
-  });
+  useEffect(() => {
+    if (accounts && accounts.length > 0) {
+      setActiveAccount(accounts[0]);
+    }
+  }, [accounts]);
+
+  const { data: currencies, isLoading: areCurrenciesLoading } = useCurrencies();
+  const [activeAccount, setActiveAccount] = useState<CybridAccountEntity>();
 
   const majorActions = [
     {
@@ -77,30 +76,11 @@ export default function MainCard() {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
 
-  function changeActiveAccount(selected_cybrid_account_id: string) {
-    setIsAccountMenuOpen(false);
-    setAnchorEl(null);
-    const selectedAccount = accounts.find(
-      (account) => account.cybrid_account_id === selected_cybrid_account_id
-    );
-    if (
-      selectedAccount &&
-      selected_cybrid_account_id !== activeAccount.cybrid_account_id
-    ) {
-      setIsActiveAccountLoading(true);
-      setActiveAccount((prev) => ({
-        ...prev,
-        ...selectedAccount,
-      }));
-      //TODO: CALL API TO FETCH DATA FOR SELECTED ACCOUNT
-      setTimeout(() => {
-        setIsActiveAccountLoading(false);
-      }, 3000);
-    }
-  }
-
   const [isDepositBottomSheetOpen, setIsDepositBottomSheetOpen] =
     useState(false);
+
+  const { mutate: verifyAccount, isPending: isVerifyingAccount } =
+    useVerifyAccount();
 
   return (
     <>
@@ -112,7 +92,11 @@ export default function MainCard() {
         closeMenu={() => setIsAccountMenuOpen(false)}
         anchorEl={anchorEl}
         isOpen={isAccountMenuOpen}
-        onSelect={changeActiveAccount}
+        onSelect={(newActiveAccount) => {
+          setIsAccountMenuOpen(false);
+          setAnchorEl(null);
+          setActiveAccount(newActiveAccount);
+        }}
         accounts={accounts}
       />
       <Box
@@ -126,98 +110,127 @@ export default function MainCard() {
           rowGap: 4,
         }}
       >
-        <Box
-          sx={{
-            display: 'grid',
-            justifyItems: 'center',
-          }}
-        >
-          <Button
-            variant="text"
-            color="inherit"
-            endIcon={<ChevronDownIcon size={20} />}
-            size="small"
-            sx={{
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-            }}
-            onClick={(event) => {
-              setAnchorEl(event.currentTarget);
-              setIsAccountMenuOpen(true);
-            }}
-          >{`${formatMessage({ id: 'account' })} ${
-            activeAccount.currency
-          }`}</Button>
-          <Typography
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
-              alignItems: 'center',
-              columnGap: 1,
-              color: '#BABDBE',
-            }}
-            variant="h4"
-          >
-            {activeAccount.currency}
-            <Typography variant="h1" sx={{ color: 'white' }} component="span">
-              {isActiveAccountLoading ? (
-                <Skeleton
-                  sx={{
-                    minWidth: '100px',
-                    backgroundColor: 'rgb(179 167 167 / 12%)',
-                  }}
-                />
-              ) : (
-                formatNumber(activeAccount.account_balance, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
-              )}
-            </Typography>
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1 }}>
-          <Typography
-            variant="p1m"
-            sx={{ color: 'white', fontWeight: 700 }}
-          >{`1${activeAccount.currency} = ${
-            isActiveAccountLoading ? '... ' : activeAccount.xaf_conversion_rate
-          }XAF`}</Typography>
+        {/* TODO: ADD SKELETON SCREEN FOR WHEN ACTIVE ACCT IS NOT PRESENT (DATA IS LOADING) */}
+        {activeAccount && (
           <Box
             sx={{
-              backgroundColor: '#157CFB',
-              padding: '24px 16px',
-              borderRadius: 1.5,
-              justifySelf: 'stretch',
               display: 'grid',
-              gridAutoFlow: 'column',
+              justifyItems: 'center',
             }}
           >
-            {majorActions.map(({ action, icon, title }, index) => (
-              <Box
-                component={Button}
-                variant="text"
-                key={index}
-                sx={{
-                  display: 'grid',
-                  justifyItems: 'center',
-                  padding: 0,
-                  '&:hover': {
-                    background: 'transparent',
-                  },
-                }}
-                onClick={action}
-              >
-                {icon}
-                <Typography variant="p1m" sx={{ color: 'white' }}>
-                  {title}
-                </Typography>
-              </Box>
-            ))}
+            <Button
+              variant="text"
+              color="inherit"
+              endIcon={<ChevronDownIcon size={20} />}
+              size="small"
+              sx={{
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                },
+              }}
+              onClick={(event) => {
+                setAnchorEl(event.currentTarget);
+                setIsAccountMenuOpen(true);
+              }}
+            >{`${formatMessage({ id: 'account' })} ${
+              activeAccount.currency
+            }`}</Button>
+            <Typography
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr',
+                alignItems: 'center',
+                columnGap: 1,
+                color: '#BABDBE',
+              }}
+              variant="h4"
+            >
+              {activeAccount.currency}
+              <Typography variant="h1" sx={{ color: 'white' }} component="span">
+                {isActiveAccountLoading ? (
+                  <Skeleton
+                    sx={{
+                      minWidth: '100px',
+                      backgroundColor: 'rgb(179 167 167 / 12%)',
+                    }}
+                  />
+                ) : (
+                  formatNumber(activeAccount.balance, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })
+                )}
+              </Typography>
+            </Typography>
           </Box>
+        )}
+
+        <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1 }}>
+          {activeAccount && (
+            <Typography
+              variant="p1m"
+              sx={{ color: 'white', fontWeight: 700 }}
+            >{`1${activeAccount.currency} = ${
+              areCurrenciesLoading
+                ? '... '
+                : currencies?.find(
+                    (currency) => currency.currency === activeAccount.currency
+                  )?.xaf_rate
+            }XAF`}</Typography>
+          )}
+          {activeAccount &&
+            (activeAccount.verification_status !== null ? (
+              <Box
+                sx={{
+                  backgroundColor: '#157CFB',
+                  padding: '24px 16px',
+                  borderRadius: 1.5,
+                  justifySelf: 'stretch',
+                  display: 'grid',
+                  gridAutoFlow: 'column',
+                }}
+              >
+                {majorActions.map(({ action, icon, title }, index) => (
+                  <Box
+                    component={Button}
+                    variant="text"
+                    key={index}
+                    sx={{
+                      display: 'grid',
+                      justifyItems: 'center',
+                      padding: 0,
+                      '&:hover': {
+                        background: 'transparent',
+                      },
+                    }}
+                    onClick={action}
+                  >
+                    {icon}
+                    <Typography variant="p1m" sx={{ color: 'white' }}>
+                      {title}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              // TODO: REMOVE LATER AND PUT IN MANAGE ACCOUNTS PAGE
+              <Button
+                color="warning"
+                fullWidth
+                onClick={() =>
+                  verifyAccount({ account_type: AccountType.FIAT })
+                }
+                disabled={isVerifyingAccount}
+                endIcon={
+                  isVerifyingAccount && (
+                    <CircularProgress size={20} thickness={23} />
+                  )
+                }
+              >
+                Verify Now
+              </Button>
+            ))}
         </Box>
       </Box>
     </>
