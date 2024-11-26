@@ -55,6 +55,7 @@
     "react-feather": "^2.0.10",
     "react-intl": "^6.6.8",
     "react-lottie": "^1.2.4",
+    "react-plaid-link": "^3.6.1",
     "react-toastify": "^10.0.5",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",

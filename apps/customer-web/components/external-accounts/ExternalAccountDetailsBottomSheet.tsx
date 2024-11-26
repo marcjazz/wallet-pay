@@ -1,7 +1,9 @@
 import { Box, Chip, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
+import { AlertTriangle } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { ExternalAccount } from '../../app/external-accounts/page';
+import { VerificationStatus } from '../../api/types';
+import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
 import BottomSheet from '../shared/BottomSheet';
 import { kycChipVariants } from './ExternalAccountCard';
@@ -9,7 +11,7 @@ import { kycChipVariants } from './ExternalAccountCard';
 interface ExternalAccountDetailsBottomSheetProps {
   closeBottomSheet: () => void;
   isOpen: boolean;
-  externalAccount: ExternalAccount;
+  externalAccount: ExternalBankAccountEntity;
 }
 export default function ExternalAccountDetailsBottomSheet({
   externalAccount,
@@ -40,10 +42,10 @@ export default function ExternalAccountDetailsBottomSheet({
           }}
         >
           <Typography variant="l3r">
-            {formatMessage({ id: 'accountCurrency' })}
+            {formatMessage({ id: 'accountName' })}
           </Typography>
           <Typography variant="h4" color="#BABDBE">
-            {externalAccount.account_currency}
+            {externalAccount.name}
           </Typography>
         </Box>
 
@@ -59,10 +61,7 @@ export default function ExternalAccountDetailsBottomSheet({
             {formatMessage({ id: 'accountNumber' })}
           </Typography>
           <Typography variant="h4" color="#BABDBE">
-            {`********${externalAccount.account_number}`.replace(
-              /(.{4})(?=.)/g,
-              '$1 '
-            )}
+            {`********${externalAccount.mask}`.replace(/(.{4})(?=.)/g, '$1 ')}
           </Typography>
         </Box>
 
@@ -88,36 +87,41 @@ export default function ExternalAccountDetailsBottomSheet({
           </Box>
           <Chip
             onClick={() => {
-              if (
-                externalAccount.verification_status ===
-                ExternalAccountVerificationStatus.UNVERIFIED
-              )
+              if (externalAccount.verification_status === null)
                 verifyAccount(externalAccount.cybrid_external_account_id);
             }}
-            label={formatMessage({ id: externalAccount.verification_status })}
+            label={formatMessage({
+              id:
+                externalAccount.verification_status ||
+                ExternalAccountVerificationStatus.UNVERIFIED,
+            })}
             size="small"
             sx={{
               typography: 'l3r',
               bgcolor:
                 theme.palette[
                   externalAccount.verification_status ===
-                  ExternalAccountVerificationStatus.VERIFIED
+                  VerificationStatus.COMPLETED
                     ? 'primary'
-                    : externalAccount.verification_status ===
-                      ExternalAccountVerificationStatus.UNVERIFIED
+                    : externalAccount.verification_status === null
                     ? 'error'
                     : 'secondary'
                 ].light,
               color:
                 externalAccount.verification_status ===
-                ExternalAccountVerificationStatus.VERIFIED
+                VerificationStatus.COMPLETED
                   ? theme.palette['primary'].main
-                  : externalAccount.verification_status ===
-                    ExternalAccountVerificationStatus.UNVERIFIED
+                  : externalAccount.verification_status === null
                   ? 'white'
                   : 'default',
             }}
-            icon={kycChipVariants[externalAccount.verification_status].icon}
+            icon={
+              !externalAccount.verification_status ? (
+                <AlertTriangle size={12} color="white" />
+              ) : (
+                kycChipVariants[externalAccount.verification_status].icon
+              )
+            }
           />
         </Box>
       </Box>

@@ -1,15 +1,28 @@
 'use client';
 
-import { Box, Button, IconButton, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Scrollbars from 'rc-scrollbars';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, Plus } from 'react-feather';
 import { useIntl } from 'react-intl';
+import {
+  useCreateWorkflow,
+  useExternalAccounts,
+} from '../../api/hooks/useAccounts';
+import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { CurrencyEnum } from '../../components/Home/MainCard';
 import ExternalAccountCard from '../../components/external-accounts/ExternalAccountCard';
 import ExternalAccountDetailsBottomSheet from '../../components/external-accounts/ExternalAccountDetailsBottomSheet';
 import NewExternalAccountBottomSheet from '../../components/external-accounts/NewExternalAccountBottomSheet';
+import Plaid from '../../components/external-accounts/Plaid';
 import Footer from '../../components/layout/footer/Footer';
 import { ExternalAccountVerificationStatus } from '../../types';
 
@@ -29,56 +42,20 @@ export default function ExternalAccounts() {
   const { formatMessage } = useIntl();
   const { push } = useRouter();
 
-  const [areExternalAccountsLoading, setAreExternalAccountsLoading] =
-    useState(false);
-  const [externalAccounts, setExternalAccounts] = useState<ExternalAccount[]>(
-    []
-  );
-
-  useEffect(() => {
-    setAreExternalAccountsLoading(true);
-    setTimeout(() => {
-      setAreExternalAccountsLoading(false);
-      setExternalAccounts([
-        {
-          cybrid_external_account_id: '1',
-          verification_status: ExternalAccountVerificationStatus.VERIFIED,
-          account_currency: CurrencyEnum.USD,
-          account_number: '1234',
-          total_deposited: 1000,
-          total_withdrawn: 500,
-          is_default: true,
-          is_enabled: true,
-          account_balance: 500,
-        },
-        {
-          cybrid_external_account_id: '2',
-          verification_status: ExternalAccountVerificationStatus.UNVERIFIED,
-          account_currency: CurrencyEnum.CAD,
-          account_number: '4321',
-          total_deposited: 500,
-          total_withdrawn: 200,
-          is_default: false,
-          is_enabled: true,
-          account_balance: 300,
-        },
-        {
-          cybrid_external_account_id: '2',
-          verification_status: ExternalAccountVerificationStatus.PENDING,
-          account_currency: CurrencyEnum.CAD,
-          account_number: '9876',
-          total_deposited: 500,
-          total_withdrawn: 200,
-          is_default: false,
-          is_enabled: true,
-          account_balance: 300,
-        },
-      ]);
-    }, 3000);
-  }, []);
+  const { mutate: createWorkflow, isPending: isCreateWorkflowLoading } =
+    useCreateWorkflow();
+  const [plaidLinkToken, setPlaidLinkToken] = useState<
+    string | null | undefined
+  >();
+  const [isConnectingPlaid, setIsConnectingPlaid] = useState(false);
+  const {
+    data: externalAccounts,
+    isLoading: areExternalAccountsLoading,
+    refetch: refetchExternalAccounts,
+  } = useExternalAccounts();
 
   const [selectedExternalAccount, setSelectedExternalAccount] =
-    useState<ExternalAccount>();
+    useState<ExternalBankAccountEntity>();
 
   const [
     isAddNewExternalAccountBottomSheetOpen,
@@ -92,6 +69,16 @@ export default function ExternalAccounts() {
           closeBottomSheet={() => setSelectedExternalAccount(undefined)}
           externalAccount={selectedExternalAccount}
           isOpen={!!selectedExternalAccount}
+        />
+      )}
+      {isConnectingPlaid && plaidLinkToken && (
+        <Plaid
+          setIsSubmitting={setIsConnectingPlaid}
+          plaidPublicToken={plaidLinkToken}
+          handleSuccess={() => {
+            setPlaidLinkToken(undefined);
+            refetchExternalAccounts();
+          }}
         />
       )}
       <NewExternalAccountBottomSheet
@@ -153,19 +140,7 @@ export default function ExternalAccounts() {
             >
               {formatMessage({ id: 'loadingExternalAccounts' })}
             </Typography>
-          ) : externalAccounts.length ? (
-            <Scrollbars universal autoHide>
-              {externalAccounts.map((externalAccount) => (
-                <ExternalAccountCard
-                  key={externalAccount.cybrid_external_account_id}
-                  externalAccount={externalAccount}
-                  handleSelect={() =>
-                    setSelectedExternalAccount(externalAccount)
-                  }
-                />
-              ))}
-            </Scrollbars>
-          ) : (
+          ) : !externalAccounts || !externalAccounts.length ? (
             <Typography
               variant="p2r"
               sx={{
@@ -177,12 +152,41 @@ export default function ExternalAccounts() {
             >
               {formatMessage({ id: 'noExternalAccounts' })}
             </Typography>
+          ) : (
+            <Scrollbars universal autoHide>
+              {externalAccounts.map((externalAccount) => (
+                <ExternalAccountCard
+                  refetchExternalAccounts={refetchExternalAccounts}
+                  key={externalAccount.cybrid_external_account_id}
+                  externalAccount={externalAccount}
+                  handleSelect={() =>
+                    setSelectedExternalAccount(externalAccount)
+                  }
+                />
+              ))}
+            </Scrollbars>
           )}
 
           <Button
             variant="outlined"
             startIcon={<Plus />}
-            onClick={() => setIsAddNewExternalAccountBottomSheetOpen(true)}
+            disabled={isCreateWorkflowLoading || isConnectingPlaid}
+            endIcon={
+              (isCreateWorkflowLoading || isConnectingPlaid) && (
+                <CircularProgress size={20} thickness={23} />
+              )
+            }
+            onClick={() => {
+              setIsConnectingPlaid(true);
+              createWorkflow(
+                {},
+                {
+                  onSuccess: (data) => setPlaidLinkToken(data.plaid_link_token),
+                  //TODO: USE alert in case of error. will be replaced with proper notifications later
+                  onError: (error) => alert(error.message),
+                }
+              );
+            }}
           >
             {formatMessage({ id: 'addExternalAccount' })}
           </Button>
