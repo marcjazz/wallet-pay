@@ -5,7 +5,7 @@ import {
   PostIdentityVerificationBankModelTypeEnum,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { $Enums } from '@prisma/client';
+import { $Enums, IdentityVerificationStatus } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -94,10 +94,16 @@ export class AccountsService {
     );
   }
 
-  async findExternalAccounts(personId: string) {
+  async findExternalAccounts(
+    personId: string,
+    verificationStatus?: IdentityVerificationStatus
+  ) {
     const cybridCustomers =
       await this.prismaService.cybridExternalAccount.findMany({
-        where: { CybridCustomer: { person_id: personId } },
+        where: {
+          verification_status: verificationStatus,
+          CybridCustomer: { person_id: personId },
+        },
       });
     return cybridCustomers;
   }

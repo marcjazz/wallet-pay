@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  ParseEnumPipe,
   Post,
+  Query,
   Req,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -48,9 +50,17 @@ export class AccountsController {
 
   @Get('externals')
   @ApiOkResponse({ type: [CybridAccountEntity] })
-  async findAllExternals(@Req() request: Request) {
+  async findAllExternals(
+    @Req() request: Request,
+    @Query(
+      'verification_status',
+      new ParseEnumPipe($Enums.IdentityVerificationStatus)
+    )
+    verificationStatus: $Enums.IdentityVerificationStatus
+  ) {
     const accounts = await this.accountsService.findExternalAccounts(
-      request.user?.person_id as string
+      request.user?.person_id as string,
+      verificationStatus
     );
     return accounts.map((account) => new CybridExternalAccountEntity(account));
   }
