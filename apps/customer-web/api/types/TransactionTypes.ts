@@ -17,7 +17,7 @@ export interface InitiateTransferDto {
   /** OTP details for verification. */
   otp: OTPPayloadDto;
   /** Receiver payout information. */
-  receiver: ReceiverPayoutInfoDto;
+  receiver?: ReceiverPayoutInfoDto;
 }
 
 /**
