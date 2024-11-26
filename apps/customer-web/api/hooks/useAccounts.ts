@@ -39,7 +39,7 @@ export const useExternalAccounts = () => {
   const tt = useQuery<ExternalBankAccountEntity[], Error>({
     queryKey: ['externalAccounts'],
     queryFn: () => accountsService.findAllExternals(),
-    // initialData: [],
+    initialData: [],
   });
   const { isError, error } = tt;
   //TODO: USE alert in case of error. will be replaced with proper notifications later
