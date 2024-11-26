@@ -179,7 +179,7 @@ export default function MainCard() {
                 ? '... '
                 : currencies?.find(
                     (currency) => currency.currency === activeAccount.currency
-                  )?.xaf_rate
+                  )?.xaf_rate??'...'
             }XAF`}</Typography>
           )}
           {activeAccount &&
