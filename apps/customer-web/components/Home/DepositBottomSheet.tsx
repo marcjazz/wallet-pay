@@ -19,7 +19,12 @@ import * as Yup from 'yup';
 import { useExternalAccounts } from '../../api/hooks/useAccounts';
 import { useRequestOtp } from '../../api/hooks/useOtp';
 import { useInitiateTransfer } from '../../api/hooks/useTransaction';
-import { Currency, OTPUsage, TransferType } from '../../api/types';
+import {
+  Currency,
+  OTPUsage,
+  TransferType,
+  VerificationStatus,
+} from '../../api/types';
 import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import BottomSheet from '../shared/BottomSheet';
 
@@ -34,7 +39,7 @@ export default function DepositBottomSheet({
   const { formatMessage } = useIntl();
 
   const { data: externalAccounts, isFetching: isLoadingExternalAccounts } =
-    useExternalAccounts();
+    useExternalAccounts(VerificationStatus.COMPLETED);
 
   const validationSchema = Yup.object({
     amount: Yup.number()
@@ -112,10 +117,12 @@ export default function DepositBottomSheet({
                   formik.resetForm();
                   setIsOtpBottomSheetOpen(false);
                   closeBottomSheet();
+                  alert('hello');
                 },
                 onError: (error) => {
                   //TODO: USE alert in case of error. will be replaced with proper notifications later
                   alert(error.message);
+                  setIsOtpBottomSheetOpen(false);
                 },
               }
             );
@@ -123,8 +130,12 @@ export default function DepositBottomSheet({
             setIsOtpBottomSheetOpen(false);
           }
         }}
+        isSubmitting={isRequestingOtp}
         isOpen={isOtpBottomSheetOpen}
         otpUsage={OTPUsage.TRANSFER}
+        title={formatMessage({ id: 'confirmTransaction' })}
+        confirmText={formatMessage({ id: 'confirmDeposit' })}
+        description={formatMessage({ id: 'confirmDepositDescription' })}
       />
       <BottomSheet
         open={isOpen && !isOtpBottomSheetOpen}

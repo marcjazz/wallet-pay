@@ -9,13 +9,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import {
-  CybridTransactionEntity,
-  InitiateTransferDto,
-  QueryTransactionDto,
-} from './transaction.dto';
-import { TransactionsService } from './transactions.service';
-import { TwoFAUsage } from '../../app/two-fa/two-fa.interface';
-import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOperation,
@@ -23,6 +16,13 @@ import {
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { OTPService } from '../../app/two-fa/otp/otp.service';
+import { TwoFAUsage } from '../../app/two-fa/two-fa.interface';
+import {
+  CybridTransactionEntity,
+  InitiateTransferDto,
+  QueryTransactionDto,
+} from './transaction.dto';
+import { TransactionsService } from './transactions.service';
 
 @ApiBearerAuth()
 @ApiTags('Transactions')
@@ -55,7 +55,7 @@ export class TransactionsController {
     }
 
     return this.transactionsService.initiateTransfer(
-      req.user?.id as string,
+      req.user?.person_id as string,
       payload
     );
   }
