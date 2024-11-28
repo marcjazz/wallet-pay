@@ -190,4 +190,12 @@ export const website = {
   biometrics: 'Biometrics',
   comingSoon: 'Coming Soon',
   verificationMethods: 'Two-Factor Authentication Methods',
+  totalTransfered: 'Total Transfered',
+  loadingAccounts: 'Loading your accounts...',
+  preferredLanguage: 'Preferred Language',
+  noAccounts: 'No accounts',
+  english: 'English',
+  french: 'Français',
+  german: 'Deutsch',
+  partnerTermsAndConditions: 'Partner Terms and Conditions',
 };
