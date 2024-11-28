@@ -107,3 +107,19 @@ export enum Currency {
   USD = 'USD',
   CAD = 'CAD',
 }
+
+/**
+ * Enum for Cameroon regions
+ */
+export enum CameroonRegions {
+  ADAMAOUA = 'AD',
+  CENTRE = 'CE',
+  EAST = 'ES',
+  FAR_NORTH = 'EN',
+  LITTORAL = 'LT',
+  NORTH = 'NO',
+  NORTH_WEST = 'NW',
+  SOUTH = 'SU',
+  SOUTH_WEST = 'SW',
+  WEST = 'OU',
+}
