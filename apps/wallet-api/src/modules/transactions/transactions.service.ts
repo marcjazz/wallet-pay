@@ -61,6 +61,7 @@ export class TransactionsService {
     }
 
     const { customerGuid, accountGuid, externalAccountGuid } = customerAccount;
+    console.log(customerAccount)
     const accountId = payload.cybrid_source_account_id;
 
     let cybridCounterparty = null;
