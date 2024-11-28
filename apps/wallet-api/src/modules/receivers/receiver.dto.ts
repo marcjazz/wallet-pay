@@ -3,8 +3,14 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
-import { IsOptional, IsPhoneNumber, IsString } from 'class-validator';
+import { Exclude, Expose, Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class ReceiverEntity {
   @IsString()
@@ -41,10 +47,62 @@ export class ReceiverEntity {
     Object.assign(this, props);
   }
 }
+
+export enum CameroonRegions {
+  ADAMAOUA = 'AD',
+  CENTRE = 'CE',
+  EAST = 'ES',
+  FAR_NORTH = 'EN',
+  LITTORAL = 'LT',
+  NORTH = 'NO',
+  NORTH_WEST = 'NW',
+  SOUTH = 'SU',
+  SOUTH_WEST = 'SW',
+  WEST = 'OU',
+}
+
+export class AddressDto {
+  @IsString()
+  @ApiProperty()
+  city: string;
+
+  @IsString()
+  @ApiProperty()
+  street: string;
+
+  @IsEnum(CameroonRegions)
+  @ApiProperty({ enum: CameroonRegions })
+  subdivision: CameroonRegions;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  street2: string | null = null;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({ default: '+237' })
+  country_code = '+237';
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  postal_code: string | null = null;
+
+  constructor(props: AddressDto) {
+    Object.assign(this, props);
+  }
+}
+
 export class ReceiverPayoutInfoDto {
   @IsString()
   @ApiProperty()
   fullname: string;
+
+  @ValidateNested()
+  @Type(() => AddressDto)
+  @ApiProperty({ type: AddressDto })
+  address: AddressDto;
 
   @IsString()
   @IsOptional()

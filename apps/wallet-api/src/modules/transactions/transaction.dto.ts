@@ -24,7 +24,7 @@ export class InitiateTransferDto {
     description:
       'customer internal or external account unique identifier in our database',
   })
-  cybrid_source_account_id: string;
+  cybrid_source_account_guid: string;
 
   @IsEnum(PostTransferBankModelTransferTypeEnum)
   @ApiProperty({ enum: PostTransferBankModelTransferTypeEnum })

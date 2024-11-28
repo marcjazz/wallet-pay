@@ -52,7 +52,7 @@ export class TransactionsService {
 
     const customerAccount = await this.getCustomerAccount(
       personId,
-      payload.cybrid_source_account_id,
+      payload.cybrid_source_account_guid,
       transferType
     );
 
@@ -61,7 +61,7 @@ export class TransactionsService {
     }
 
     const { customerGuid, accountGuid } = customerAccount;
-    const accountId = payload.cybrid_source_account_id;
+    const accountId = payload.cybrid_source_account_guid;
 
     let counterpartyCreateInput = null;
     if (receiver?.cybrid_counterparty_id) {
@@ -77,11 +77,13 @@ export class TransactionsService {
       }
       counterpartyCreateInput = cybridCounterparty;
     } else if (receiver) {
+      const [first, last] = receiver.fullname.split(' ');
       const counterparty = await this.cybridService.createCounterparty(
         customerGuid,
         {
+          address: receiver.address,
+          name: { full: receiver.fullname, last, first },
           type: PostCounterpartyBankModelTypeEnum.Individual,
-          name: { full: receiver.fullname },
         }
       );
 
@@ -118,30 +120,24 @@ export class TransactionsService {
     const fundingTransfer = await this.cybridService.initiateTransfer(
       customerGuid,
       {
+        payment_rail: 'ach',
         transfer_type: transferType,
         quote_guid: fundingTransferQuote.guid as string,
         // adjusting transfer payload accordingly
+        source_participants: [
+          {
+            guid: customerGuid,
+            amount: payload.amount,
+            type: PostTransferParticipantBankModelTypeEnum.Customer,
+          },
+        ],
         ...(isBookTransfer && counterpartyCreateInput
           ? {
               source_account_guid: accountGuid,
-              source_participants: [
-                {
-                  guid: accountGuid,
-                  amount: payload.amount,
-                  type: PostTransferParticipantBankModelTypeEnum.Customer,
-                },
-              ],
               destination_account_guid: this.configService.get(
                 'CYBRID_BANK_ACCOUNT_GUID'
               ),
               destination_participants: [
-                {
-                  amount: payload.amount,
-                  guid: this.configService.get<string>(
-                    'CYBRID_BANK_ACCOUNT_GUID'
-                  ) as string,
-                  type: PostTransferParticipantBankModelTypeEnum.Bank,
-                },
                 {
                   amount: payload.amount,
                   guid: counterpartyCreateInput.cybrid_counterparty_guid as string,
@@ -151,7 +147,14 @@ export class TransactionsService {
             }
           : {
               fiat_account_guid: accountGuid,
-              external_bank_account_guid: payload.cybrid_source_account_id,
+              external_bank_account_guid: payload.cybrid_source_account_guid,
+              destination_participants: [
+                {
+                  guid: customerGuid,
+                  amount: payload.amount,
+                  type: PostTransferParticipantBankModelTypeEnum.Customer,
+                },
+              ],
             }),
       }
     );
@@ -177,7 +180,7 @@ export class TransactionsService {
           CybridAccount: {
             connect: {
               cybrid_account_id: isBookTransfer
-                ? payload.cybrid_source_account_id
+                ? payload.cybrid_source_account_guid
                 : accountId,
             },
           },
@@ -188,7 +191,7 @@ export class TransactionsService {
                 CybridExternalAccount: {
                   connect: {
                     cybrid_external_account_id:
-                      payload.cybrid_source_account_id,
+                      payload.cybrid_source_account_guid,
                   },
                 },
               }),
