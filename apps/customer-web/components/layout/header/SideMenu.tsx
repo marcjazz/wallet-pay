@@ -1,9 +1,7 @@
 import { Box, Dialog, IconButton, Tooltip, Typography } from '@mui/material';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   ChevronLeft as ChevronLeftIcon,
-  CreditCard as CreditCardIcon,
   ExternalLink as ExternalLinkIcon,
   Globe as GlobeIcon,
   Grid as GridIcon,
@@ -11,9 +9,7 @@ import {
   Lock as LockIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import {
-  LeftDialogTransition
-} from '../../shared/dialog-transition';
+import { LeftDialogTransition } from '../../shared/dialog-transition';
 import MenuItem, { MenuItemProps } from './MenuItem';
 
 type MenuItemGroup = Record<string, MenuItemProps[]>;
@@ -38,11 +34,11 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
         icon: <LayersIcon size={22} />,
         action: () => push('/external-accounts'),
       },
-      {
-        title: formatMessage({ id: 'depositMethods' }),
-        icon: <CreditCardIcon size={22} />,
-        action: () => push('/deposit-methods'),
-      },
+      // {
+      //   title: formatMessage({ id: 'depositMethods' }),
+      //   icon: <CreditCardIcon size={22} />,
+      //   action: () => push('/deposit-methods'),
+      // },
     ],
     '2': [
       {
@@ -57,27 +53,33 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
       },
     ],
     '3': [
-      {
-        title: formatMessage({ id: 'contactSupport' }),
-        icon: (
-          <Image
-            src="/assets/LogoIcon.svg"
-            alt="xafpay"
-            height={22}
-            width={22}
-          />
-        ),
-        action: () => open('/security', '_blank'),
-      },
-      {
-        title: formatMessage({ id: 'aboutXafpay' }),
-        icon: <ExternalLinkIcon size={22} />,
-        action: () => open('https://about.xafpay.com', '_blank'),
-      },
+      // {
+      //   title: formatMessage({ id: 'contactSupport' }),
+      //   icon: (
+      //     <Image
+      //       src="/assets/LogoIcon.svg"
+      //       alt="xafpay"
+      //       height={22}
+      //       width={22}
+      //     />
+      //   ),
+      //   action: () => open('/security', '_blank'),
+      // },
+      // {
+      //   title: formatMessage({ id: 'aboutXafpay' }),
+      //   icon: <ExternalLinkIcon size={22} />,
+      //   action: () => open('https://about.xafpay.com', '_blank'),
+      // },
       {
         title: formatMessage({ id: 'termsAndConditions' }),
         icon: <ExternalLinkIcon size={22} />,
-        action: () => open('https://terms.xafpay.com', '_blank'),
+        action: () => open('https://policy.xafshop.com', '_blank'),
+      },
+      {
+        title: formatMessage({ id: 'partnerTermsAndConditions' }),
+        icon: <ExternalLinkIcon size={22} />,
+        action: () =>
+          open('https://www.cybrid.xyz/en/privacy-policy', '_blank'),
       },
     ],
   };

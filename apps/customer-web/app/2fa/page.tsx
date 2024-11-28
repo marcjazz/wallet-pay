@@ -5,21 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Hash, Smartphone } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { CurrencyEnum } from '../../components/Home/MainCard';
 import Footer from '../../components/layout/footer/Footer';
-import { ExternalAccountVerificationStatus } from '../../types';
-
-export interface ExternalAccount {
-  cybrid_external_account_id: string;
-  verification_status: ExternalAccountVerificationStatus;
-  account_currency: CurrencyEnum;
-  account_number: string;
-  total_deposited: number;
-  total_withdrawn: number;
-  is_default: boolean;
-  is_enabled: boolean;
-  account_balance: number;
-}
 
 export default function ExternalAccounts() {
   const { formatMessage } = useIntl();
