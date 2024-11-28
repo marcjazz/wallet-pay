@@ -1,4 +1,5 @@
 import { Box, Button, Divider, Typography } from '@mui/material';
+import { OTPUsage } from 'apps/customer-web/api/types';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -40,6 +41,7 @@ export default function TransferSummary({
           setIsConfirmTransactionOtpOpen(false);
           submitTransaction();
         }}
+        otpUsage={OTPUsage.TRANSFER}
         title={formatMessage({ id: 'confirmTransaction' })}
         description={formatMessage({ id: 'confirmTransactionDescription' })}
         confirmText={formatMessage({ id: 'confirm' })}
