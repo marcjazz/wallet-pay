@@ -69,6 +69,7 @@ export default function ExternalAccounts() {
           closeBottomSheet={() => setSelectedExternalAccount(undefined)}
           externalAccount={selectedExternalAccount}
           isOpen={!!selectedExternalAccount}
+          refetchAccounts={refetchExternalAccounts}
         />
       )}
       {isConnectingPlaid && plaidLinkToken && (

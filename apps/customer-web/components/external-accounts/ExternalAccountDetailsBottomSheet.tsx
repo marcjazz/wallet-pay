@@ -1,8 +1,9 @@
-import { Box, Chip, Typography } from '@mui/material';
+import { Box, Chip, CircularProgress, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { AlertTriangle } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { VerificationStatus } from '../../api/types';
+import { useVerifyAccount } from '../../api/hooks/useAccounts';
+import { AccountType, VerificationStatus } from '../../api/types';
 import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
 import BottomSheet from '../shared/BottomSheet';
@@ -11,19 +12,33 @@ import { kycChipVariants } from './ExternalAccountCard';
 interface ExternalAccountDetailsBottomSheetProps {
   closeBottomSheet: () => void;
   isOpen: boolean;
+  refetchAccounts: () => void;
   externalAccount: ExternalBankAccountEntity;
 }
 export default function ExternalAccountDetailsBottomSheet({
   externalAccount,
   closeBottomSheet,
   isOpen,
+  refetchAccounts,
 }: ExternalAccountDetailsBottomSheetProps) {
   const { formatMessage } = useIntl();
   const theme = useTheme();
 
+  const { mutate: handleVerifyAccount, isPending: isVerifyingAccount } =
+    useVerifyAccount();
+
   const verifyAccount = (cybrid_external_account_id: string) => {
-    //TODO: CALL API HERE TO VERIFY ACCOUNT
-    alert('Verifying Account');
+    handleVerifyAccount(
+      {
+        account_type: AccountType.EXTERNAL,
+        external_bank_account_id: cybrid_external_account_id,
+      },
+      {
+        onSuccess: () => refetchAccounts(),
+        // TODO: USE alert in case of error. will be replaced with proper notifications later
+        onError: (error) => alert(error.message),
+      }
+    );
   };
 
   return (
@@ -116,7 +131,9 @@ export default function ExternalAccountDetailsBottomSheet({
                   : 'default',
             }}
             icon={
-              !externalAccount.verification_status ? (
+              isVerifyingAccount ? (
+                <CircularProgress size={12} thickness={4} />
+              ) : !externalAccount.verification_status ? (
                 <AlertTriangle size={12} color="white" />
               ) : (
                 kycChipVariants[externalAccount.verification_status].icon
