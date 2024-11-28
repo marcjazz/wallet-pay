@@ -33,6 +33,7 @@ import {
 } from '@cybrid/cybrid-api-bank-typescript';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CybridSupportedCurrency } from '@prisma/client';
 import { Queue } from 'bull';
 import { NewCybridCustomerType } from '../types/cybrid';
@@ -44,7 +45,8 @@ export class CybridService {
   constructor(
     @InjectQueue(cybridConstants.QUEUE)
     private cybridQueue: Queue,
-    private readonly cybridConfiguration: CybridConfiguration
+    private readonly cybridConfiguration: CybridConfiguration,
+    private readonly configService: ConfigService
   ) {}
 
   async getCustomers() {
@@ -141,7 +143,6 @@ export class CybridService {
     const newIndentityVerficationObservable =
       identityVerificationsApi.createIdentityVerification({
         postIdentityVerificationBankModel: {
-          customer_guid: customerGuid,
           expected_behaviours: [
             PostIdentityVerificationBankModelExpectedBehavioursEnum.PassedImmediately,
           ],
@@ -288,16 +289,25 @@ export class CybridService {
       ['quotes:execute']
     );
 
+    console.log('product_type', {
+      product_type,
+      amount,
+      asset,
+      customerGuid,
+    });
+
     const quotesBankObservable = quotesBankApi.createQuote({
       postQuoteBankModel: {
         asset,
         product_type,
         customer_guid: customerGuid,
+        bank_guid: this.configService.get('CYBRID_BANK_GUID'),
         receive_amount: amount,
         side:
           product_type == PostQuoteBankModelProductTypeEnum.Funding
             ? 'deposit'
-            : undefined,
+            : 'deposit',
+        // : undefined,
       },
     });
 

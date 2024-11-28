@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
+import { useCurrencies } from 'apps/customer-web/api/hooks/useCurrency';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
@@ -39,6 +40,8 @@ export default function Transactions() {
   const MIN_STEP = 1;
 
   const { formatMessage } = useIntl();
+  const { data: currencies, isFetching: areCurrenciesLoading } =
+    useCurrencies();
   const { push } = useRouter();
   const [currentStep, setCurrentStep] = useState<RemittanceStep>(1);
   const [maxAccessibleStep, setMaxAccessibleStep] = useState<RemittanceStep>(1);
@@ -89,6 +92,8 @@ export default function Transactions() {
           handleNext={(data: AmountStepData) =>
             handleNextStep(() => setAmountStepData(data))
           }
+          areCurrenciesLoading={areCurrenciesLoading}
+          currencies={currencies}
         />
       ),
     },
@@ -117,6 +122,10 @@ export default function Transactions() {
           amountStepData={amountStepData as AmountStepData}
           receiverData={recipientData as Receiver}
           handleBack={() => handleBackStep(() => null)}
+          activeCurrency={currencies.find(
+            (currency) =>
+              currency.currency === amountStepData.sendingAccount?.currency
+          )}
         />
       ),
     },

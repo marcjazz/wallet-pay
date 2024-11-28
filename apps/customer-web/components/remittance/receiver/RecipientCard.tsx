@@ -3,9 +3,9 @@ import { useTheme } from '@xafpay/theme';
 import { CheckCircle } from 'react-feather';
 import { useIntl } from 'react-intl';
 import { getUsernameInitials } from '../../shared/utilities';
-import { PhoneNetworkIcon } from './PhoneNetworkIcon';
-import { BankReceiver, MomoReceiver, Receiver } from './ReceiverStep';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
+import { PhoneNetworkIcon } from './PhoneNetworkIcon';
+import { Receiver } from './ReceiverStep';
 
 interface ReceiverCardProps {
   receiver: Receiver;
@@ -22,14 +22,12 @@ export default function RecipientCard({
   const theme = useTheme();
   const { formatMessage } = useIntl();
 
-  const isSelected =
-    selectedReceiver?.receiver_payout_info_id ===
-    receiver.receiver_payout_info_id;
+  const isSelected = selectedReceiver?.receiver_id === receiver.receiver_id;
   return (
     <Box
       component={Button}
       variant="text"
-      key={receiver.receiver_payout_info_id}
+      key={receiver.receiver_id}
       onClick={() => {
         isSelected
           ? setSelectedReceiver(undefined)
@@ -60,7 +58,7 @@ export default function RecipientCard({
         <Typography variant="l1b" color="black">
           {receiver.fullname}
         </Typography>
-        {selectedPayoutMethod === SupportedPayoutMethod.bank ? (
+        {/* {selectedPayoutMethod === SupportedPayoutMethod.bank ? (
           <Box sx={{ display: 'grid', rowGap: 0.5 }}>
             <Typography variant="l2r" color="#797A7B">
               {(receiver as BankReceiver)?.bank_name ??
@@ -83,37 +81,35 @@ export default function RecipientCard({
                 })}`}
             </Typography>
           </Box>
-        ) : (
-          <Box sx={{ display: 'grid', rowGap: 0 }}>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr',
-                alignItems: 'center',
-                columnGap: 1,
-              }}
-            >
-              <Typography variant="l2r" color="#797A7B">
-                {`+237 ${(receiver as MomoReceiver).phone_number.replace(
-                  /(.{3})(?=.)/g,
-                  '$1 '
-                )}`}
-              </Typography>
-              {PhoneNetworkIcon((receiver as MomoReceiver).phone_number)}
-            </Box>
-            {selectedPayoutMethod === SupportedPayoutMethod.cash && (
-              <Typography
-                variant="l2r"
-                color="#797A7B"
-                sx={{ justifySelf: 'start' }}
-              >
-                {`${formatMessage({ id: 'nid' })} ${
-                  (receiver as MomoReceiver).national_id_number ?? 'N/A'
-                }`}
-              </Typography>
-            )}
+        ) :
+        ( */}
+        <Box sx={{ display: 'grid', rowGap: 0 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              alignItems: 'center',
+              columnGap: 1,
+            }}
+          >
+            <Typography variant="l2r" color="#797A7B">
+              {`+237 ${receiver.phone_number.replace(/(.{3})(?=.)/g, '$1 ')}`}
+            </Typography>
+            {PhoneNetworkIcon(receiver.phone_number)}
           </Box>
-        )}
+          {selectedPayoutMethod === SupportedPayoutMethod.cash && (
+            <Typography
+              variant="l2r"
+              color="#797A7B"
+              sx={{ justifySelf: 'start' }}
+            >
+              {`${formatMessage({ id: 'nid' })} ${
+                receiver.national_id_number ?? 'N/A'
+              }`}
+            </Typography>
+          )}
+        </Box>
+        {/* )} */}
       </Box>
       {isSelected && <CheckCircle />}
     </Box>

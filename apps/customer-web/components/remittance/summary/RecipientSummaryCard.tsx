@@ -2,9 +2,9 @@ import { Avatar, Box, Button, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useIntl } from 'react-intl';
 import { getUsernameInitials } from '../../shared/utilities';
-import { BankReceiver, MomoReceiver, Receiver } from '../receiver/ReceiverStep';
-import { PhoneNetworkIcon } from '../receiver/PhoneNetworkIcon';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
+import { PhoneNetworkIcon } from '../receiver/PhoneNetworkIcon';
+import { Receiver } from '../receiver/ReceiverStep';
 
 interface ReceiverCardProps {
   receiver: Receiver;
@@ -43,7 +43,7 @@ export default function RecipientSummaryCard({
         <Typography variant="l1b" color="black">
           {receiver.fullname}
         </Typography>
-        {selectedPayoutMethod === SupportedPayoutMethod.bank ? (
+        {/* {selectedPayoutMethod === SupportedPayoutMethod.bank ? (
           <Box sx={{ display: 'grid', rowGap: 0.5 }}>
             <Typography variant="l2r" color="#797A7B">
               {(receiver as BankReceiver).bank_name}
@@ -60,37 +60,32 @@ export default function RecipientSummaryCard({
               )}
             </Typography>
           </Box>
-        ) : (
-          <Box sx={{ display: 'grid', rowGap: 0 }}>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr',
-                alignItems: 'center',
-                columnGap: 1,
-              }}
-            >
-              <Typography variant="l2r" color="#797A7B">
-                {`+237 ${(receiver as MomoReceiver).phone_number?.replace(
-                  /(.{3})(?=.)/g,
-                  '$1 '
-                )}`}
-              </Typography>
-              {PhoneNetworkIcon((receiver as MomoReceiver).phone_number)}
-            </Box>
-            {selectedPayoutMethod === SupportedPayoutMethod.cash && (
-              <Typography
-                variant="l2r"
-                color="#797A7B"
-                sx={{ justifySelf: 'start' }}
-              >
-                {`${formatMessage({ id: 'nid' })} ${
-                  (receiver as MomoReceiver).national_id_number
-                }`}
-              </Typography>
-            )}
+        ) : ( */}
+        <Box sx={{ display: 'grid', rowGap: 0 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              alignItems: 'center',
+              columnGap: 1,
+            }}
+          >
+            <Typography variant="l2r" color="#797A7B">
+              {receiver.phone_number.replace(/(.{3})(?=.)/g, '$1 ')}
+            </Typography>
+            {PhoneNetworkIcon(receiver.phone_number)}
           </Box>
-        )}
+          {selectedPayoutMethod === SupportedPayoutMethod.cash && (
+            <Typography
+              variant="l2r"
+              color="#797A7B"
+              sx={{ justifySelf: 'start' }}
+            >
+              {`${formatMessage({ id: 'nid' })} ${receiver.national_id_number}`}
+            </Typography>
+          )}
+        </Box>
+        {/* )} */}
       </Box>
       <Button size="small" variant="text" onClick={handleBack}>
         {formatMessage({ id: 'change' })}

@@ -60,9 +60,15 @@ export class TransactionsService {
       throw new NotFoundException('Source bank account not found!');
     }
 
-    const { customerGuid, accountGuid, externalAccountGuid } = customerAccount;
-    console.log(customerAccount)
-    const accountId = payload.cybrid_source_account_id;
+    const {
+      customerGuid,
+      accountGuid,
+      externalAccountGuid,
+      customerId,
+      accountId,
+    } = customerAccount;
+    console.error(customerAccount);
+    // const accountId = payload.cybrid_source_account_id;
 
     let cybridCounterparty = null;
     if (receiver?.cybrid_counterparty_id) {
@@ -88,6 +94,8 @@ export class TransactionsService {
         }
       );
 
+      await new Promise((resolve) => setTimeout(resolve, 7000));
+
       const counterpartyVerification = await this.cybridService.verifyIdentity(
         customerGuid,
         {
@@ -96,6 +104,8 @@ export class TransactionsService {
           method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
         }
       );
+
+      console.log('counterpartyVerification', counterpartyVerification);
 
       if (counterpartyVerification.outcome === 'failed') {
         throw new UnauthorizedException(`Potential faulty receiver detected!`);
@@ -117,6 +127,8 @@ export class TransactionsService {
       payload.amount,
       payload.currency
     );
+
+    console.log('fundingTransferQuote', fundingTransferQuote);
 
     const fundingTransfer = await this.cybridService.initiateTransfer(
       customerGuid,
@@ -173,9 +185,10 @@ export class TransactionsService {
           transaction_type:
             transferType.toLocaleUpperCase() as $Enums.CybridTransactionType,
           cybrid_transaction_guid: fundingTransfer.guid as string,
-          status: fundingTransfer.state as $Enums.CybridTransactionStatus,
+          status:
+            fundingTransfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
           InitiatedBy: {
-            connect: { cybrid_account_id: accountId },
+            connect: { cybrid_customer_id: customerId },
           },
           CybridAccount: {
             connect: {
@@ -288,6 +301,8 @@ export class TransactionsService {
     type CustomerAccountGuids = {
       customerGuid: string;
       accountGuid: string;
+      customerId: string;
+      accountId: string;
       externalAccountGuid?: string;
     };
 
@@ -299,9 +314,14 @@ export class TransactionsService {
     if (transferType === PostTransferBankModelTransferTypeEnum.Book) {
       const cybridAccount = await this.prismaService.cybridAccount.findFirst({
         select: {
+          cybrid_account_id: true,
           cybrid_account_guid: true,
           CybridCustomer: {
-            select: { cybrid_customer_guid: true, CybridAccounts: true },
+            select: {
+              cybrid_customer_guid: true,
+              CybridAccounts: true,
+              cybrid_customer_id: true,
+            },
           },
         },
         where: {
@@ -311,8 +331,10 @@ export class TransactionsService {
       });
       if (cybridAccount) {
         customerAccount = {
+          accountId: cybridAccount.cybrid_account_id,
           accountGuid: cybridAccount.cybrid_account_guid,
           customerGuid: cybridAccount.CybridCustomer.cybrid_customer_guid,
+          customerId: cybridAccount.CybridCustomer.cybrid_customer_id,
         };
       }
     } else {
@@ -324,7 +346,13 @@ export class TransactionsService {
             CybridCustomer: {
               select: {
                 cybrid_customer_guid: true,
-                CybridAccounts: { select: { cybrid_account_guid: true } },
+                cybrid_customer_id: true,
+                CybridAccounts: {
+                  select: {
+                    cybrid_account_guid: true,
+                    cybrid_account_id: true,
+                  },
+                },
               },
             },
           },
@@ -338,13 +366,16 @@ export class TransactionsService {
         const {
           CybridCustomer: {
             cybrid_customer_guid,
-            CybridAccounts: [{ cybrid_account_guid }],
+            cybrid_customer_id,
+            CybridAccounts: [{ cybrid_account_guid, cybrid_account_id }],
           },
           cybrid_external_account_guid,
         } = externalAccount;
         customerAccount = {
           accountGuid: cybrid_account_guid,
           customerGuid: cybrid_customer_guid,
+          customerId: cybrid_customer_id,
+          accountId: cybrid_account_id,
           externalAccountGuid: cybrid_external_account_guid,
         };
       }

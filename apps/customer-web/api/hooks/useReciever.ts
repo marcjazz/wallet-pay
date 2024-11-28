@@ -12,8 +12,14 @@ const receiverService = new ReceiverService(apiClient);
 /**
  * Hook for fetching receivers.
  */
-export const useReceivers = (search?: string) =>
-  useQuery<ReceiverEntity[], Error>({
-    queryKey: ['receivers', search],
+export const useReceivers = (search?: string) => {
+  const tt = useQuery<ReceiverEntity[], Error>({
+    queryKey: ['receivers'],
     queryFn: () => receiverService.findReceivers(search),
+    initialData: [],
   });
+  const { isError, error } = tt;
+  //TODO: USE alert in case of error. will be replaced with proper notifications later
+  if (isError) alert(error.message);
+  return tt;
+};

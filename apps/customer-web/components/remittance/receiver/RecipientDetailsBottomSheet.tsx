@@ -8,13 +8,17 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material';
+import {
+  ReceiverEntity,
+  ReceiverPayoutInfoDto,
+} from 'apps/customer-web/api/types';
 import { FormikErrors, FormikTouched, useFormik } from 'formik';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import BottomSheet from '../../shared/BottomSheet';
+import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';
 import { BankReceiver, MomoReceiver, Receiver } from './ReceiverStep';
-import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 
 interface RecipientBottomSheetProps {
   isOpen: boolean;
@@ -33,49 +37,57 @@ export default function RecipientDetailsBottomSheet({
   const { formatMessage } = useIntl();
   const isBank = selectedPayoutMethod === SupportedPayoutMethod.bank;
 
-  const momoInitialValues: MomoReceiver = {
-    receiver_payout_info_id: selectedReceiver?.receiver_payout_info_id || '',
+  const momoInitialValues: Receiver = {
+    receiver_id: selectedReceiver?.receiver_id || '',
     fullname: selectedReceiver?.fullname || '',
-    phone_number: (selectedReceiver as MomoReceiver)?.phone_number || '',
-    national_id_number:
-      (selectedReceiver as MomoReceiver)?.national_id_number || '',
+    phone_number: selectedReceiver?.phone_number || '',
+    national_id_number: selectedReceiver?.national_id_number || '',
+    created_at: (selectedReceiver as ReceiverEntity)?.created_at || '',
+    receiver_guid: (selectedReceiver as ReceiverEntity)?.receiver_guid || '',
+    address: (selectedReceiver as ReceiverPayoutInfoDto)?.address || {
+      city: '',
+      street: '',
+      subdivision: '',
+    },
   };
 
-  const bankInitialValues: BankReceiver = {
-    receiver_payout_info_id: selectedReceiver?.receiver_payout_info_id || '',
-    fullname: selectedReceiver?.fullname || '',
-    bank_name: (selectedReceiver as BankReceiver)?.bank_name || '',
-    IBAN: (selectedReceiver as BankReceiver)?.IBAN || '',
-  };
+  // const bankInitialValues: BankReceiver = {
+  //   receiver_payout_info_id: selectedReceiver?.receiver_id || '',
+  //   fullname: selectedReceiver?.fullname || '',
+  //   bank_name: selectedReceiver?.bank_name || '',
+  //   IBAN: (selectedReceiver as BankReceiver)?.IBAN || '',
+  // };
 
   const validationSchema = Yup.object().shape({
     fullname: Yup.string().required(formatMessage({ id: 'requiredField' })),
-    ...(isBank
-      ? {
-          bank_name: Yup.string().required(
-            formatMessage({ id: 'requiredField' })
-          ),
-          IBAN: Yup.string()
-            .min(27, formatMessage({ id: '27Characters' }))
-            .max(27, formatMessage({ id: '27Characters' }))
-            .matches(
-              /^CM\d{2}\d{5}\d{5}\d{11}\d{2}$/,
-              formatMessage({ id: 'invalidIBAN' })
-            )
-            .required('Required field'),
-        }
-      : {
-          national_id_number: Yup.string()
-            .min(9, formatMessage({ id: '9CharactersMin' }))
-            .max(10, formatMessage({ id: '10CharactersMax' }))
-            .nullable(),
-          phone_number: Yup.string()
-            .matches(/^(6)(5|[7-9])[0-9]{7}$/gm, '(6|2) (2|3|[5-9])x xxx xxx')
-            .required(formatMessage({ id: 'requiredField' })),
-        }),
+    // ...(isBank
+    //   ? {
+    //       bank_name: Yup.string().required(
+    //         formatMessage({ id: 'requiredField' })
+    //       ),
+    //       IBAN: Yup.string()
+    //         .min(27, formatMessage({ id: '27Characters' }))
+    //         .max(27, formatMessage({ id: '27Characters' }))
+    //         .matches(
+    //           /^CM\d{2}\d{5}\d{5}\d{11}\d{2}$/,
+    //           formatMessage({ id: 'invalidIBAN' })
+    //         )
+    //         .required('Required field'),
+    //     }
+    //   :
+    // {
+    national_id_number: Yup.string()
+      .min(9, formatMessage({ id: '9CharactersMin' }))
+      .max(10, formatMessage({ id: '10CharactersMax' }))
+      .nullable(),
+    phone_number: Yup.string()
+      .matches(/^(6)(5|[7-9])[0-9]{7}$/gm, '(6|2) (2|3|[5-9])x xxx xxx')
+      .required(formatMessage({ id: 'requiredField' })),
+    // }),
   });
   const formik = useFormik({
-    initialValues: isBank ? bankInitialValues : momoInitialValues,
+    // initialValues: isBank ? bankInitialValues : momoInitialValues,
+    initialValues: momoInitialValues,
     validationSchema,
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
@@ -179,7 +191,6 @@ export default function RecipientDetailsBottomSheet({
               </FormLabel>
               <OutlinedInput
                 id="phone_number"
-                type="number"
                 {...formik.getFieldProps('phone_number')}
                 placeholder={formatMessage({ id: 'phoneNumber' })}
                 autoFocus
@@ -188,8 +199,8 @@ export default function RecipientDetailsBottomSheet({
                 }
                 endAdornment={
                   <InputAdornment position="end">
-                    {(values as MomoReceiver).phone_number &&
-                      PhoneNetworkIcon((values as MomoReceiver).phone_number)}
+                    {values.phone_number &&
+                      PhoneNetworkIcon(values.phone_number)}
                   </InputAdornment>
                 }
               />

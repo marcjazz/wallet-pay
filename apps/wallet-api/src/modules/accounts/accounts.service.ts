@@ -67,7 +67,10 @@ export class AccountsService {
 
     const identityVerification = await this.cybridService.verifyIdentity(
       customer.cybrid_customer_guid,
-      identityVerificationPayload
+      {
+        ...identityVerificationPayload,
+        customer_guid: customer.cybrid_customer_guid,
+      }
     );
 
     const verificationPayload = {

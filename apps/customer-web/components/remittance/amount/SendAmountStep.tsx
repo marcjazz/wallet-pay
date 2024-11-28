@@ -11,14 +11,15 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
+import { useCybridAccounts } from 'apps/customer-web/api/hooks/useAccounts';
+import { CurrencyEntity } from 'apps/customer-web/api/types';
+import { CybridAccountEntity } from 'apps/customer-web/api/types/AccountTypes';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import { Account, CurrencyEnum } from '../../Home/MainCard';
 import ChangeCurrencyMenu from './ChangeCurrencyMenu';
-import PayoutMethodBottomSheet from './PayoutMethodBottomSheet';
 
 export enum SupportedPayoutMethod {
   cash = 'cash_pickup',
@@ -28,21 +29,25 @@ export enum SupportedPayoutMethod {
 
 export interface AmountStepData {
   sendingAmount: number;
-  sendingAccount: Account;
+  sendingAccount: CybridAccountEntity;
   payoutMethod: SupportedPayoutMethod;
 }
 
 interface SendAmountStepProps {
   handleNext: (data: AmountStepData) => void;
   amountStepData: Partial<AmountStepData>;
+  currencies: CurrencyEntity[];
+  areCurrenciesLoading: boolean;
 }
 export default function SendAmountStep({
   handleNext,
   amountStepData,
+  areCurrenciesLoading,
+  currencies,
 }: SendAmountStepProps) {
   //TODO: CALL API TO FETCH LIMITS
   const MAX_SENDING_AMOUNT = 1000;
-  const MIN_SENDING_AMOUNT = 10;
+  const MIN_SENDING_AMOUNT = 1;
 
   const { formatMessage, formatNumber } = useIntl();
   const theme = useTheme();
@@ -69,44 +74,23 @@ export default function SendAmountStep({
     },
   };
 
-  const [sendingAccount, setSendingAccount] = useState<Account | undefined>(
-    amountStepData.sendingAccount
-  );
+  const [sendingAccount, setSendingAccount] = useState<
+    CybridAccountEntity | undefined
+  >(amountStepData.sendingAccount);
   const [isChangeCurrencyMenuOpen, setIsChangeCurrencyMenuOpen] =
     useState(false);
   const [sendingCurrencyAnchorEl, setSendingCurrencyAnchorEl] =
     useState<HTMLElement | null>(null);
 
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false);
+  const { data: accounts, isFetching: isLoadingAccounts } = useCybridAccounts();
 
   useEffect(() => {
-    //TODO: CALL API TO FETCH ACCOUNTS
-    setIsLoadingAccounts(true);
-    setTimeout(() => {
-      const cybridAccounts: Account[] = [
-        {
-          cybrid_account_id: '1',
-          currency: CurrencyEnum['USD'],
-          account_balance: 352479.9,
-          xaf_conversion_rate: 567.56,
-          account_number: '7815',
-        },
-        {
-          cybrid_account_id: '2',
-          currency: CurrencyEnum['CAD'],
-          account_balance: 2479.9,
-          xaf_conversion_rate: 373.5,
-          account_number: '1588',
-        },
-      ];
-      setAccounts(cybridAccounts);
-      if (cybridAccounts.length > 0) setSendingAccount(cybridAccounts[0]);
+    if (!areCurrenciesLoading) {
+      if (accounts.length) setSendingAccount(accounts[0]);
       //TODO: REPLACE WITH PROPER NOTIFICATION
       else alert('No FBO accounts found');
-      setIsLoadingAccounts(false);
-    }, 3000);
-  }, []);
+    }
+  }, [accounts, areCurrenciesLoading]);
 
   const validationSchema = Yup.object({
     sendingAmount: Yup.number()
@@ -114,20 +98,20 @@ export default function SendAmountStep({
       .positive(formatMessage({ id: 'invalidAmount' }))
       .integer(formatMessage({ id: 'cannotBeFraction' }))
       .max(MAX_SENDING_AMOUNT, formatMessage({ id: 'maxRemitAmount' }))
-      .min(MIN_SENDING_AMOUNT, formatMessage({ id: 'minRemitAmount' }))
-      .test(
-        'max-available-balance',
-        formatMessage({
-          id: sendingAccount ? 'maxBalanceExceeded' : 'noFboAccount',
-        }),
-        function (value) {
-          if (!sendingAccount) return false;
-          if (value > sendingAccount.account_balance) {
-            return false;
-          }
-          return true;
-        }
-      ),
+      .min(MIN_SENDING_AMOUNT, formatMessage({ id: 'minRemitAmount' })),
+    // .test(
+    //   'max-available-balance',
+    //   formatMessage({
+    //     id: sendingAccount ? 'maxBalanceExceeded' : 'noFboAccount',
+    //   }),
+    //   function (value) {
+    //     if (!sendingAccount) return false;
+    //     if (value > sendingAccount.balance) {
+    //       return false;
+    //     }
+    //     return true;
+    //   }
+    // ),
   });
 
   const [isPayoutMethodBottomSheetOpen, setIsPayoutMethodBottomSheetOpen] =
@@ -145,16 +129,18 @@ export default function SendAmountStep({
     validationSchema,
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
-      setIsPayoutMethodBottomSheetOpen(true);
+      onNext();
+      // setSelectedPayoutMethod(SupportedPayoutMethod.mobile);
+      // setIsPayoutMethodBottomSheetOpen(true);
     },
   });
   const { errors, touched } = formik;
 
   function onNext() {
-    if (!selectedPayoutMethod) {
-      alert('Please select a payout method');
-      return;
-    }
+    // if (!selectedPayoutMethod) {
+    //   alert('Please select a payout method');
+    //   return;
+    // }
     if (!sendingAccount) {
       alert('Please select a sending account');
       return;
@@ -162,7 +148,7 @@ export default function SendAmountStep({
     handleNext({
       sendingAmount: formik.values.sendingAmount,
       sendingAccount,
-      payoutMethod: selectedPayoutMethod!,
+      payoutMethod: SupportedPayoutMethod.mobile,
     });
     setIsPayoutMethodBottomSheetOpen(false);
   }
@@ -174,13 +160,13 @@ export default function SendAmountStep({
         closeMenu={() => setIsChangeCurrencyMenuOpen(false)}
         anchorEl={sendingCurrencyAnchorEl}
         accounts={accounts}
-        onSelect={(account: Account) => {
+        onSelect={(account: CybridAccountEntity) => {
           setSendingAccount(account);
           setIsChangeCurrencyMenuOpen(false);
         }}
       />
 
-      <PayoutMethodBottomSheet
+      {/* <PayoutMethodBottomSheet
         isOpen={isPayoutMethodBottomSheetOpen}
         closeBottomSheet={() => setIsPayoutMethodBottomSheetOpen(false)}
         onSelect={(payoutMethod: SupportedPayoutMethod) => {
@@ -188,7 +174,7 @@ export default function SendAmountStep({
         }}
         selectedPayoutMethod={selectedPayoutMethod}
         onNext={onNext}
-      />
+      /> */}
 
       <Box sx={{ display: 'grid', rowGap: 5, gridTemplateRows: 'auto 1fr' }}>
         <Typography variant="h2">
@@ -271,7 +257,7 @@ export default function SendAmountStep({
                     {sendingAccount && (
                       <Box sx={{ display: 'grid' }}>
                         <Typography variant="h6" sx={{ color: '#BABDBE' }}>
-                          {formatNumber(sendingAccount.account_balance, {
+                          {formatNumber(sendingAccount.balance, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                             currency: sendingAccount.currency,
@@ -283,10 +269,9 @@ export default function SendAmountStep({
                           onClick={() => {
                             formik.setFieldValue(
                               'sendingAmount',
-                              sendingAccount.account_balance >
-                                MAX_SENDING_AMOUNT
+                              sendingAccount.balance > MAX_SENDING_AMOUNT
                                 ? MAX_SENDING_AMOUNT
-                                : sendingAccount.account_balance
+                                : sendingAccount.balance
                             );
                           }}
                           sx={{
@@ -366,7 +351,10 @@ export default function SendAmountStep({
                   sendingAccount
                     ? formatNumber(
                         formik.values.sendingAmount *
-                          sendingAccount.xaf_conversion_rate,
+                          (currencies?.find(
+                            (currency) =>
+                              currency.currency === sendingAccount.currency
+                          )?.xaf_rate ?? 1),
                         {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -393,7 +381,18 @@ export default function SendAmountStep({
               <Typography
                 variant="l2r"
                 sx={{ color: '#BABDBE', justifySelf: 'center' }}
-              >{`1${sendingAccount.currency} = ${sendingAccount.xaf_conversion_rate}XAF`}</Typography>
+              >
+                {areCurrenciesLoading ? (
+                  <Skeleton width="100px" />
+                ) : (
+                  `1${sendingAccount.currency} = ${
+                    currencies?.find(
+                      (currency) =>
+                        currency.currency === sendingAccount.currency
+                    )?.xaf_rate ?? 1
+                  }XAF`
+                )}
+              </Typography>
             )}
           </Box>
 

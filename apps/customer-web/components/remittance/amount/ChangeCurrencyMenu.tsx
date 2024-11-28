@@ -1,6 +1,7 @@
-import { Menu, MenuList, MenuItem } from '@mui/material';
-import { Account, CurrencyEnum } from '../../Home/MainCard';
+import { Menu, MenuItem, MenuList } from '@mui/material';
+import { CybridAccountEntity } from '../../../api/types/AccountTypes';
 
+// TODO: CHECK USAGE AND REMOVE, CONNECT TO API/TYPES
 export enum SUPPORTED_CURRENCY {
   usd = 'USD',
   cad = 'CAD',
@@ -10,8 +11,8 @@ interface ChangeCurrencyMenuProps {
   closeMenu: () => void;
   anchorEl: HTMLElement | null;
   isOpen: boolean;
-  accounts: Account[];
-  onSelect: (selectedSendingAccount: Account) => void;
+  accounts: CybridAccountEntity[];
+  onSelect: (selectedSendingAccount: CybridAccountEntity) => void;
 }
 export default function ChangeCurrencyMenu({
   anchorEl,

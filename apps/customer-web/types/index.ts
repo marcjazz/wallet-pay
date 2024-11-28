@@ -1,3 +1,5 @@
+import { ReceiverEntity, ReceiverPayoutInfoDto } from '../api/types';
+
 export enum ExternalAccountVerificationStatus {
   UNVERIFIED = 'UNVERIFIED',
   VERIFIED = 'VERIFIED',
@@ -15,3 +17,11 @@ export enum TransactionStatus {
   SETTLED = 'SETTLED',
   FAILED = 'FAILED',
 }
+
+export type Receiver =
+  | (ReceiverPayoutInfoDto & {
+      is_new: true;
+    })
+  | (ReceiverEntity & {
+      is_new: false;
+    });
