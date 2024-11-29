@@ -17,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { SearchQueryDto } from '../../app/app.dto';
 import { RecieversService as ReceiversService } from './receivers.service';
-import { ReceiverEntity, ReceiverPayoutInfoDto } from './receiver.dto';
+import { ReceiverEntity, CreateReceiverDto } from './receiver.dto';
 import { Request } from 'express';
 
 @ApiBearerAuth()
@@ -58,7 +58,7 @@ export class ReceiversController {
   @ApiOperation({ summary: 'Create new receiver' })
   async createNewReceiver(
     @Req() request: Request,
-    @Body() newReciever: ReceiverPayoutInfoDto
+    @Body() newReciever: CreateReceiverDto
   ) {
     const receiver = await this.receiversService.create(
       newReciever,

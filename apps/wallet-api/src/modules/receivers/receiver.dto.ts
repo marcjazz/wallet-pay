@@ -94,7 +94,7 @@ export class AddressDto {
   }
 }
 
-export class ReceiverPayoutInfoDto {
+export class CreateReceiverDto {
   @IsString()
   @ApiProperty()
   fullname: string;
@@ -119,7 +119,7 @@ export class ReceiverPayoutInfoDto {
   @Expose({ name: 'receiver_id' })
   cybrid_counterparty_id: string | null = null;
 
-  constructor(props: ReceiverPayoutInfoDto) {
+  constructor(props: CreateReceiverDto) {
     Object.assign(this, props);
   }
 }

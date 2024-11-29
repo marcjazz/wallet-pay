@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { SearchQueryDto } from '../../app/app.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ReceiverPayoutInfoDto } from './receiver.dto';
+import { CreateReceiverDto } from './receiver.dto';
 import { CybridService } from '../../cybrid/cybrid.service';
 import {
   PostCounterpartyBankModelTypeEnum,
@@ -37,7 +37,7 @@ export class RecieversService {
     });
   }
 
-  async create(newReceiver: ReceiverPayoutInfoDto, personId: string) {
+  async create(newReceiver: CreateReceiverDto, personId: string) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
       where: { person_id: personId },
     });
