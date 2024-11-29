@@ -6,7 +6,8 @@ import type {
 } from '@cybrid/cybrid-api-bank-typescript';
 
 export type NewCybridCustomerType = {
-  account: AccountBankModel;
+  fiatAccount: AccountBankModel;
+  cryptoAccount: AccountBankModel;
   customer: CustomerBankModel;
 };
 

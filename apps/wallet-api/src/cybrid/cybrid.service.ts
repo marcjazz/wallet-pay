@@ -18,7 +18,7 @@ import {
   PostExternalBankAccountBankModel,
   PostIdentityVerificationBankModel,
   PostIdentityVerificationBankModelExpectedBehavioursEnum,
-  PostQuoteBankModelProductTypeEnum,
+  PostQuoteBankModel,
   PostTransferBankModel,
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelLanguageEnum,
@@ -88,7 +88,7 @@ export class CybridService {
             ['accounts:execute']
           );
 
-          const newAccountObservable = accountsBankApi.createAccount({
+          const fiatAccountObservable = accountsBankApi.createAccount({
             postAccountBankModel: {
               asset,
               name: `${asset} Account`,
@@ -97,14 +97,28 @@ export class CybridService {
             },
           });
 
-          const account = await new Promise<AccountBankModel>((next, error) =>
-            newAccountObservable.subscribe({ next, error })
-          );
+          const cryptoAccountObservable = accountsBankApi.createAccount({
+            postAccountBankModel: {
+              asset: 'USDC_SOL',
+              name: `USDC (Solana) account`,
+              customer_guid: customer.guid,
+              type: PostAccountBankModelTypeEnum.Trading,
+            },
+          });
+
+          const [fiatAccount, cryptoAccount] = await Promise.all([
+            new Promise<AccountBankModel>((next, error) =>
+              fiatAccountObservable.subscribe({ next, error })
+            ),
+            new Promise<AccountBankModel>((next, error) =>
+              cryptoAccountObservable.subscribe({ next, error })
+            ),
+          ]);
 
           // Pulling latest customer state from cybrid
           customer = await this.getCustomer(customer.guid as string);
 
-          resolve({ account, customer });
+          resolve({ fiatAccount, cryptoAccount, customer });
         },
       });
     });
@@ -143,10 +157,10 @@ export class CybridService {
     const newIndentityVerficationObservable =
       identityVerificationsApi.createIdentityVerification({
         postIdentityVerificationBankModel: {
+          ...payload,
           expected_behaviours: [
             PostIdentityVerificationBankModelExpectedBehavioursEnum.PassedImmediately,
           ],
-          ...payload,
         },
       });
     return new Promise<IdentityVerificationBankModel>((next, error) =>
@@ -277,37 +291,17 @@ export class CybridService {
     );
   }
 
-  async createQuote(
-    customerGuid: string,
-    product_type: PostQuoteBankModelProductTypeEnum,
-    amount: number,
-    asset: CybridSupportedCurrency
-  ) {
+  async createQuote(customerGuid: string, payload: PostQuoteBankModel) {
     const quotesBankApi = await this.cybridConfiguration.getInstance(
       QuotesBankApi,
       customerGuid,
       ['quotes:execute']
     );
 
-    console.log('product_type', {
-      product_type,
-      amount,
-      asset,
-      customerGuid,
-    });
-
     const quotesBankObservable = quotesBankApi.createQuote({
       postQuoteBankModel: {
-        asset,
-        product_type,
-        customer_guid: customerGuid,
+        ...payload,
         bank_guid: this.configService.get('CYBRID_BANK_GUID'),
-        receive_amount: amount,
-        side:
-          product_type == PostQuoteBankModelProductTypeEnum.Funding
-            ? 'deposit'
-            : 'deposit',
-        // : undefined,
       },
     });
 

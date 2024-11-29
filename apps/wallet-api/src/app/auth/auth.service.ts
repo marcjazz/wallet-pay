@@ -8,11 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import {
-  CybridCustomerStatus,
-  CybridSupportedCurrency,
-  SupportedLocalCurrency,
-} from '@prisma/client';
+import { $Enums } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { CybridService } from '../../cybrid/cybrid.service';
@@ -73,9 +69,8 @@ export class AuthService {
     { password, country, ...payload }: SignUpDto,
     createdBy?: string
   ): Promise<Express.User> {
-    const { account, customer } = await this.cybridService.createCustomer(
-      CybridSupportedCurrency.USD
-    );
+    const { fiatAccount, cryptoAccount, customer } =
+      await this.cybridService.createCustomer('USD');
     const user = await this.prismaService.person.findUnique({
       where: { email: payload.email },
     });
@@ -106,21 +101,35 @@ export class AuthService {
         LocalCustomers: {
           create: {
             balance: 0,
-            currency: SupportedLocalCurrency.XAF,
+            currency: 'XAF',
             account_number: generateAccountNumber(),
           },
         },
         CybridCustomers: {
           create: {
             country,
-            status: customer.state?.toLocaleUpperCase() as CybridCustomerStatus,
+            status:
+              customer.state?.toLocaleUpperCase() as $Enums.CybridCustomerStatus,
             cybrid_customer_guid: customer.guid as string,
             CybridAccounts: {
-              create: {
-                cybrid_account_guid: account.guid as string,
-                name: account.name as string,
-                balance: account.platform_available as number,
-                currency: CybridSupportedCurrency.USD,
+              createMany: {
+                data: [
+                  {
+                    currency:
+                      fiatAccount.asset as $Enums.CybridSupportedCurrency,
+                    cybrid_account_guid: fiatAccount.guid as string,
+                    name: fiatAccount.name as string,
+                    balance: fiatAccount.platform_available as number,
+                  },
+                  {
+                    currency:
+                      cryptoAccount.asset as $Enums.CybridSupportedCurrency,
+                    name: cryptoAccount.name as string,
+                    cybrid_account_guid: cryptoAccount.guid as string,
+                    balance: cryptoAccount.platform_available as number,
+                  },
+                ],
+                skipDuplicates: true,
               },
             },
           },

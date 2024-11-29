@@ -72,6 +72,8 @@ model CybridExternalAccount {
   name                         String
   balance                      Float
   mask                         String?                     @db.VarChar(4)
+  currency                     CybridSupportedCurrency
+  is_active                    Boolean                     @default(true) @db.Boolean
   status                       CybridExternalAccountStatus
   identity_verification_guid   String?                     @db.VarChar(45)
   verification_status          IdentityVerificationStatus?
@@ -396,8 +398,9 @@ enum CybridSupportedCountry {
 }
 
 enum CybridSupportedCurrency {
-  USD @map("usd")
-  CAD @map("cad")
+  USD      @map("usd")
+  CAD      @map("cad")
+  USDC_SOL @map("usdc_sol")
 
   @@map("cybrid_supported_currency")
 }
