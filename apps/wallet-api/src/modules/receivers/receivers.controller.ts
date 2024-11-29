@@ -1,14 +1,24 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Post,
   Query,
+  Req,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { SearchQueryDto } from '../../app/app.dto';
 import { RecieversService as ReceiversService } from './receivers.service';
-import { ReceiverEntity } from './receiver.dto';
+import { ReceiverEntity, ReceiverPayoutInfoDto } from './receiver.dto';
+import { Request } from 'express';
 
 @ApiBearerAuth()
 @ApiTags('Receivers')
@@ -18,7 +28,7 @@ export class ReceiversController {
 
   @Get()
   @ApiResponse({ status: 200, type: [ReceiverEntity] })
-  @ApiOperation({ summary: 'Fetch all counterparties' })
+  @ApiOperation({ summary: 'Fetch all receivers' })
   async findCounterparties(@Query() query: SearchQueryDto) {
     const counterparties = await this.receiversService.findAll(query);
     return counterparties.map(
@@ -28,7 +38,7 @@ export class ReceiversController {
 
   @Get(':id')
   @ApiResponse({ status: 200, type: ReceiverEntity })
-  @ApiOperation({ summary: 'Fetch one counterparty' })
+  @ApiOperation({ summary: 'Fetch one receiver' })
   async findCounterparty(@Param('id') cybridCounterpartyId: string) {
     const counterparty = await this.receiversService.findOne(
       cybridCounterpartyId
@@ -41,5 +51,20 @@ export class ReceiversController {
     }
 
     return new ReceiverEntity(counterparty);
+  }
+
+  @Post()
+  @ApiCreatedResponse({ type: ReceiverEntity })
+  @ApiOperation({ summary: 'Create new receiver' })
+  async createNewReceiver(
+    @Req() request: Request,
+    @Body() newReciever: ReceiverPayoutInfoDto
+  ) {
+    const receiver = await this.receiversService.create(
+      newReciever,
+      request.user?.person_id as string
+    );
+
+    return new ReceiverEntity(receiver);
   }
 }
