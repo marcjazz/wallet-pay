@@ -7,6 +7,7 @@ import {
   ExternalBankAccountsBankApi,
   IdentityVerificationsBankApi,
   QuotesBankApi,
+  TradesBankApi,
   TransfersBankApi,
   WorkflowsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
@@ -49,6 +50,7 @@ export class CybridConfiguration {
       [TransfersBankApi.name]: TransfersBankApi,
       [QuotesBankApi.name]: QuotesBankApi,
       [CounterpartiesBankApi.name]: CounterpartiesBankApi,
+      [TradesBankApi.name]: TradesBankApi,
     };
     const ModelBankApi = BankApiModelsMap[modelName.name];
     if (!ModelBankApi) {

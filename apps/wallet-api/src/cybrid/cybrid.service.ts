@@ -19,12 +19,15 @@ import {
   PostIdentityVerificationBankModel,
   PostIdentityVerificationBankModelExpectedBehavioursEnum,
   PostQuoteBankModel,
+  PostTradeBankModel,
   PostTransferBankModel,
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelLanguageEnum,
   PostWorkflowBankModelTypeEnum,
   QuoteBankModel,
   QuotesBankApi,
+  TradeBankModel,
+  TradesBankApi,
   TransferBankModel,
   TransfersBankApi,
   WorkflowBankModel,
@@ -323,6 +326,36 @@ export class CybridService {
 
     return new Promise<TransferBankModel>((next, error) =>
       transfersObservable.subscribe({ error, next })
+    );
+  }
+
+  async initiateTrade(customerGuid: string, payload: PostTradeBankModel) {
+    const tradesBankApi = await this.cybridConfiguration.getInstance(
+      TradesBankApi,
+      customerGuid,
+      ['trades:execute']
+    );
+
+    const tradesObservable = tradesBankApi.createTrade({
+      postTradeBankModel: payload,
+    });
+
+    return new Promise<TradeBankModel>((next, error) =>
+      tradesObservable.subscribe({ error, next })
+    );
+  }
+
+  async getTrade(customerGuid: string, tradeGuid: string) {
+    const tradesBankApi = await this.cybridConfiguration.getInstance(
+      TradesBankApi,
+      customerGuid,
+      ['trades:read']
+    );
+
+    const tradesObservable = tradesBankApi.getTrade({ tradeGuid });
+
+    return new Promise<TradeBankModel>((next, error) =>
+      tradesObservable.subscribe({ next, error })
     );
   }
 
