@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory(configService: ConfigService) {
         return {
-          baseURL: configService.get('RATE_API_HOST'),
+          baseURL: configService.get('RATE_API_URL'),
           params: { api_key: configService.get('RATE_API_KEY') },
         };
       },
