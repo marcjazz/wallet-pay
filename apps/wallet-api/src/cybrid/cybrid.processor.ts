@@ -22,7 +22,7 @@ export class CybridProcessor {
   ) {}
 
   @Process(cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE)
-  async updateIdentityVerificationStatus(
+  async handleIdentityVerificationEvents(
     job: Job<CybridSubscriptionEventObjectDto>
   ) {
     const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
@@ -31,30 +31,33 @@ export class CybridProcessor {
     const verificationStatus =
       status.toLocaleUpperCase() as IdentityVerificationStatus;
 
-    const object = await this.prismaService.cybridCustomer.findUnique({
-      where: {
-        identity_verification_guid: guid,
-        cybrid_customer_guid: objectGuid,
-      },
-    });
+    const counterparty = await this.prismaService.cybridCounterparty.findUnique(
+      {
+        where: {
+          identity_verification_guid: guid,
+          cybrid_counterparty_guid: objectGuid,
+        },
+      }
+    );
 
-    if (object) {
-      await this.prismaService.cybridCustomer.update({
+    if (counterparty) {
+      await this.prismaService.cybridCounterparty.update({
         data: { verification_status: verificationStatus },
         where: {
           identity_verification_guid: guid,
-          cybrid_customer_guid: objectGuid,
+          cybrid_counterparty_guid: objectGuid,
         },
       });
     } else {
-      const object = await this.prismaService.cybridExternalAccount.findUnique({
-        where: {
-          identity_verification_guid: guid,
-          cybrid_external_account_guid: objectGuid,
-        },
-      });
+      const externalAccount =
+        await this.prismaService.cybridExternalAccount.findUnique({
+          where: {
+            identity_verification_guid: guid,
+            cybrid_external_account_guid: objectGuid,
+          },
+        });
 
-      if (object) {
+      if (externalAccount) {
         await this.prismaService.cybridExternalAccount.update({
           data: { verification_status: verificationStatus },
           where: {
@@ -62,6 +65,22 @@ export class CybridProcessor {
             cybrid_external_account_guid: objectGuid,
           },
         });
+      } else {
+        const customer = await this.prismaService.cybridCustomer.findUnique({
+          where: {
+            identity_verification_guid: guid,
+            cybrid_customer_guid: objectGuid,
+          },
+        });
+        if (customer) {
+          await this.prismaService.cybridCustomer.update({
+            data: { verification_status: verificationStatus },
+            where: {
+              identity_verification_guid: guid,
+              cybrid_customer_guid: objectGuid,
+            },
+          });
+        }
       }
     }
 
