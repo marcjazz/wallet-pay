@@ -33,16 +33,16 @@ model CybridCustomerAudit {
 }
 
 model CybridAccount {
-  cybrid_account_id   String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_account_guid String                  @unique @db.VarChar(45)
-  name                String
-  balance             Float
-  currency            CybridSupportedCurrency
-  is_active           Boolean                 @default(true) @db.Boolean
-  cybrid_customer_id  String
-  CybridCustomer      CybridCustomer          @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CybridAccount_CybridCustomer1")
-  // account_type                CybridAccountType
-  CybridTransactions  CybridTransaction[]     @relation("cybridaccountTocybridtransaction_cybrid_account_id")
+  cybrid_account_id        String                  @id @default(cuid()) @db.VarChar(36)
+  cybrid_account_guid      String                  @unique @db.VarChar(45)
+  name                     String
+  balance                  Float
+  currency                 CybridSupportedCurrency
+  is_active                Boolean                 @default(true) @db.Boolean
+  cybrid_customer_id       String
+  CybridCustomer           CybridCustomer          @relation(fields: [cybrid_customer_id], references: [cybrid_customer_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_CybridAccount_CybridCustomer1")
+  CybridTransactions       CybridTransaction[]     @relation("cybridaccountTocybridtransaction_cybrid_account_id")
+  CybridCryptoTransactions CybridTransaction[]     @relation("cybridcryptoaccountTocybridtransaction_cybrid_account_id")
 
   @@index([cybrid_customer_id], map: "fk_CybridAccount_CybridCustomer1_idx")
   @@map("cybrid_accounts")
@@ -97,18 +97,25 @@ model CybridTransaction {
   status                       CybridTransactionStatus
   initiated_at                 DateTime                @default(now()) @db.Timestamp()
   settled_at                   DateTime?               @db.Timestamp()
+  cybrid_account_id            String?
+  CybridAccount                CybridAccount?          @relation("cybridaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount1")
+  initiated_by                 String
+  InitiatedBy                  CybridCustomer          @relation("cybridCustomerTocybridtransaction_created_by", fields: [initiated_by], references: [cybrid_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridCustomer1")
+  // convert
   local_customer_id            String?
   LocalCustomer                LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
+  // mobile money remittance
   receiver_payout_info_id      String?
   ReceiverPayoutInfo           CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counterparty_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
+  // bank deposit remittance
   receiver_bank_payout_info_id String?
   ReceiverBankPayoutInfo       ReceiverBankPayoutInfo? @relation(fields: [receiver_bank_payout_info_id], references: [receiver_bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_BankInfo1")
-  cybrid_account_id            String?
-  CybridAccount                CybridAccount?          @relation("cybridaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount2")
+  // crypto convert
+  cybrid_crypto_account_id     String?
+  CryptoCybridAccount          CybridAccount?          @relation("cybridcryptoaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_crypto_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount2")
+  // funding
   cybrid_external_account_id   String?
   CybridExternalAccount        CybridExternalAccount?  @relation(fields: [cybrid_external_account_id], references: [cybrid_external_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridExternalAccount1")
-  initiated_by                 String
-  InitiatedBy                  CybridCustomer          @relation("cybridCustomerTocybridtransaction_created_by", fields: [initiated_by], references: [cybrid_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount1")
 
   @@index([receiver_bank_payout_info_id], map: "fk_CybridTransaction_BankInfo1_idx")
   @@index([initiated_by], map: "fk_CybridTransaction_CybridAccount1_idx")

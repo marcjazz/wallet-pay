@@ -1,26 +1,38 @@
 import {
-  PostCounterpartyBankModelTypeEnum,
-  PostIdentityVerificationBankModelMethodEnum,
-  PostIdentityVerificationBankModelTypeEnum,
   PostQuoteBankModelProductTypeEnum,
+  PostTradeBankModelTradeTypeEnum,
   PostTransferBankModelTransferTypeEnum,
   PostTransferParticipantBankModelTypeEnum,
+  TradeBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
 import {
   Injectable,
   NotFoundException,
-  NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { $Enums } from '@prisma/client';
+import {
+  $Enums,
+  CybridSupportedCurrency,
+  CybridTransaction,
+} from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CybridTransactionEntity,
-  InitiateTransferDto,
+  InitiateFundingTransferDto,
+  InitiateRemittanceDto,
   QueryTransactionDto,
+  ReceiverPayoutInfoDto,
 } from './transaction.dto';
+
+type CustomerAccountGuids = {
+  customerGuid: string;
+  fiatAccountGuid: string;
+  cryptoAccountGuid?: string;
+  currency: CybridSupportedCurrency;
+  externalAccountGuid?: string;
+};
 
 @Injectable()
 export class TransactionsService {
@@ -30,105 +42,33 @@ export class TransactionsService {
     private readonly configService: ConfigService
   ) {}
 
-  async initiateTransfer(
-    personId: string,
-    {
-      receiver,
-      transfer_type: transferType,
-      ...payload
-    }: Omit<InitiateTransferDto, 'otp'>
+  async initiateInstantFunding(
+    payload: InitiateFundingTransferDto,
+    personId: string
   ) {
-    const isBookTransfer =
-      transferType == PostTransferBankModelTransferTypeEnum.Book;
-    const isFundingTransfer =
-      transferType == PostTransferBankModelTransferTypeEnum.InstantFunding ||
-      transferType == PostTransferBankModelTransferTypeEnum.Funding;
+    const transferType = PostTransferBankModelTransferTypeEnum.InstantFunding;
 
-    if (!isBookTransfer && !isFundingTransfer) {
-      throw new NotImplementedException(
-        `${transferType} transfers not implemented yet!`
-      );
-    }
-
-    const customerAccount = await this.getCustomerAccount(
+    const sourceAccountGuids = await this.getSourceAccountGuids(
       personId,
       payload.cybrid_source_account_id,
       transferType
     );
 
-    if (!customerAccount) {
+    if (!sourceAccountGuids) {
       throw new NotFoundException('Source bank account not found!');
     }
 
-    const {
-      customerGuid,
-      accountGuid,
-      externalAccountGuid,
-      customerId,
-      accountId,
-    } = customerAccount;
-    console.error(customerAccount);
-    // const accountId = payload.cybrid_source_account_id;
-
-    let cybridCounterparty = null;
-    if (receiver?.cybrid_counterparty_id) {
-      const counterparty =
-        await this.prismaService.cybridCounterparty.findUnique({
-          where: { cybrid_counterparty_id: receiver.cybrid_counterparty_id },
-        });
-
-      if (!counterparty) {
-        throw new NotFoundException(
-          `Counterparty not found! omit 'cybrid_counterparty_id' to create a new.`
-        );
-      }
-      cybridCounterparty = counterparty;
-    } else if (receiver) {
-      const [first, last] = receiver.fullname.split(' ');
-      const counterparty = await this.cybridService.createCounterparty(
-        customerGuid,
-        {
-          address: receiver.address,
-          name: { full: receiver.fullname, last, first },
-          type: PostCounterpartyBankModelTypeEnum.Individual,
-        }
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 7000));
-
-      const counterpartyVerification = await this.cybridService.verifyIdentity(
-        customerGuid,
-        {
-          counterparty_guid: counterparty.guid,
-          type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
-          method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
-        }
-      );
-
-      console.log('counterpartyVerification', counterpartyVerification);
-
-      if (counterpartyVerification.outcome === 'failed') {
-        throw new UnauthorizedException(`Potential faulty receiver detected!`);
-      }
-
-      cybridCounterparty = {
-        ...receiver,
-        person_id: personId,
-        cybrid_counterparty_guid: counterparty.guid as string,
-      };
-    }
+    const { currency, customerGuid, fiatAccountGuid, externalAccountGuid } =
+      sourceAccountGuids;
 
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
-      // adjusting product type based on our transfer type
-      isBookTransfer
-        ? PostQuoteBankModelProductTypeEnum.BookTransfer
-        : PostQuoteBankModelProductTypeEnum.Funding,
-      payload.amount,
-      payload.currency
+      {
+        product_type: PostQuoteBankModelProductTypeEnum.Funding,
+        receive_amount: payload.amount,
+        asset: currency,
+      }
     );
-
-    console.log('fundingTransferQuote', fundingTransferQuote);
 
     const fundingTransfer = await this.cybridService.initiateTransfer(
       customerGuid,
@@ -136,7 +76,7 @@ export class TransactionsService {
         payment_rail: 'ach',
         transfer_type: transferType,
         quote_guid: fundingTransferQuote.guid as string,
-        // adjusting transfer payload accordingly
+        external_bank_account_guid: externalAccountGuid,
         source_participants: [
           {
             guid: customerGuid,
@@ -144,112 +84,229 @@ export class TransactionsService {
             type: PostTransferParticipantBankModelTypeEnum.Customer,
           },
         ],
-        ...(isBookTransfer && cybridCounterparty
-          ? {
-              source_account_guid: accountGuid,
-              destination_account_guid: this.configService.get(
-                'CYBRID_BANK_ACCOUNT_GUID'
-              ),
-              destination_participants: [
-                {
-                  amount: payload.amount,
-                  guid: cybridCounterparty.cybrid_counterparty_guid as string,
-                  type: PostTransferParticipantBankModelTypeEnum.Counterparty,
-                },
-              ],
-            }
-          : {
-              external_bank_account_guid: externalAccountGuid,
-              destination_participants: [
-                {
-                  guid: customerGuid,
-                  amount: payload.amount,
-                  type: PostTransferParticipantBankModelTypeEnum.Customer,
-                },
-              ],
-            }),
+        destination_participants: [
+          {
+            guid: customerGuid,
+            amount: payload.amount,
+            type: PostTransferParticipantBankModelTypeEnum.Customer,
+          },
+        ],
       }
     );
 
-    const customerFiatAccount = await this.cybridService.getAccount(
-      customerGuid,
-      accountGuid
-    );
-
-    const [cybridTransaction] = await this.prismaService.$transaction([
-      this.prismaService.cybridTransaction.create({
+    const cybridTransaction = await this.prismaService.cybridTransaction.create(
+      {
         data: {
           fees: 0,
-          initial_currency: payload.currency,
+          initial_currency: currency,
           amount: fundingTransfer.amount as number,
+          cybrid_transaction_guid: fundingTransfer.guid as string,
           transaction_type:
             transferType.toLocaleUpperCase() as $Enums.CybridTransactionType,
-          cybrid_transaction_guid: fundingTransfer.guid as string,
           status:
             fundingTransfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
           InitiatedBy: {
-            connect: { cybrid_customer_id: customerId },
+            connect: { cybrid_customer_guid: customerGuid },
           },
           CybridAccount: {
+            connect: { cybrid_account_guid: fiatAccountGuid },
+          },
+          CybridExternalAccount: {
             connect: {
-              cybrid_account_id: isBookTransfer
-                ? payload.cybrid_source_account_id
-                : accountId,
+              cybrid_external_account_id: payload.cybrid_source_account_id,
             },
           },
-          // adjusting our database transaction payload accordingly
-          ...(isBookTransfer
-            ? {}
-            : {
-                CybridExternalAccount: {
-                  connect: {
-                    cybrid_external_account_id:
-                      payload.cybrid_source_account_id,
-                  },
-                },
-              }),
         },
-      }),
-      this.prismaService.cybridAccount.update({
-        data: { balance: customerFiatAccount.platform_available as number },
-        where: { cybrid_account_id: accountId },
-      }),
-      ...(cybridCounterparty
-        ? [
-            this.prismaService.cybridCounterparty.upsert({
-              create: {
-                fullname: cybridCounterparty.fullname,
-                phone_number: cybridCounterparty.phone_number,
-                national_id_number: cybridCounterparty.national_id_number,
-                cybrid_counterparty_guid:
-                  cybridCounterparty.cybrid_counterparty_guid,
-                Person: {
-                  connect: { person_id: cybridCounterparty.person_id },
-                },
-              },
-              update: {
-                fullname: cybridCounterparty.fullname,
-                phone_number: cybridCounterparty.phone_number,
-                national_id_number: cybridCounterparty.national_id_number,
-              },
-              where: receiver?.cybrid_counterparty_id
-                ? { cybrid_counterparty_id: receiver.cybrid_counterparty_id }
-                : {
-                    person_id_fullname_phone_number: {
-                      person_id: personId,
-                      fullname: cybridCounterparty.fullname,
-                      phone_number: cybridCounterparty.phone_number,
-                    },
-                  },
-            }),
-          ]
-        : []),
-    ]);
+      }
+    );
 
     return new CybridTransactionEntity({
       ...cybridTransaction,
-      reciepient_fullname: receiver?.fullname ?? null,
+      reciepient_fullname: null,
     });
+  }
+
+  async initiateRemittance(
+    { receiver, ...payload }: InitiateRemittanceDto,
+    personId: string
+  ) {
+    const transferType = PostTransferBankModelTransferTypeEnum.Book;
+
+    const sourceAccountGuids = await this.getSourceAccountGuids(
+      personId,
+      payload.cybrid_source_account_id,
+      transferType
+    );
+
+    if (!sourceAccountGuids) {
+      throw new NotFoundException('Source bank account not found!');
+    }
+    console.error(sourceAccountGuids);
+
+    const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
+
+    // trade USD for USDC_SOL
+    const [fiatTrade] = await this.trateFiatForCrypto(
+      sourceAccountGuids,
+      payload.amount
+    );
+
+    // execute book transfer on customer's  USDC_SOL to xafpay bank level account
+    const cybridTransaction = await this.executeBookTransfer(
+      fiatTrade.receive_amount as number,
+      sourceAccountGuids,
+      cybridCounterparty.cybrid_counterparty_guid
+    );
+
+    return new CybridTransactionEntity({
+      ...cybridTransaction,
+      reciepient_fullname: cybridCounterparty.fullname,
+    });
+  }
+
+  private async executeBookTransfer(
+    amount: number,
+    { currency, customerGuid, cryptoAccountGuid }: CustomerAccountGuids,
+    counterpartyGuid: string
+  ) {
+    const transferType = PostTransferBankModelTransferTypeEnum.Book;
+
+    const bookTransferQuote = await this.cybridService.createQuote(
+      customerGuid,
+      {
+        asset: 'USDC_SOL',
+        customer_guid: customerGuid,
+        deliver_amount: amount,
+        product_type: PostQuoteBankModelProductTypeEnum.BookTransfer,
+      }
+    );
+
+    const bookTransfer = await this.cybridService.initiateTransfer(
+      customerGuid,
+      {
+        transfer_type: transferType,
+        source_account_guid: cryptoAccountGuid,
+        quote_guid: bookTransferQuote.guid as string,
+        destination_account_guid: this.configService.get(
+          'CYBRID_BANK_WALLET_GUID'
+        ),
+        source_participants: [
+          {
+            amount: amount,
+            guid: customerGuid,
+            type: PostTransferParticipantBankModelTypeEnum.Customer,
+          },
+        ],
+        destination_participants: [
+          {
+            amount: amount,
+            guid: this.configService.get('CYBRID_BANK_GUID') as string,
+            type: PostTransferParticipantBankModelTypeEnum.Bank,
+          },
+        ],
+      }
+    );
+
+    const cybridTransaction = await this.prismaService.cybridTransaction.create(
+      {
+        data: {
+          fees: 0,
+          initial_currency: currency,
+          amount: bookTransfer.amount as number,
+          transaction_type: 'REMITTANCE',
+          cybrid_transaction_guid: bookTransfer.guid as string,
+          status:
+            bookTransfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
+          InitiatedBy: {
+            connect: { cybrid_customer_guid: customerGuid },
+          },
+          CryptoCybridAccount: {
+            connect: { cybrid_account_guid: cryptoAccountGuid },
+          },
+          ReceiverPayoutInfo: {
+            connect: { cybrid_counterparty_guid: counterpartyGuid },
+          },
+        },
+      }
+    );
+    return cybridTransaction;
+  }
+
+  private async trateFiatForCrypto(
+    {
+      currency,
+      customerGuid,
+      fiatAccountGuid,
+      cryptoAccountGuid,
+    }: CustomerAccountGuids,
+    fiatAmount: number
+  ): Promise<[TradeBankModel, CybridTransaction]> {
+    const tradeQuote = await this.cybridService.createQuote(customerGuid, {
+      product_type: PostQuoteBankModelProductTypeEnum.Trading,
+      deliver_amount: fiatAmount,
+      customer_guid: customerGuid,
+      symbol: 'USDC_SOL-USD',
+      side: 'buy',
+    });
+
+    const tradeTransaction = await this.cybridService.initiateTrade(
+      customerGuid,
+      {
+        quote_guid: tradeQuote.guid as string,
+        trade_type: PostTradeBankModelTradeTypeEnum.Platform,
+      }
+    );
+
+    const cybridTransaction = await this.prismaService.cybridTransaction.create(
+      {
+        data: {
+          fees: 0,
+          amount: fiatAmount,
+          initial_currency: currency,
+          cybrid_transaction_guid: tradeTransaction.guid as string,
+          status:
+            tradeTransaction.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
+          transaction_type: 'CONVERT',
+          InitiatedBy: {
+            connect: { cybrid_customer_id: customerGuid },
+          },
+          CybridAccount: {
+            connect: { cybrid_account_guid: fiatAccountGuid },
+          },
+          CryptoCybridAccount: {
+            connect: { cybrid_account_guid: cryptoAccountGuid },
+          },
+        },
+      }
+    );
+    return [tradeTransaction, cybridTransaction];
+  }
+
+  private async getCounterpartyFromReceiver(receiver: ReceiverPayoutInfoDto) {
+    let cybridCounterparty =
+      await this.prismaService.cybridCounterparty.findUnique({
+        where: { cybrid_counterparty_id: receiver.cybrid_counterparty_id },
+      });
+
+    if (!cybridCounterparty) {
+      throw new NotFoundException(`Receiver not found!`);
+    }
+
+    if (cybridCounterparty.status !== 'VERIFIED') {
+      throw new UnauthorizedException(`Potential faulty receiver detected!`);
+    }
+
+    if (receiver.national_id_number || receiver.phone_number) {
+      cybridCounterparty = await this.prismaService.cybridCounterparty.update({
+        data: {
+          phone_number: receiver.phone_number ?? undefined,
+          national_id_number: receiver.national_id_number ?? undefined,
+        },
+        where: { cybrid_counterparty_id: receiver.cybrid_counterparty_id },
+      });
+    }
+
+    return cybridCounterparty;
   }
 
   async getTransaction(cybridTransactionId: string) {
@@ -293,34 +350,25 @@ export class TransactionsService {
     );
   }
 
-  private async getCustomerAccount(
+  private async getSourceAccountGuids(
     personId: string,
     sourceAccountId: string,
-    transferType: PostTransferBankModelTransferTypeEnum
+    purpose: 'book' | 'instant_funding'
   ) {
-    type CustomerAccountGuids = {
-      customerGuid: string;
-      accountGuid: string;
-      customerId: string;
-      accountId: string;
-      externalAccountGuid?: string;
-    };
-
-    console.log('sourceAccountId', sourceAccountId);
-    console.log('transferType', transferType);
-    console.log('personId', personId);
-
     let customerAccount: CustomerAccountGuids | null = null;
-    if (transferType === PostTransferBankModelTransferTypeEnum.Book) {
+    if (purpose === 'book') {
       const cybridAccount = await this.prismaService.cybridAccount.findFirst({
         select: {
-          cybrid_account_id: true,
+          currency: true,
           cybrid_account_guid: true,
           CybridCustomer: {
             select: {
               cybrid_customer_guid: true,
-              CybridAccounts: true,
-              cybrid_customer_id: true,
+              CybridAccounts: {
+                take: 1,
+                select: { cybrid_account_guid: true },
+                where: { currency: 'USDC_SOL' },
+              },
             },
           },
         },
@@ -329,29 +377,36 @@ export class TransactionsService {
           CybridCustomer: { person_id: personId },
         },
       });
+
       if (cybridAccount) {
+        const {
+          currency,
+          CybridCustomer: customer,
+          cybrid_account_guid: fiatAccountGuid,
+        } = cybridAccount;
+
         customerAccount = {
-          accountId: cybridAccount.cybrid_account_id,
-          accountGuid: cybridAccount.cybrid_account_guid,
-          customerGuid: cybridAccount.CybridCustomer.cybrid_customer_guid,
-          customerId: cybridAccount.CybridCustomer.cybrid_customer_id,
+          currency,
+          fiatAccountGuid,
+          customerGuid: customer.cybrid_customer_guid,
+          cryptoAccountGuid: customer.CybridAccounts[0].cybrid_account_guid,
         };
       }
     } else {
-      console.log('Entered the else block');
       const externalAccount =
         await this.prismaService.cybridExternalAccount.findFirst({
           select: {
+            currency: true,
             cybrid_external_account_guid: true,
             CybridCustomer: {
               select: {
                 cybrid_customer_guid: true,
-                cybrid_customer_id: true,
                 CybridAccounts: {
+                  take: 1,
                   select: {
                     cybrid_account_guid: true,
-                    cybrid_account_id: true,
                   },
+                  where: { currency: 'USD' },
                 },
               },
             },
@@ -361,21 +416,19 @@ export class TransactionsService {
             CybridCustomer: { person_id: personId },
           },
         });
-      console.log('externalAccount', externalAccount);
       if (externalAccount) {
         const {
           CybridCustomer: {
             cybrid_customer_guid,
-            cybrid_customer_id,
-            CybridAccounts: [{ cybrid_account_guid, cybrid_account_id }],
+            CybridAccounts: [{ cybrid_account_guid }],
           },
+          currency,
           cybrid_external_account_guid,
         } = externalAccount;
         customerAccount = {
-          accountGuid: cybrid_account_guid,
+          currency,
+          fiatAccountGuid: cybrid_account_guid,
           customerGuid: cybrid_customer_guid,
-          customerId: cybrid_customer_id,
-          accountId: cybrid_account_id,
           externalAccountGuid: cybrid_external_account_guid,
         };
       }

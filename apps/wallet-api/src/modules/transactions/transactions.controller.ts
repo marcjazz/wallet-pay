@@ -19,7 +19,8 @@ import { OTPService } from '../../app/two-fa/otp/otp.service';
 import { TwoFAUsage } from '../../app/two-fa/two-fa.interface';
 import {
   CybridTransactionEntity,
-  InitiateTransferDto,
+  InitiateFundingTransferDto,
+  InitiateRemittanceDto,
   QueryTransactionDto,
 } from './transaction.dto';
 import { TransactionsService } from './transactions.service';
@@ -33,7 +34,34 @@ export class TransactionsController {
     private readonly transactionsService: TransactionsService
   ) {}
 
-  @Post('initiate')
+  @Post('fund')
+  @ApiCreatedResponse({ type: CybridTransactionEntity })
+  @ApiOperation({
+    summary: 'Initialize a transfer on a given account.',
+    description:
+      'Initialize a transfer on a given account. Only book, funding or instant funding are currently supported',
+  })
+  async initiateFundingTransfer(
+    @Req() req: Request,
+    @Body() payload: InitiateFundingTransferDto
+  ) {
+    const isVerified = await this.otpService.verify(
+      payload.otp.otp_id,
+      payload.otp.code,
+      TwoFAUsage.TRANSFER
+    );
+
+    if (!isVerified) {
+      throw new UnauthorizedException(`Invalid One time password`);
+    }
+
+    return this.transactionsService.initiateInstantFunding(
+      payload,
+      req.user?.person_id as string
+    );
+  }
+
+  @Post('remit')
   @ApiCreatedResponse({ type: CybridTransactionEntity })
   @ApiOperation({
     summary: 'Initialize a transfer on a given account.',
@@ -42,11 +70,11 @@ export class TransactionsController {
   })
   async initiateTransfer(
     @Req() req: Request,
-    @Body() { otp, ...payload }: InitiateTransferDto
+    @Body() payload: InitiateRemittanceDto
   ) {
     const isVerified = await this.otpService.verify(
-      otp.otp_id,
-      otp.code,
+      payload.otp.otp_id,
+      payload.otp.code,
       TwoFAUsage.TRANSFER
     );
 
@@ -54,9 +82,9 @@ export class TransactionsController {
       throw new UnauthorizedException(`Invalid One time password`);
     }
 
-    return this.transactionsService.initiateTransfer(
-      req.user?.person_id as string,
-      payload
+    return this.transactionsService.initiateRemittance(
+      payload,
+      req.user?.person_id as string
     );
   }
 

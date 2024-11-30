@@ -1,38 +1,49 @@
-import { PostTransferBankModelTransferTypeEnum } from '@cybrid/cybrid-api-bank-typescript';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   $Enums,
   CybridTransaction,
   CybridTransactionStatus,
 } from '@prisma/client';
-import { Exclude, Type } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import {
   IsEnum,
   IsIn,
   IsNumber,
   IsOptional,
+  IsPhoneNumber,
   IsString,
-  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { OTPPayloadDto } from '../../app/two-fa/dto/two-fa.dto';
-import { ReceiverPayoutInfoDto } from '../receivers/receiver.dto';
 
-export class InitiateTransferDto {
+export class ReceiverPayoutInfoDto {
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  national_id_number: string | null = null;
+
+  @IsPhoneNumber('CM')
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'Receiver Cameroonian phone number.' })
+  phone_number: string | null = null;
+
+  @IsString()
+  @ApiProperty({ name: 'receiver_id' })
+  @Expose({ name: 'receiver_id' })
+  cybrid_counterparty_id: string;
+
+  constructor(props: ReceiverPayoutInfoDto) {
+    Object.assign(this, props);
+  }
+}
+
+export class InitiateFundingTransferDto {
   @IsString()
   @ApiProperty({
     description:
       'customer internal or external account unique identifier in our database',
   })
   cybrid_source_account_id: string;
-
-  @IsEnum(PostTransferBankModelTransferTypeEnum)
-  @ApiProperty({ enum: PostTransferBankModelTransferTypeEnum })
-  transfer_type: PostTransferBankModelTransferTypeEnum;
-
-  @IsEnum($Enums.CybridSupportedCurrency)
-  @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
-  currency: $Enums.CybridSupportedCurrency;
 
   @IsNumber()
   @ApiProperty({ description: 'Amount in currency base unit' })
@@ -46,13 +57,22 @@ export class InitiateTransferDto {
   })
   otp: OTPPayloadDto;
 
-  @IsOptional()
-  @Type(() => ReceiverPayoutInfoDto)
-  @ValidateIf((o) => o.transfer_type === 'Book')
-  @ApiPropertyOptional({ type: ReceiverPayoutInfoDto })
-  receiver: ReceiverPayoutInfoDto | null = null;
+  constructor(props: InitiateFundingTransferDto) {
+    Object.assign(this, props);
+  }
+}
 
-  constructor(props: InitiateTransferDto) {
+export class InitiateRemittanceDto extends InitiateFundingTransferDto {
+  @ValidateNested()
+  @Type(() => ReceiverPayoutInfoDto)
+  @ApiProperty({
+    type: ReceiverPayoutInfoDto,
+    description: 'Required for book',
+  })
+  receiver: ReceiverPayoutInfoDto;
+
+  constructor(props: InitiateRemittanceDto) {
+    super(props);
     Object.assign(this, props);
   }
 }
@@ -71,7 +91,7 @@ export class CybridTransactionEntity implements CybridTransaction {
   initial_currency: $Enums.CybridSupportedCurrency;
 
   @ApiProperty()
-  converstion_rate: number | null;
+  converstion_rate: number | null = null;
 
   @ApiProperty()
   fees: number;
@@ -89,34 +109,43 @@ export class CybridTransactionEntity implements CybridTransaction {
   initiated_at: Date;
 
   @ApiProperty({ nullable: true, type: Date })
-  settled_at: Date | null;
+  settled_at: Date | null = null;
+
+  @ApiProperty({
+    nullable: true,
+    description: "Envolved customer's fiat account",
+  })
+  cybrid_account_id: string | null = null;
 
   @ApiProperty({
     nullable: true,
     description: 'Provided for local transactions',
   })
-  local_customer_id: string | null;
+  local_customer_id: string | null = null;
 
-  @ApiProperty()
-  cybrid_account_id: string | null;
+  @ApiProperty({
+    nullable: true,
+    description: 'USD_SOL (Solana) asset account on cybrid',
+  })
+  cybrid_crypto_account_id: string | null = null;
 
-  @ApiProperty()
-  cybrid_external_account_id: string | null;
+  @ApiProperty({ nullable: true })
+  cybrid_external_account_id: string | null = null;
 
   @ApiProperty({ nullable: true, description: 'Receiver payout info' })
-  receiver_payout_info_id: string | null;
+  receiver_payout_info_id: string | null = null;
 
   @ApiProperty({
     nullable: true,
     description: "Receiver's bank settlement  bank info",
   })
-  receiver_bank_payout_info_id: string | null;
+  receiver_bank_payout_info_id: string | null = null;
 
   @ApiProperty({
     nullable: true,
     description: 'Receipient can be either payout or cybrid account.',
   })
-  reciepient_fullname: string | null;
+  reciepient_fullname: string | null = null;
 
   @Exclude()
   initiated_by: string;
