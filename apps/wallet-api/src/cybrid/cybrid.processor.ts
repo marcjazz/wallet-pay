@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import {
   CybridTransactionStatus,
   IdentityVerificationStatus,
-  PrismaPromise
+  PrismaPromise,
 } from '@prisma/client';
 import { Job } from 'bull';
 import { PrismaService } from '../prisma/prisma.service';
@@ -71,43 +71,19 @@ export class CybridProcessor {
   }
 
   @Process(cybridJobs.TRANSFER_STATUS_UPDATE)
-  async pullInitiatedTransfer(job: Job<CybridSubscriptionEventObjectDto>) {
-    this.logger.debug('Pulling cybrid initiate transfer on cybrid...');
+  async handleCybridTransferEvents(job: Job<CybridSubscriptionEventObjectDto>) {
+    this.logger.log(`Handling cybrid's ${job.data.event_type}...`);
 
-    const { event_type: eventType, object_guid: transferGuid } = job.data;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, status] = eventType.split('.');
-    const verificationStatus =
-      status.toLocaleUpperCase() as CybridTransactionStatus;
-
-    const transaction = await this.prismaService.cybridTransaction.findUnique({
-      include: {
-        CybridAccount: {
-          include: {
-            CybridCustomer: { select: { cybrid_customer_guid: true } },
-          },
-        },
-      },
-      where: { cybrid_transaction_guid: transferGuid },
-    });
-    if (!transaction || !transaction.CybridAccount) {
-      throw new Error('No transaction record was found!');
-    }
-
-    //  Do nothing if transaction status was already set to a final state
-    if (transaction.status === 'COMPLETED' || transaction.status === 'FAILED') {
+    const parsedObject = await this.parseCybridEventObject(job.data);
+    if (!parsedObject) {
       return;
     }
 
-    const {
-      CybridAccount: {
-        cybrid_account_guid: accountGuid,
-        CybridCustomer: { cybrid_customer_guid: customerGuid },
-      },
-    } = transaction;
+    const { customerGuid, transactionGuid, verificationStatus } = parsedObject;
+
     const transfer = await this.cybridService.getTransfer(
       customerGuid,
-      transferGuid
+      transactionGuid
     );
 
     const prismaPromises: PrismaPromise<unknown>[] = [];
@@ -127,6 +103,11 @@ export class CybridProcessor {
       );
     }
 
+    const accountGuid = (
+      transfer.external_bank_account_guid
+        ? transfer.destination_account?.guid
+        : transfer.source_account?.guid
+    ) as string;
     const customerAccount = await this.cybridService.getAccount(
       customerGuid,
       accountGuid
@@ -138,15 +119,98 @@ export class CybridProcessor {
       }),
       this.prismaService.cybridTransaction.update({
         data: { status: verificationStatus },
-        where: { cybrid_transaction_guid: transferGuid },
+        where: { cybrid_transaction_guid: transactionGuid },
       })
     );
 
     // execute prisma transaction against database
     await this.prismaService.$transaction(prismaPromises);
 
-    this.logger.log(
-      `Successfully pulled ${status} transaction from cybrid and updated database`
-    );
+    this.logger.log(`Successfully handled cybrid's ${job.data.event_type}.`);
+  }
+
+  @Process(cybridJobs.TRADE_STATUS_UPDATE)
+  async handleCybridTradeEvents(job: Job<CybridSubscriptionEventObjectDto>) {
+    this.logger.log(`Handling cybrid's ${job.data.event_type}...`);
+
+    const parsedObject = await this.parseCybridEventObject(job.data);
+    if (!parsedObject) {
+      return;
+    }
+
+    const { customerGuid, transactionGuid, verificationStatus } = parsedObject;
+
+    const { CryptoCybridAccount: cryptoAccount, CybridAccount: fiatAccount } =
+      await this.prismaService.cybridTransaction.findUniqueOrThrow({
+        select: {
+          CryptoCybridAccount: { select: { cybrid_account_guid: true } },
+          CybridAccount: { select: { cybrid_account_guid: true } },
+        },
+        where: { cybrid_transaction_guid: transactionGuid },
+      });
+
+    const prismaPromises: PrismaPromise<unknown>[] = [];
+    if (cryptoAccount) {
+      await updateAccountBalance(cryptoAccount.cybrid_account_guid);
+    }
+    if (fiatAccount) {
+      await updateAccountBalance(fiatAccount.cybrid_account_guid);
+    }
+
+    await this.prismaService.$transaction([
+      ...prismaPromises,
+      this.prismaService.cybridTransaction.update({
+        data: { status: verificationStatus },
+        where: { cybrid_transaction_guid: transactionGuid },
+      }),
+    ]);
+
+    this.logger.log(`Successfully handled cybrid's ${job.data.event_type}.`);
+
+    async function updateAccountBalance(cryptoAccountGuid: string) {
+      const cybridCryptoAccount = await this.cybridService.getAccount(
+        customerGuid,
+        cryptoAccountGuid
+      );
+      prismaPromises.push(
+        this.prismaService.cybridAccount.update({
+          data: { balance: cybridCryptoAccount.platform_available },
+          where: { cybrid_account_guid: cryptoAccountGuid },
+        })
+      );
+    }
+  }
+
+  private async parseCybridEventObject(
+    eventObject: CybridSubscriptionEventObjectDto
+  ) {
+    const { event_type: eventType, object_guid: transactionGuid } = eventObject;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, status] = eventType.split('.');
+    const verificationStatus =
+      status.toLocaleUpperCase() as CybridTransactionStatus;
+
+    const transaction = await this.prismaService.cybridTransaction.findUnique({
+      where: { cybrid_transaction_guid: transactionGuid },
+    });
+    if (!transaction) {
+      throw new Error(
+        `No transaction record was found for ${transactionGuid}!`
+      );
+    }
+
+    //  Do nothing if transaction status was already set to a final state
+    if (transaction.status === 'COMPLETED' || transaction.status === 'FAILED') {
+      this.logger.debug(
+        `Handled cybrid's ${eventType}: transaction was already finalized`
+      );
+      return;
+    }
+
+    return {
+      transactionGuid,
+      customerGuid: transaction.initiated_by,
+      verificationStatus,
+    };
   }
 }

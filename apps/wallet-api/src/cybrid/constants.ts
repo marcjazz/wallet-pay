@@ -43,4 +43,5 @@ export const cybridConstants = {
 export const cybridJobs = {
   IDENTITY_VERIFICATION_STATUS_UPDATE: 'identity-verification-status-update',
   TRANSFER_STATUS_UPDATE: 'cybrid-transfer-status-update',
+  TRADE_STATUS_UPDATE: 'cybrid-trade-status-update',
 };
