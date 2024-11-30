@@ -9,7 +9,7 @@ import {
   QuotesBankApi,
   TradesBankApi,
   TransfersBankApi,
-  WorkflowsBankApi,
+  WorkflowsBankApi
 } from '@cybrid/cybrid-api-bank-typescript';
 import { HttpService } from '@nestjs/axios';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -17,14 +17,16 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  Injectable,
   InternalServerErrorException,
   Logger,
   NotImplementedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cache } from 'cache-manager';
 import { ApiScopeType, CybridAuthResponse } from '../types/cybrid';
-import { ConfigService } from '@nestjs/config';
 
+@Injectable()
 export class CybridConfig {
   private readonly logger = new Logger(CybridConfig.name);
   private readonly CUSTOMER_BANK_LEVEL_TOKEN = 'customer_bank_level_token';
@@ -114,10 +116,17 @@ export class CybridConfig {
         );
       });
 
+    this.logger.log(`Successfully fetch customer level token: ${resp.data}`);
     return resp.data.access_token;
   }
 
-  private async getBankLevelAccessToken() {
+  private async getBankLevelAccessToken(
+    scopes: ApiScopeType[] = [
+      'customers:write',
+      'customers:execute',
+      'customers:read',
+    ]
+  ) {
     const { username: clientId, password: clientSecret } = this.configuration;
     if (!clientId || !clientSecret) {
       throw new InternalServerErrorException(
@@ -132,6 +141,7 @@ export class CybridConfig {
 
     if (
       !authResp ||
+      !scopes.every((scope) => authResp?.scope.includes(scope)) ||
       new Date(authResp.created_at * 1000).getTime() +
         authResp.expires_in * 1000 <=
         Date.now()
@@ -144,7 +154,7 @@ export class CybridConfig {
           ),
           {
             grant_type: 'client_credentials',
-            scope: 'customers:write customers:execute customers:read',
+            scope: scopes.join(' '),
           },
           {
             headers: {
