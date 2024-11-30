@@ -60,7 +60,7 @@ class EnvironmentVariables {
   CYBRID_BANK_FIAT_ACCOUNT_GUID: string;
 
   @IsHexadecimal()
-  CYBRID_BANK_WALLET_GUID: string;
+  CYBRID_BANK_TRADING_ACCOUNT_GUID: string;
 
   @IsUrl()
   CYBRID_BANK_LEVEL_TOKEN_ENDPOINT: string;

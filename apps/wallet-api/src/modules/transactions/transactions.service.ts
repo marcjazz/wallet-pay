@@ -317,7 +317,7 @@ export class TransactionsService {
         source_account_guid: cryptoAccountGuid,
         quote_guid: bookTransferQuote.guid as string,
         destination_account_guid: this.configService.get(
-          'CYBRID_BANK_WALLET_GUID'
+          'CYBRID_BANK_TRADING_ACCOUNT_GUID'
         ),
         source_participants: [
           {
