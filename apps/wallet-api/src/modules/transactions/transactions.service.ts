@@ -164,6 +164,133 @@ export class TransactionsService {
     });
   }
 
+  async getTransaction(cybridTransactionId: string) {
+    return this.prismaService.cybridTransaction.findUnique({
+      where: { cybrid_transaction_id: cybridTransactionId },
+    });
+  }
+
+  async getTransactions(
+    { order_by, order_direction, search, status }: QueryTransactionDto,
+    initiatedBy: string
+  ) {
+    const personFullnameSelect = {
+      select: { Person: { select: { first_name: true, last_name: true } } },
+    };
+    const transantions = await this.prismaService.cybridTransaction.findMany({
+      orderBy:
+        order_by === 'amount'
+          ? { amount: order_direction }
+          : { initiated_at: order_direction },
+      include: {
+        LocalCustomer: personFullnameSelect,
+        ReceiverPayoutInfo: {
+          ...personFullnameSelect,
+          where: { fullname: { search } },
+        },
+      },
+      where: { status, initiated_by: initiatedBy },
+    });
+
+    return transantions.map(
+      ({ LocalCustomer, ReceiverPayoutInfo, ...transantion }) => {
+        const person = ReceiverPayoutInfo?.Person ?? LocalCustomer?.Person;
+        return new CybridTransactionEntity({
+          ...transantion,
+          reciepient_fullname: person
+            ? `${person.first_name} ${person.last_name}`
+            : null,
+        });
+      }
+    );
+  }
+
+  private async getSourceAccountGuids(
+    personId: string,
+    sourceAccountId: string,
+    purpose: 'book' | 'instant_funding'
+  ) {
+    let customerAccount: CustomerAccountGuids | null = null;
+    if (purpose === 'book') {
+      const cybridAccount = await this.prismaService.cybridAccount.findFirst({
+        select: {
+          currency: true,
+          cybrid_account_guid: true,
+          CybridCustomer: {
+            select: {
+              cybrid_customer_guid: true,
+              CybridAccounts: {
+                take: 1,
+                select: { cybrid_account_guid: true },
+                where: { currency: 'USDC_SOL' },
+              },
+            },
+          },
+        },
+        where: {
+          cybrid_account_id: sourceAccountId,
+          CybridCustomer: { person_id: personId },
+        },
+      });
+
+      if (cybridAccount) {
+        const {
+          currency,
+          CybridCustomer: customer,
+          cybrid_account_guid: fiatAccountGuid,
+        } = cybridAccount;
+
+        customerAccount = {
+          currency,
+          fiatAccountGuid,
+          customerGuid: customer.cybrid_customer_guid,
+          cryptoAccountGuid: customer.CybridAccounts[0].cybrid_account_guid,
+        };
+      }
+    } else {
+      const externalAccount =
+        await this.prismaService.cybridExternalAccount.findFirst({
+          select: {
+            currency: true,
+            cybrid_external_account_guid: true,
+            CybridCustomer: {
+              select: {
+                cybrid_customer_guid: true,
+                CybridAccounts: {
+                  take: 1,
+                  select: {
+                    cybrid_account_guid: true,
+                  },
+                  where: { currency: 'USD' },
+                },
+              },
+            },
+          },
+          where: {
+            cybrid_external_account_id: sourceAccountId,
+            CybridCustomer: { person_id: personId },
+          },
+        });
+      if (externalAccount) {
+        const {
+          CybridCustomer: {
+            cybrid_customer_guid,
+            CybridAccounts: [{ cybrid_account_guid }],
+          },
+          currency,
+          cybrid_external_account_guid,
+        } = externalAccount;
+        customerAccount = {
+          currency,
+          fiatAccountGuid: cybrid_account_guid,
+          customerGuid: cybrid_customer_guid,
+          externalAccountGuid: cybrid_external_account_guid,
+        };
+      }
+    }
+    return customerAccount;
+  }
+
   private async executeBookTransfer(
     amount: number,
     { currency, customerGuid, cryptoAccountGuid }: CustomerAccountGuids,
@@ -307,132 +434,5 @@ export class TransactionsService {
     }
 
     return cybridCounterparty;
-  }
-
-  async getTransaction(cybridTransactionId: string) {
-    return this.prismaService.cybridTransaction.findUnique({
-      where: { cybrid_transaction_id: cybridTransactionId },
-    });
-  }
-
-  async getTransactions(
-    { order_by, order_direction, search, status }: QueryTransactionDto,
-    initiatedBy: string
-  ) {
-    const personFullnameSelect = {
-      select: { Person: { select: { first_name: true, last_name: true } } },
-    };
-    const transantions = await this.prismaService.cybridTransaction.findMany({
-      orderBy:
-        order_by === 'amount'
-          ? { amount: order_direction }
-          : { initiated_at: order_direction },
-      include: {
-        LocalCustomer: personFullnameSelect,
-        ReceiverPayoutInfo: {
-          ...personFullnameSelect,
-          where: { fullname: { search } },
-        },
-      },
-      where: { status, initiated_by: initiatedBy },
-    });
-
-    return transantions.map(
-      ({ LocalCustomer, ReceiverPayoutInfo, ...transantion }) => {
-        const person = ReceiverPayoutInfo?.Person ?? LocalCustomer?.Person;
-        return new CybridTransactionEntity({
-          ...transantion,
-          reciepient_fullname: person
-            ? `${person.first_name} ${person.last_name}`
-            : null,
-        });
-      }
-    );
-  }
-
-  private async getSourceAccountGuids(
-    personId: string,
-    sourceAccountId: string,
-    purpose: 'book' | 'instant_funding'
-  ) {
-    let customerAccount: CustomerAccountGuids | null = null;
-    if (purpose === 'book') {
-      const cybridAccount = await this.prismaService.cybridAccount.findFirst({
-        select: {
-          currency: true,
-          cybrid_account_guid: true,
-          CybridCustomer: {
-            select: {
-              cybrid_customer_guid: true,
-              CybridAccounts: {
-                take: 1,
-                select: { cybrid_account_guid: true },
-                where: { currency: 'USDC_SOL' },
-              },
-            },
-          },
-        },
-        where: {
-          cybrid_account_id: sourceAccountId,
-          CybridCustomer: { person_id: personId },
-        },
-      });
-
-      if (cybridAccount) {
-        const {
-          currency,
-          CybridCustomer: customer,
-          cybrid_account_guid: fiatAccountGuid,
-        } = cybridAccount;
-
-        customerAccount = {
-          currency,
-          fiatAccountGuid,
-          customerGuid: customer.cybrid_customer_guid,
-          cryptoAccountGuid: customer.CybridAccounts[0].cybrid_account_guid,
-        };
-      }
-    } else {
-      const externalAccount =
-        await this.prismaService.cybridExternalAccount.findFirst({
-          select: {
-            currency: true,
-            cybrid_external_account_guid: true,
-            CybridCustomer: {
-              select: {
-                cybrid_customer_guid: true,
-                CybridAccounts: {
-                  take: 1,
-                  select: {
-                    cybrid_account_guid: true,
-                  },
-                  where: { currency: 'USD' },
-                },
-              },
-            },
-          },
-          where: {
-            cybrid_external_account_id: sourceAccountId,
-            CybridCustomer: { person_id: personId },
-          },
-        });
-      if (externalAccount) {
-        const {
-          CybridCustomer: {
-            cybrid_customer_guid,
-            CybridAccounts: [{ cybrid_account_guid }],
-          },
-          currency,
-          cybrid_external_account_guid,
-        } = externalAccount;
-        customerAccount = {
-          currency,
-          fiatAccountGuid: cybrid_account_guid,
-          customerGuid: cybrid_customer_guid,
-          externalAccountGuid: cybrid_external_account_guid,
-        };
-      }
-    }
-    return customerAccount;
   }
 }
