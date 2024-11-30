@@ -6,7 +6,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { redisStore } from 'cache-manager-redis-yet';
 import { cybridConstants } from './constants';
-import { CybridConfiguration } from './cybrid.config';
+import { CybridConfig } from './cybrid.config';
 import { CybridService } from './cybrid.service';
 import { CybridSubscriptionsController } from './subscriptions/cybrid-subscriptions.controller';
 
@@ -36,7 +36,7 @@ import { CybridSubscriptionsController } from './subscriptions/cybrid-subscripti
   controllers: [CybridSubscriptionsController],
   providers: [
     CybridService,
-    CybridConfiguration,
+    CybridConfig,
     {
       provide: Configuration,
       inject: [ConfigService],

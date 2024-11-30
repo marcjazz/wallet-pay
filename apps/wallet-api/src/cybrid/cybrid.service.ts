@@ -37,14 +37,14 @@ import {
 import { Injectable } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
 import { NewCybridCustomerType } from '../types/cybrid';
-import { CybridConfiguration } from './cybrid.config';
+import { CybridConfig } from './cybrid.config';
 
 @Injectable()
 export class CybridService {
-  constructor(private readonly cybridConfiguration: CybridConfiguration) {}
+  constructor(private readonly cybridConfig: CybridConfig) {}
 
   async getCustomers() {
-    const customersBankApi = await this.cybridConfiguration.getCustomersApi();
+    const customersBankApi = await this.cybridConfig.getCustomersApi();
     const observable = customersBankApi.listCustomers({});
     return new Promise<CustomerListBankModel>((next, error) =>
       observable.subscribe({ next, error })
@@ -52,10 +52,9 @@ export class CybridService {
   }
 
   async getCustomer(guid: string) {
-    const customersBankApi = await this.cybridConfiguration.getCustomersApi(
-      guid,
-      ['customers:read']
-    );
+    const customersBankApi = await this.cybridConfig.getCustomersApi(guid, [
+      'customers:read',
+    ]);
     const observable = customersBankApi.getCustomer({
       customerGuid: guid,
     });
@@ -67,7 +66,7 @@ export class CybridService {
   async createCustomer(
     asset: CybridSupportedCurrency
   ): Promise<NewCybridCustomerType> {
-    const customersBankApi = await this.cybridConfiguration.getCustomersApi();
+    const customersBankApi = await this.cybridConfig.getCustomersApi();
 
     const newCustomerObservable = customersBankApi.createCustomer({
       postCustomerBankModel: { type: PostCustomerBankModelTypeEnum.Individual },
@@ -76,7 +75,7 @@ export class CybridService {
       return newCustomerObservable.subscribe({
         error,
         next: async (customer) => {
-          const accountsBankApi = await this.cybridConfiguration.getInstance(
+          const accountsBankApi = await this.cybridConfig.getInstance(
             AccountsBankApi,
             customer.guid as string,
             ['accounts:execute']
@@ -122,7 +121,7 @@ export class CybridService {
     customerGuid: string,
     identityVerificationGuid: string
   ) {
-    const identityVerificationsApi = await this.cybridConfiguration.getInstance(
+    const identityVerificationsApi = await this.cybridConfig.getInstance(
       IdentityVerificationsBankApi,
       customerGuid,
       ['identity_verifications:read']
@@ -142,7 +141,7 @@ export class CybridService {
     customerGuid: string,
     payload: PostIdentityVerificationBankModel
   ) {
-    const identityVerificationsApi = await this.cybridConfiguration.getInstance(
+    const identityVerificationsApi = await this.cybridConfig.getInstance(
       IdentityVerificationsBankApi,
       customerGuid,
       ['identity_verifications:execute']
@@ -163,7 +162,7 @@ export class CybridService {
   }
 
   async getAccount(customerGuid: string, accountGuid: string) {
-    const accountsBankApi = await this.cybridConfiguration.getInstance(
+    const accountsBankApi = await this.cybridConfig.getInstance(
       AccountsBankApi,
       customerGuid,
       ['accounts:read']
@@ -177,7 +176,7 @@ export class CybridService {
   }
 
   async getAccounts(customerGuid: string) {
-    const accountsBankApi = await this.cybridConfiguration.getInstance(
+    const accountsBankApi = await this.cybridConfig.getInstance(
       AccountsBankApi,
       customerGuid,
       ['accounts:read']
@@ -194,7 +193,7 @@ export class CybridService {
   }
 
   async createWorkflow(customerGuid: string, redirectUri?: string) {
-    const workflowsBankApi = await this.cybridConfiguration.getInstance(
+    const workflowsBankApi = await this.cybridConfig.getInstance(
       WorkflowsBankApi,
       customerGuid,
       ['workflows:execute']
@@ -216,7 +215,7 @@ export class CybridService {
   }
 
   async getWorkflow(customerGuid: string, workflowGuid: string) {
-    const workflowsBankApi = await this.cybridConfiguration.getInstance(
+    const workflowsBankApi = await this.cybridConfig.getInstance(
       WorkflowsBankApi,
       customerGuid,
       ['workflows:read']
@@ -233,7 +232,7 @@ export class CybridService {
     customerGuid: string,
     payload: PostExternalBankAccountBankModel
   ) {
-    const externalBankAccountsApi = await this.cybridConfiguration.getInstance(
+    const externalBankAccountsApi = await this.cybridConfig.getInstance(
       ExternalBankAccountsBankApi,
       customerGuid,
       ['external_bank_accounts:execute']
@@ -254,7 +253,7 @@ export class CybridService {
     customerGuid: string,
     externalBankAccountGuid: string
   ) {
-    const externalBankAccountsApi = await this.cybridConfiguration.getInstance(
+    const externalBankAccountsApi = await this.cybridConfig.getInstance(
       ExternalBankAccountsBankApi,
       customerGuid,
       ['external_bank_accounts:read']
@@ -270,7 +269,7 @@ export class CybridService {
   }
 
   async getExternalBankAccounts(customerGuid: string) {
-    const externalBankAccountsApi = await this.cybridConfiguration.getInstance(
+    const externalBankAccountsApi = await this.cybridConfig.getInstance(
       ExternalBankAccountsBankApi,
       customerGuid,
       ['external_bank_accounts:read']
@@ -286,7 +285,7 @@ export class CybridService {
   }
 
   async createQuote(customerGuid: string, payload: PostQuoteBankModel) {
-    const quotesBankApi = await this.cybridConfiguration.getInstance(
+    const quotesBankApi = await this.cybridConfig.getInstance(
       QuotesBankApi,
       customerGuid,
       ['quotes:execute']
@@ -302,7 +301,7 @@ export class CybridService {
   }
 
   async initiateTransfer(customerGuid: string, payload: PostTransferBankModel) {
-    const transfersBankApi = await this.cybridConfiguration.getInstance(
+    const transfersBankApi = await this.cybridConfig.getInstance(
       TransfersBankApi,
       customerGuid,
       ['transfers:execute']
@@ -318,7 +317,7 @@ export class CybridService {
   }
 
   async initiateTrade(customerGuid: string, payload: PostTradeBankModel) {
-    const tradesBankApi = await this.cybridConfiguration.getInstance(
+    const tradesBankApi = await this.cybridConfig.getInstance(
       TradesBankApi,
       customerGuid,
       ['trades:execute']
@@ -334,7 +333,7 @@ export class CybridService {
   }
 
   async getTrade(customerGuid: string, tradeGuid: string) {
-    const tradesBankApi = await this.cybridConfiguration.getInstance(
+    const tradesBankApi = await this.cybridConfig.getInstance(
       TradesBankApi,
       customerGuid,
       ['trades:read']
@@ -348,7 +347,7 @@ export class CybridService {
   }
 
   async getTransfer(customerGuid: string, transferGuid: string) {
-    const transfersBankApi = await this.cybridConfiguration.getInstance(
+    const transfersBankApi = await this.cybridConfig.getInstance(
       TransfersBankApi,
       customerGuid,
       ['transfers:read']
@@ -367,7 +366,7 @@ export class CybridService {
     customerGuid: string,
     payload: PostCounterpartyBankModel
   ) {
-    const counterpartiesBankApi = await this.cybridConfiguration.getInstance(
+    const counterpartiesBankApi = await this.cybridConfig.getInstance(
       CounterpartiesBankApi,
       customerGuid,
       ['counterparties:execute']
@@ -383,7 +382,7 @@ export class CybridService {
   }
 
   async getCounterparty(customerGuid: string, counterpartyGuid: string) {
-    const counterpartiesBankApi = await this.cybridConfiguration.getInstance(
+    const counterpartiesBankApi = await this.cybridConfig.getInstance(
       CounterpartiesBankApi,
       customerGuid,
       ['counterparties:read']

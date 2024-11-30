@@ -25,8 +25,8 @@ import { Cache } from 'cache-manager';
 import { ApiScopeType, CybridAuthResponse } from '../types/cybrid';
 import { ConfigService } from '@nestjs/config';
 
-export class CybridConfiguration {
-  private readonly logger = new Logger(CybridConfiguration.name);
+export class CybridConfig {
+  private readonly logger = new Logger(CybridConfig.name);
   private readonly CUSTOMER_BANK_LEVEL_TOKEN = 'customer_bank_level_token';
 
   constructor(
