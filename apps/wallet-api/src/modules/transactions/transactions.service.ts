@@ -64,9 +64,10 @@ export class TransactionsService {
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
       {
-        product_type: PostQuoteBankModelProductTypeEnum.Funding,
-        receive_amount: payload.amount,
         asset: currency,
+        receive_amount: payload.amount,
+        product_type: PostQuoteBankModelProductTypeEnum.Funding,
+        bank_guid: this.configService.get('CYBRID_BANK_GUID'),
       }
     );
 
@@ -305,6 +306,7 @@ export class TransactionsService {
         customer_guid: customerGuid,
         deliver_amount: amount,
         product_type: PostQuoteBankModelProductTypeEnum.BookTransfer,
+        bank_guid: this.configService.get('CYBRID_BANK_GUID'),
       }
     );
 
@@ -369,6 +371,7 @@ export class TransactionsService {
     fiatAmount: number
   ): Promise<[TradeBankModel, CybridTransaction]> {
     const tradeQuote = await this.cybridService.createQuote(customerGuid, {
+      bank_guid: this.configService.get('CYBRID_BANK_GUID'),
       product_type: PostQuoteBankModelProductTypeEnum.Trading,
       deliver_amount: fiatAmount,
       customer_guid: customerGuid,

@@ -34,23 +34,14 @@ import {
   WorkflowsBankApi,
   WorkflowWithDetailsBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
-import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CybridSupportedCurrency } from '@prisma/client';
-import { Queue } from 'bull';
 import { NewCybridCustomerType } from '../types/cybrid';
-import { cybridConstants } from './constants';
 import { CybridConfiguration } from './cybrid.config';
 
 @Injectable()
 export class CybridService {
-  constructor(
-    @InjectQueue(cybridConstants.QUEUE)
-    private cybridQueue: Queue,
-    private readonly cybridConfiguration: CybridConfiguration,
-    private readonly configService: ConfigService
-  ) {}
+  constructor(private readonly cybridConfiguration: CybridConfiguration) {}
 
   async getCustomers() {
     const customersBankApi = await this.cybridConfiguration.getCustomersApi();
@@ -302,10 +293,7 @@ export class CybridService {
     );
 
     const quotesBankObservable = quotesBankApi.createQuote({
-      postQuoteBankModel: {
-        ...payload,
-        bank_guid: this.configService.get('CYBRID_BANK_GUID'),
-      },
+      postQuoteBankModel: payload,
     });
 
     return new Promise<QuoteBankModel>((next, error) =>
