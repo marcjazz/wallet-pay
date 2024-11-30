@@ -140,7 +140,7 @@ export class AccountsService {
 
   async createExternalAccount(
     {
-      currency: asset,
+      currency,
       plaid_account_mask,
       plaid_account_id,
       plaid_public_token,
@@ -157,11 +157,11 @@ export class AccountsService {
     const externalAccount = await this.cybridService.createExternalBankAccount(
       customer.cybrid_customer_guid,
       {
-        asset,
+        asset: currency,
         plaid_account_id,
         plaid_public_token,
         plaid_account_mask,
-        name: `${asset} Funding Account`,
+        name: `${currency} Funding Account`,
         customer_guid: customer.cybrid_customer_guid,
         account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
       }
@@ -169,6 +169,7 @@ export class AccountsService {
 
     return this.prismaService.cybridExternalAccount.create({
       data: {
+        currency,
         name: externalAccount.name as string,
         balance: externalAccount.balances?.available ?? 0,
         mask: (externalAccount.plaid_account_mask ??

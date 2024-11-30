@@ -38,43 +38,6 @@ export class CybridAccountEntity implements CybridAccount {
   }
 }
 
-export class CybridExternalAccountEntity implements CybridExternalAccount {
-  @ApiProperty()
-  cybrid_external_account_id: string;
-
-  @ApiProperty()
-  name: string;
-
-  @ApiProperty()
-  balance: number;
-
-  @ApiProperty({ enum: $Enums.IdentityVerificationStatus, nullable: true })
-  verification_status: $Enums.IdentityVerificationStatus | null =
-    $Enums.IdentityVerificationStatus.WAITING;
-
-  @ApiProperty({ nullable: true })
-  identity_verification_guid: string | null;
-
-  @ApiProperty()
-  cybrid_customer_id: string;
-
-  @ApiProperty()
-  cybrid_external_account_guid: string;
-
-  @ApiProperty()
-  mask: string | null;
-
-  @ApiProperty({
-    enum: $Enums.CybridExternalAccountStatus,
-    default: $Enums.CybridExternalAccountStatus.STORING,
-  })
-  status: $Enums.CybridExternalAccountStatus;
-
-  constructor(props: CybridExternalAccountEntity) {
-    Object.assign(this, props);
-  }
-}
-
 export class IdentityVerificationEntity {
   @ApiProperty()
   identity_verification_guid: string;
@@ -160,7 +123,7 @@ export class CreateExternalAccountDto {
   }
 }
 
-export class ExternalBankAccountEntity implements CybridExternalAccount {
+export class CybridExternalAccountEntity implements CybridExternalAccount {
   @ApiProperty()
   cybrid_external_account_id: string;
 
@@ -172,6 +135,12 @@ export class ExternalBankAccountEntity implements CybridExternalAccount {
 
   @ApiProperty()
   balance: number;
+
+  @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
+  currency: $Enums.CybridSupportedCurrency;
+
+  @ApiProperty({ default: true })
+  is_active: boolean;
 
   @ApiProperty({ nullable: true })
   mask: string | null;
@@ -188,7 +157,7 @@ export class ExternalBankAccountEntity implements CybridExternalAccount {
   @ApiProperty()
   cybrid_customer_id: string;
 
-  constructor(props: ExternalBankAccountEntity) {
+  constructor(props: CybridExternalAccountEntity) {
     Object.assign(this, props);
   }
 }

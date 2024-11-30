@@ -24,7 +24,6 @@ import {
   CreateWorkflowDto,
   CybridAccountEntity,
   CybridExternalAccountEntity,
-  ExternalBankAccountEntity,
   IdentityVerificationEntity,
   VerifyCybridAccountDto,
   WorkflowEntity,
@@ -49,7 +48,7 @@ export class AccountsController {
   }
 
   @Get('externals')
-  @ApiOkResponse({ type: [CybridAccountEntity] })
+  @ApiOkResponse({ type: [CybridExternalAccountEntity] })
   async findAllExternals(
     @Req() request: Request,
     @Query(
@@ -133,7 +132,7 @@ export class AccountsController {
   }
 
   @Post('new-external-account')
-  @ApiCreatedResponse({ type: ExternalBankAccountEntity })
+  @ApiCreatedResponse({ type: CybridExternalAccountEntity })
   @ApiOperation({
     summary: 'Create new external bank account from data returned by plaid',
   })
@@ -145,6 +144,6 @@ export class AccountsController {
       payload,
       req.user?.person_id as string
     );
-    return new ExternalBankAccountEntity(externalAccount);
+    return new CybridExternalAccountEntity(externalAccount);
   }
 }
