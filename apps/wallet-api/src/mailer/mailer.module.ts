@@ -42,7 +42,8 @@ import { MailerService } from './mailer.service';
           .verify()
           .then(() =>
             Logger.log('Transpoter is ready to go 🚀', MailerModule.name)
-          );
+          )
+          .catch((error) => Logger.error(error, MailerModule.name));
 
         return transporter;
       },
