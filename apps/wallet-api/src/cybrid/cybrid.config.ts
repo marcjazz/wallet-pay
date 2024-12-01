@@ -9,7 +9,7 @@ import {
   QuotesBankApi,
   TradesBankApi,
   TransfersBankApi,
-  WorkflowsBankApi
+  WorkflowsBankApi,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { HttpService } from '@nestjs/axios';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -40,8 +40,8 @@ export class CybridConfig {
 
   async getInstance<T extends typeof BaseAPI>(
     modelName: T,
-    customerGuid: string,
-    scopes: ApiScopeType[]
+    scopes: ApiScopeType[],
+    customerGuid?: string
   ) {
     const BankApiModelsMap = {
       [CustomersBankApi.name]: CustomersBankApi,
@@ -59,7 +59,35 @@ export class CybridConfig {
       throw new NotImplementedException(`${modelName} not supported yet!`);
     }
 
-    const token = await this.getBearerToken(customerGuid, scopes);
+    const bankLevelAllowedScopes: ApiScopeType[] = [
+      // useful for creating a new customer
+      'customers:execute',
+      // useful for requesting customer level token
+      'customers:read',
+      'customers:write',
+      // use for executing our batch crypto transfer
+      'transfers:execute',
+      'transfers:read',
+    ];
+
+    let token: string;
+    if (customerGuid) {
+      token = await this.getBearerToken(customerGuid, scopes);
+    } else if (
+      scopes.every((scope) => bankLevelAllowedScopes.includes(scope))
+    ) {
+      const authResp = await this.getBankLevelAccessToken(scopes);
+      token = authResp.access_token;
+    } else
+      throw new HttpException(
+        `Scopes different from ${bankLevelAllowedScopes} are not acceptable for unknwon customers`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        {
+          cause: new Error(
+            `Bad usage of ${CybridConfig.prototype.getInstance} method`
+          ),
+        }
+      );
 
     return new ModelBankApi(
       new Configuration({
@@ -69,24 +97,7 @@ export class CybridConfig {
     ) as InstanceType<T>;
   }
 
-  async getCustomersApi(customerGuid?: string, scopes?: ApiScopeType[]) {
-    const authResp = await this.getBankLevelAccessToken();
-    if (customerGuid) {
-      authResp.access_token = await this.getBearerToken(
-        customerGuid,
-        scopes ?? ['customers:read']
-      );
-    }
-
-    return new CustomersBankApi(
-      new Configuration({
-        ...this.configuration,
-        accessToken: `Bearer ${authResp.access_token}`,
-      })
-    );
-  }
-
-  async getBearerToken(
+  private async getBearerToken(
     customerGuid: string,
     scopes: ApiScopeType[]
   ): Promise<string> {
@@ -121,11 +132,8 @@ export class CybridConfig {
   }
 
   private async getBankLevelAccessToken(
-    scopes: ApiScopeType[] = [
-      'customers:write',
-      'customers:execute',
-      'customers:read',
-    ]
+    // Defualt to the required scopes for requesting customer level access token
+    scopes: ApiScopeType[] = ['customers:write', 'customers:read']
   ) {
     const { username: clientId, password: clientSecret } = this.configuration;
     if (!clientId || !clientSecret) {

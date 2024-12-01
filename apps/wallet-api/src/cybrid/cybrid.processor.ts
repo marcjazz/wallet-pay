@@ -98,7 +98,7 @@ export class CybridProcessor {
       return;
     }
 
-    const { customerGuid, transactionGuid, verificationStatus } = parsedObject;
+    const { customerGuid, transactionGuid, transactionStatus } = parsedObject;
 
     const transfer = await this.cybridService.getTransfer(
       customerGuid,
@@ -137,7 +137,11 @@ export class CybridProcessor {
         where: { cybrid_account_guid: accountGuid },
       }),
       this.prismaService.cybridTransaction.update({
-        data: { status: verificationStatus },
+        data:
+          transfer.transfer_type === 'instant_funding' &&
+          transactionStatus === 'COMPLETED'
+            ? { settled_at: new Date(), status: transactionStatus }
+            : { status: transactionStatus },
         where: { cybrid_transaction_guid: transactionGuid },
       })
     );
@@ -157,7 +161,7 @@ export class CybridProcessor {
       return;
     }
 
-    const { customerGuid, transactionGuid, verificationStatus } = parsedObject;
+    const { customerGuid, transactionGuid, transactionStatus } = parsedObject;
 
     const { CryptoCybridAccount: cryptoAccount, CybridAccount: fiatAccount } =
       await this.prismaService.cybridTransaction.findUniqueOrThrow({
@@ -179,7 +183,10 @@ export class CybridProcessor {
     await this.prismaService.$transaction([
       ...prismaPromises,
       this.prismaService.cybridTransaction.update({
-        data: { status: verificationStatus },
+        data:
+          transactionStatus === 'COMPLETED'
+            ? { status: transactionStatus, settled_at: new Date() }
+            : { status: transactionStatus },
         where: { cybrid_transaction_guid: transactionGuid },
       }),
     ]);
@@ -206,7 +213,7 @@ export class CybridProcessor {
     const { event_type: eventType, object_guid: transactionGuid } = eventObject;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, status] = eventType.split('.');
-    const verificationStatus =
+    const transactionStatus =
       status.toLocaleUpperCase() as CybridTransactionStatus;
 
     const transaction = await this.prismaService.cybridTransaction.findUnique({
@@ -229,7 +236,7 @@ export class CybridProcessor {
     return {
       transactionGuid,
       customerGuid: transaction.initiated_by,
-      verificationStatus,
+      transactionStatus,
     };
   }
 }
