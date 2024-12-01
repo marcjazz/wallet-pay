@@ -20,8 +20,11 @@ import {
   PostIdentityVerificationBankModel,
   PostIdentityVerificationBankModelExpectedBehavioursEnum,
   PostQuoteBankModel,
+  PostQuoteBankModelProductTypeEnum,
   PostTradeBankModel,
   PostTransferBankModel,
+  PostTransferBankModelTransferTypeEnum,
+  PostTransferParticipantBankModel,
   PostWorkflowBankModelKindEnum,
   PostWorkflowBankModelLanguageEnum,
   PostWorkflowBankModelTypeEnum,
@@ -35,13 +38,19 @@ import {
   WorkflowsBankApi,
   WorkflowWithDetailsBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
 import { NewCybridCustomerType } from '../types/cybrid';
 import { CybridConfig } from './cybrid.config';
 
+export type Participants = {
+  source_participants: Array<PostTransferParticipantBankModel>;
+  destination_participants: Array<PostTransferParticipantBankModel>;
+};
+
 @Injectable()
 export class CybridService {
+  private readonly logger = new Logger(CybridService.name);
   constructor(private readonly cybridConfig: CybridConfig) {}
 
   async getCustomers() {
@@ -153,7 +162,7 @@ export class CybridService {
     const identityVerificationsApi = await this.cybridConfig.getInstance(
       IdentityVerificationsBankApi,
       ['identity_verifications:execute'],
-      customerGuid,
+      customerGuid
     );
 
     const newIndentityVerficationObservable =
@@ -174,7 +183,7 @@ export class CybridService {
     const accountsBankApi = await this.cybridConfig.getInstance(
       AccountsBankApi,
       ['accounts:read'],
-      customerGuid,
+      customerGuid
     );
 
     const accountObservable = accountsBankApi.getAccount({ accountGuid });
@@ -188,7 +197,7 @@ export class CybridService {
     const accountsBankApi = await this.cybridConfig.getInstance(
       AccountsBankApi,
       ['accounts:read'],
-      customerGuid,
+      customerGuid
     );
 
     const accountObservable = accountsBankApi.listAccounts({
@@ -205,7 +214,7 @@ export class CybridService {
     const workflowsBankApi = await this.cybridConfig.getInstance(
       WorkflowsBankApi,
       ['workflows:execute'],
-      customerGuid,
+      customerGuid
     );
     const workflowObservable = workflowsBankApi.createWorkflow({
       postWorkflowBankModel: {
@@ -227,7 +236,7 @@ export class CybridService {
     const workflowsBankApi = await this.cybridConfig.getInstance(
       WorkflowsBankApi,
       ['workflows:read'],
-      customerGuid,
+      customerGuid
     );
     const workflowObservable = workflowsBankApi.getWorkflow({
       workflowGuid,
@@ -244,7 +253,7 @@ export class CybridService {
     const externalBankAccountsApi = await this.cybridConfig.getInstance(
       ExternalBankAccountsBankApi,
       ['external_bank_accounts:execute'],
-      customerGuid,
+      customerGuid
     );
     const externalBankAccountObservable =
       externalBankAccountsApi.createExternalBankAccount({
@@ -265,7 +274,7 @@ export class CybridService {
     const externalBankAccountsApi = await this.cybridConfig.getInstance(
       ExternalBankAccountsBankApi,
       ['external_bank_accounts:read'],
-      customerGuid,
+      customerGuid
     );
 
     const externalBankAccountObservable =
@@ -281,7 +290,7 @@ export class CybridService {
     const externalBankAccountsApi = await this.cybridConfig.getInstance(
       ExternalBankAccountsBankApi,
       ['external_bank_accounts:read'],
-      customerGuid,
+      customerGuid
     );
 
     const externalBankAccountObservable =
@@ -297,7 +306,7 @@ export class CybridService {
     const quotesBankApi = await this.cybridConfig.getInstance(
       QuotesBankApi,
       ['quotes:execute'],
-      customerGuid,
+      customerGuid
     );
 
     const quotesBankObservable = quotesBankApi.createQuote({
@@ -313,7 +322,7 @@ export class CybridService {
     const transfersBankApi = await this.cybridConfig.getInstance(
       TransfersBankApi,
       ['transfers:execute'],
-      customerGuid,
+      customerGuid
     );
 
     const transfersObservable = transfersBankApi.createTransfer({
@@ -329,7 +338,7 @@ export class CybridService {
     const tradesBankApi = await this.cybridConfig.getInstance(
       TradesBankApi,
       ['trades:execute'],
-      customerGuid,
+      customerGuid
     );
 
     const tradesObservable = tradesBankApi.createTrade({
@@ -345,7 +354,7 @@ export class CybridService {
     const tradesBankApi = await this.cybridConfig.getInstance(
       TradesBankApi,
       ['trades:read'],
-      customerGuid,
+      customerGuid
     );
 
     const tradesObservable = tradesBankApi.getTrade({ tradeGuid });
@@ -359,7 +368,7 @@ export class CybridService {
     const transfersBankApi = await this.cybridConfig.getInstance(
       TransfersBankApi,
       ['transfers:read'],
-      customerGuid,
+      customerGuid
     );
 
     const transfersObservable = transfersBankApi.getTransfer({
@@ -378,7 +387,7 @@ export class CybridService {
     const counterpartiesBankApi = await this.cybridConfig.getInstance(
       CounterpartiesBankApi,
       ['counterparties:execute'],
-      customerGuid,
+      customerGuid
     );
 
     const counterpartiesObservable = counterpartiesBankApi.createCounterparty({
@@ -394,7 +403,7 @@ export class CybridService {
     const counterpartiesBankApi = await this.cybridConfig.getInstance(
       CounterpartiesBankApi,
       ['counterparties:read'],
-      customerGuid,
+      customerGuid
     );
 
     const counterpartiesObservable = counterpartiesBankApi.getCounterparty({
@@ -403,6 +412,51 @@ export class CybridService {
 
     return new Promise<CounterpartyBankModel>((next, error) =>
       counterpartiesObservable.subscribe({ next, error })
+    );
+  }
+
+  async settleXafPayUSDCFunds(
+    bankGuid: string,
+    totalAmount: number,
+    participants: Participants
+  ) {
+    const quotesBankApi = await this.cybridConfig.getInstance(QuotesBankApi, [
+      'quotes:execute',
+    ]);
+
+    const quotesBankObservable = quotesBankApi.createQuote({
+      postQuoteBankModel: {
+        bank_guid: bankGuid,
+        asset: 'USDC_SOL',
+        deliver_amount: totalAmount,
+        product_type: PostQuoteBankModelProductTypeEnum.CryptoTransfer,
+        side: 'withdrawal',
+      },
+    });
+
+    return new Promise<TransferBankModel>((next) =>
+      quotesBankObservable.subscribe({
+        error: (error) => this.logger.error(error),
+        next: async (quote) => {
+          const transfersBankApi = await this.cybridConfig.getInstance(
+            TransfersBankApi,
+            ['transfers:execute']
+          );
+
+          const transfersObservable = transfersBankApi.createTransfer({
+            postTransferBankModel: {
+              ...participants,
+              quote_guid: quote.guid as string,
+              transfer_type: PostTransferBankModelTransferTypeEnum.Crypto,
+            },
+          });
+
+          transfersObservable.subscribe({
+            error: (error) => this.logger.error(error),
+            next,
+          });
+        },
+      })
     );
   }
 }

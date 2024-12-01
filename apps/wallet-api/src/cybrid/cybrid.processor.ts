@@ -1,5 +1,8 @@
 import { Process, Processor } from '@nestjs/bull';
-import { Logger } from '@nestjs/common';
+import {
+  Logger,
+  NotImplementedException
+} from '@nestjs/common';
 import {
   CybridTransactionStatus,
   IdentityVerificationStatus,
@@ -122,6 +125,34 @@ export class CybridProcessor {
       );
     }
 
+    if (transfer.transfer_type === 'crypto') {
+      if (transactionStatus === 'COMPLETED') {
+        prismaPromises.push(
+          this.prismaService.cybridTransaction.updateMany({
+            data: { settled_at: new Date() },
+            where: { cybrid_transfer_settlement_guid: transactionGuid },
+          })
+        );
+      }
+    } else if (
+      transfer.transfer_type === 'book' ||
+      transfer.transfer_type === 'instant_funding'
+    ) {
+      prismaPromises.push(
+        this.prismaService.cybridTransaction.update({
+          data:
+            transfer.transfer_type === 'instant_funding' &&
+            transactionStatus === 'COMPLETED'
+              ? { settled_at: new Date(), status: transactionStatus }
+              : { status: transactionStatus },
+          where: { cybrid_transaction_guid: transactionGuid },
+        })
+      );
+    } else
+      throw new NotImplementedException(
+        `${transfer.transfer_type} not supported yet!`
+      );
+
     const accountGuid = (
       transfer.external_bank_account_guid
         ? transfer.destination_account?.guid
@@ -135,14 +166,6 @@ export class CybridProcessor {
       this.prismaService.cybridAccount.update({
         data: { balance: customerAccount.platform_available },
         where: { cybrid_account_guid: accountGuid },
-      }),
-      this.prismaService.cybridTransaction.update({
-        data:
-          transfer.transfer_type === 'instant_funding' &&
-          transactionStatus === 'COMPLETED'
-            ? { settled_at: new Date(), status: transactionStatus }
-            : { status: transactionStatus },
-        where: { cybrid_transaction_guid: transactionGuid },
       })
     );
 
