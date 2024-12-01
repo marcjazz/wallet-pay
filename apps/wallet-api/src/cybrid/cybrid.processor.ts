@@ -217,6 +217,7 @@ export class CybridProcessor {
       status.toLocaleUpperCase() as CybridTransactionStatus;
 
     const transaction = await this.prismaService.cybridTransaction.findUnique({
+      include: { InitiatedBy: { select: { cybrid_customer_guid: true } } },
       where: { cybrid_transaction_guid: transactionGuid },
     });
     if (!transaction) {
@@ -235,8 +236,8 @@ export class CybridProcessor {
 
     return {
       transactionGuid,
-      customerGuid: transaction.initiated_by,
       transactionStatus,
+      customerGuid: transaction.InitiatedBy.cybrid_customer_guid,
     };
   }
 }
