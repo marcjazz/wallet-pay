@@ -300,7 +300,7 @@ export class TransactionsService {
 
   private async executeBookTransfer(
     amount: number,
-    { currency, customerGuid, cryptoAccountGuid }: CustomerAccountGuids,
+    { customerGuid, cryptoAccountGuid }: CustomerAccountGuids,
     counterpartyGuid: string
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
@@ -347,7 +347,7 @@ export class TransactionsService {
       {
         data: {
           fees: 0,
-          initial_currency: currency,
+          initial_currency: 'USDC_SOL',
           amount: bookTransfer.amount as number,
           transaction_type: 'REMITTANCE',
           transaction_id: generateTransactionId(),
@@ -448,7 +448,11 @@ export class TransactionsService {
     return cybridCounterparty;
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(
+    process.env.NODE_ENV === 'production'
+      ? CronExpression.EVERY_6_HOURS
+      : CronExpression.EVERY_5_MINUTES
+  )
   async settleRemittanceTransations() {
     this.logger.verbose(`Settling remittance transactions...`);
 
