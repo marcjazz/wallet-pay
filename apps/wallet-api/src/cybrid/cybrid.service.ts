@@ -306,7 +306,9 @@ export class CybridService {
     const quotesBankApi = await this.cybridConfig.getInstance(
       QuotesBankApi,
       ['quotes:execute'],
-      customerGuid
+      payload.product_type !== PostQuoteBankModelProductTypeEnum.BookTransfer
+        ? customerGuid
+        : undefined
     );
 
     const quotesBankObservable = quotesBankApi.createQuote({
@@ -322,7 +324,9 @@ export class CybridService {
     const transfersBankApi = await this.cybridConfig.getInstance(
       TransfersBankApi,
       ['transfers:execute'],
-      customerGuid
+      payload.transfer_type !== PostTransferBankModelTransferTypeEnum.Book
+        ? customerGuid
+        : undefined
     );
 
     const transfersObservable = transfersBankApi.createTransfer({

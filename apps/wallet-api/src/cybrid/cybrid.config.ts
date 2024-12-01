@@ -66,6 +66,7 @@ export class CybridConfig {
       'customers:read',
       'customers:write',
       // use for executing our batch crypto transfer
+      'quotes:execute',
       'transfers:execute',
       'transfers:read',
     ];
