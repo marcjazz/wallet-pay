@@ -84,6 +84,11 @@ export class CybridTransactionEntity implements CybridTransaction {
   @ApiProperty()
   cybrid_transaction_guid: string;
 
+  @ApiProperty({
+    description: 'Settlement transfer guid for remittance transaction type',
+  })
+  cybrid_transfer_settlement_guid: string | null = null;
+
   @ApiProperty()
   amount: number;
 
@@ -125,7 +130,7 @@ export class CybridTransactionEntity implements CybridTransaction {
 
   @ApiProperty({
     nullable: true,
-    description: 'USD_SOL (Solana) asset account on cybrid',
+    description: 'USDC_SOL (Solana) asset account on cybrid',
   })
   cybrid_crypto_account_id: string | null = null;
 
@@ -146,6 +151,9 @@ export class CybridTransactionEntity implements CybridTransaction {
     description: 'Receipient can be either payout or cybrid account.',
   })
   reciepient_fullname: string | null = null;
+
+  @ApiProperty({ nullable: true, type: Date })
+  payout_at: Date | null;
 
   @Exclude()
   initiated_by: string;

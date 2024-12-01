@@ -32,3 +32,7 @@ export function generateAccountNumber(prefix = '', numberOfBlocs = 4) {
   );
   return accNumber.trim();
 }
+
+export function generateTransactionId() {
+  return generateAccountNumber(`${generateAccountNumber('XAF')}PAY`, 1);
+}

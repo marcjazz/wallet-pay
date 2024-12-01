@@ -7,16 +7,19 @@ import {
 } from '@cybrid/cybrid-api-bank-typescript';
 import {
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   $Enums,
   CybridSupportedCurrency,
   CybridTransaction,
 } from '@prisma/client';
-import { CybridService } from '../../cybrid/cybrid.service';
+import { CybridService, Participants } from '../../cybrid/cybrid.service';
+import { generateTransactionId } from '../../helpers/otp-generator';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CybridTransactionEntity,
@@ -36,6 +39,8 @@ type CustomerAccountGuids = {
 
 @Injectable()
 export class TransactionsService {
+  private readonly logger = new Logger(TransactionsService.name);
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
@@ -101,6 +106,7 @@ export class TransactionsService {
           fees: 0,
           initial_currency: currency,
           amount: fundingTransfer.amount as number,
+          transaction_id: generateTransactionId(),
           cybrid_transaction_guid: fundingTransfer.guid as string,
           transaction_type:
             transferType.toLocaleUpperCase() as $Enums.CybridTransactionType,
@@ -343,6 +349,7 @@ export class TransactionsService {
           initial_currency: currency,
           amount: bookTransfer.amount as number,
           transaction_type: 'REMITTANCE',
+          transaction_id: generateTransactionId(),
           cybrid_transaction_guid: bookTransfer.guid as string,
           status:
             bookTransfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
@@ -393,6 +400,7 @@ export class TransactionsService {
           fees: 0,
           amount: fiatAmount,
           initial_currency: currency,
+          transaction_id: generateTransactionId(),
           cybrid_transaction_guid: tradeTransaction.guid as string,
           status:
             tradeTransaction.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
@@ -437,5 +445,81 @@ export class TransactionsService {
     }
 
     return cybridCounterparty;
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async settleRemittanceTransations() {
+    this.logger.verbose(`Settling remittance transactions...`);
+
+    const transactions = await this.prismaService.cybridTransaction.findMany({
+      select: {
+        amount: true,
+        cybrid_transaction_id: true,
+        ReceiverPayoutInfo: { select: { cybrid_counterparty_guid: true } },
+      },
+      where: {
+        cybrid_transfer_settlement_guid: null,
+        transaction_type: 'REMITTANCE',
+        initial_currency: 'USDC_SOL',
+        receiver_payout_info_id: { not: null },
+      },
+    });
+
+    if (!transactions.length) {
+      this.logger.verbose(`No remittance transaction to process!`);
+      return;
+    }
+
+    const bankGuid = this.configService.get<string>(
+      'CYBRID_BANK_GUID'
+    ) as string;
+
+    const totalAmount = transactions.reduce(
+      (total, tx) => total + tx.amount,
+      0
+    );
+
+    const remittanceParticipants = transactions.reduce<Participants>(
+      (participants, { amount, ReceiverPayoutInfo }) => ({
+        source_participants: [
+          {
+            guid: bankGuid,
+            amount: totalAmount,
+            type: PostTransferParticipantBankModelTypeEnum.Bank,
+          },
+        ],
+        destination_participants: [
+          ...participants.destination_participants,
+          {
+            amount,
+            guid: ReceiverPayoutInfo?.cybrid_counterparty_guid as string,
+            type: PostTransferParticipantBankModelTypeEnum.Counterparty,
+          },
+        ],
+      }),
+      {
+        source_participants: [],
+        destination_participants: [],
+      }
+    );
+
+    const transfer = await this.cybridService.settleXafPayUSDCFunds(
+      bankGuid,
+      totalAmount,
+      remittanceParticipants
+    );
+
+    await this.prismaService.cybridTransaction.updateMany({
+      data: { cybrid_transfer_settlement_guid: transfer.guid },
+      where: {
+        cybrid_transaction_id: {
+          in: transactions.map((tx) => tx.cybrid_transaction_id),
+        },
+      },
+    });
+
+    this.logger.verbose(
+      `Sucessfully initiated ${transactions.length} remittance transactions settlement (Transfer Guid: ${transfer.guid})`
+    );
   }
 }
