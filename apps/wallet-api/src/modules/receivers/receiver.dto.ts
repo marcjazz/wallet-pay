@@ -81,8 +81,8 @@ export class AddressDto {
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ default: '+237' })
-  country_code = '+237';
+  @ApiPropertyOptional({ default: 'CM' })
+  country_code = 'CM';
 
   @IsString()
   @IsOptional()
@@ -112,12 +112,6 @@ export class CreateReceiverDto {
   @ApiProperty()
   @IsPhoneNumber()
   phone_number: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional({ name: 'receiver_id' })
-  @Expose({ name: 'receiver_id' })
-  cybrid_counterparty_id: string | null = null;
 
   constructor(props: CreateReceiverDto) {
     Object.assign(this, props);

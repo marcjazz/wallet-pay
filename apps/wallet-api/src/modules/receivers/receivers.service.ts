@@ -21,13 +21,15 @@ export class RecieversService {
 
   async findAll(query?: SearchQueryDto) {
     return this.prismaService.cybridCounterparty.findMany({
-      where: {
-        OR: [
-          { fullname: { search: query?.search } },
-          { phone_number: { search: query?.search } },
-          { national_id_number: { search: query?.search } },
-        ],
-      },
+      where: query?.search
+        ? {
+            OR: [
+              { fullname: { search: query?.search } },
+              { phone_number: { search: query?.search } },
+              { national_id_number: { search: query?.search } },
+            ],
+          }
+        : undefined,
     });
   }
 
@@ -74,7 +76,7 @@ export class RecieversService {
             verification_status:
               counterpartyVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
           },
-          where: { cybrid_counterparty_id: counterparty.guid },
+          where: { cybrid_counterparty_guid: counterparty.guid },
         });
 
         this.logger.log(
@@ -85,7 +87,7 @@ export class RecieversService {
       }
     }, 7000);
 
-    return this.prismaService.cybridCounterparty.create({
+    return await this.prismaService.cybridCounterparty.create({
       data: {
         cybrid_counterparty_guid: counterparty.guid as string,
         fullname: newReceiver.fullname,
