@@ -3,9 +3,24 @@ import { genSaltSync, hashSync } from 'bcrypt';
 import { generateAccountNumber } from '../../helpers/otp-generator';
 const prisma = new PrismaClient();
 
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+
 async function main() {
+  // create admin
+  await seedAdminAcount();
+}
+
+async function seedAdminAcount() {
   const password = hashSync(
-    process.env.ADMIN_PASSWORD || 'password237!',
+    process.env.ADMIN_PASSWORD || 'xafpay237!',
     genSaltSync(Number(process.env.SALT_ROUNDS))
   );
 
@@ -18,7 +33,7 @@ async function main() {
       gender: 'MALE',
       password,
       phone_number: '+1 (703) 899-5276',
-      username: process.env.ADMIN_PASSWORD || 'xafpay237!',
+      username: 'xafpay-237',
       LocalCustomers: {
         create: {
           balance: 0,
@@ -30,18 +45,10 @@ async function main() {
     },
   });
 
-  await prisma.role.createMany({
-    data: [
-      {
-        title: 'client',
-        created_by: admin.person_id,
-      },
-      {
-        title: 'admin',
-        created_by: admin.person_id,
-      },
-    ],
-  });
+  // create platform roles
+  await seedRoles(admin.person_id);
+
+  // asign admin role to person admin email
   await prisma.personHasRole.create({
     data: {
       Role: { connect: { title: 'admin' } },
@@ -50,12 +57,17 @@ async function main() {
   });
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
+async function seedRoles(adminId: string) {
+  await prisma.role.createMany({
+    data: [
+      {
+        title: 'client',
+        created_by: adminId,
+      },
+      {
+        title: 'admin',
+        created_by: adminId,
+      },
+    ],
   });
+}
