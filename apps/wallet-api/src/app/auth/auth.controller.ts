@@ -158,6 +158,7 @@ export class AuthController {
   }
 
   @SkipAuth(false)
+  @ApiBearerAuth()
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: UserEntity })

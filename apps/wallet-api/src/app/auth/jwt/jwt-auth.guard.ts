@@ -37,7 +37,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest<Request>();
     if (
       !user.is_verified &&
-      !['auth', 'users', 'currencies'].some((path) =>
+      !['auth', 'users', 'currencies', 'otp/request'].some((path) =>
         request.url.includes(path)
       )
     ) {

@@ -65,21 +65,22 @@ export class TransactionsService {
 
     const { currency, customerGuid, fiatAccountGuid, externalAccountGuid } =
       sourceAccountGuids;
-
+    const bankGuid = this.configService.get('CYBRID_BANK_GUID')
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
       {
         asset: currency,
+        side: 'deposit',
+        bank_guid: bankGuid,
+        customer_guid: customerGuid,
         receive_amount: payload.amount,
         product_type: PostQuoteBankModelProductTypeEnum.Funding,
-        bank_guid: this.configService.get('CYBRID_BANK_GUID'),
       }
     );
 
     const fundingTransfer = await this.cybridService.initiateTransfer(
       customerGuid,
       {
-        payment_rail: 'ach',
         transfer_type: transferType,
         quote_guid: fundingTransferQuote.guid as string,
         external_bank_account_guid: externalAccountGuid,
