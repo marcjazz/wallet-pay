@@ -1,16 +1,16 @@
 import { plainToInstance } from 'class-transformer';
 import {
-    IsEmail,
-    IsEnum,
-    IsFQDN,
-    IsHexadecimal,
-    IsIP,
-    IsNumber,
-    IsPort,
-    IsString,
-    IsStrongPassword,
-    IsUrl,
-    validateSync
+  IsEmail,
+  IsEnum,
+  IsFQDN,
+  IsHexadecimal,
+  IsIP,
+  IsNumber,
+  IsPort,
+  IsString,
+  IsStrongPassword,
+  IsUrl,
+  validateSync,
 } from 'class-validator';
 
 enum Environment {
@@ -61,6 +61,9 @@ class EnvironmentVariables {
 
   @IsHexadecimal()
   CYBRID_BANK_TRADING_ACCOUNT_GUID: string;
+
+  @IsHexadecimal()
+  CYBRID_BANK_EXTERNAL_WALLET_GUID: string;
 
   @IsUrl()
   CYBRID_BANK_LEVEL_TOKEN_ENDPOINT: string;

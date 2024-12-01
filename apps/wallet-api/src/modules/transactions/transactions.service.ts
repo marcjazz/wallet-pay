@@ -305,14 +305,17 @@ export class TransactionsService {
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
 
+    const bankGuid = this.configService.get<string>(
+      'CYBRID_BANK_GUID'
+    ) as string;
     const bookTransferQuote = await this.cybridService.createQuote(
       customerGuid,
       {
         asset: 'USDC_SOL',
+        bank_guid: bankGuid,
         customer_guid: customerGuid,
         deliver_amount: amount,
         product_type: PostQuoteBankModelProductTypeEnum.BookTransfer,
-        bank_guid: this.configService.get('CYBRID_BANK_GUID'),
       }
     );
 
@@ -335,7 +338,7 @@ export class TransactionsService {
         destination_participants: [
           {
             amount: amount,
-            guid: this.configService.get('CYBRID_BANK_GUID') as string,
+            guid: bankGuid,
             type: PostTransferParticipantBankModelTypeEnum.Bank,
           },
         ],
@@ -503,8 +506,13 @@ export class TransactionsService {
       }
     );
 
+    const externalWalletGuid = this.configService.get(
+      'CYBRID_BANK_EXTERNAL_WALLET_GUID'
+    ) as string;
+
     const transfer = await this.cybridService.settleXafPayUSDCFunds(
       bankGuid,
+      externalWalletGuid,
       totalAmount,
       remittanceParticipants
     );

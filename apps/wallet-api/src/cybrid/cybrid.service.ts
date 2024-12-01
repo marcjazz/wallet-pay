@@ -417,6 +417,7 @@ export class CybridService {
 
   async settleXafPayUSDCFunds(
     bankGuid: string,
+    externalWalletGuid: string,
     totalAmount: number,
     participants: Participants
   ) {
@@ -447,6 +448,7 @@ export class CybridService {
             postTransferBankModel: {
               ...participants,
               quote_guid: quote.guid as string,
+              external_wallet_guid: externalWalletGuid,
               transfer_type: PostTransferBankModelTransferTypeEnum.Crypto,
             },
           });
