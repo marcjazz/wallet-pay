@@ -65,7 +65,7 @@ export class TransactionsService {
 
     const { currency, customerGuid, fiatAccountGuid, externalAccountGuid } =
       sourceAccountGuids;
-    const bankGuid = this.configService.get('CYBRID_BANK_GUID')
+    const bankGuid = this.configService.get('CYBRID_BANK_GUID');
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
       {
@@ -149,7 +149,6 @@ export class TransactionsService {
     if (!sourceAccountGuids) {
       throw new NotFoundException('Source bank account not found!');
     }
-    console.error(sourceAccountGuids);
 
     const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
 
@@ -313,8 +312,6 @@ export class TransactionsService {
       customerGuid,
       {
         asset: 'USDC_SOL',
-        bank_guid: bankGuid,
-        customer_guid: customerGuid,
         deliver_amount: amount,
         product_type: PostQuoteBankModelProductTypeEnum.BookTransfer,
       }
@@ -410,7 +407,7 @@ export class TransactionsService {
             tradeTransaction.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
           transaction_type: 'CONVERT',
           InitiatedBy: {
-            connect: { cybrid_customer_id: customerGuid },
+            connect: { cybrid_customer_guid: customerGuid },
           },
           CybridAccount: {
             connect: { cybrid_account_guid: fiatAccountGuid },
@@ -427,14 +424,14 @@ export class TransactionsService {
   private async getCounterpartyFromReceiver(receiver: ReceiverPayoutInfoDto) {
     let cybridCounterparty =
       await this.prismaService.cybridCounterparty.findUnique({
-        where: { cybrid_counterparty_id: receiver.cybrid_counterparty_id },
+        where: { cybrid_counterparty_id: receiver.receiver_id },
       });
 
     if (!cybridCounterparty) {
       throw new NotFoundException(`Receiver not found!`);
     }
 
-    if (cybridCounterparty.status !== 'VERIFIED') {
+    if (cybridCounterparty.verification_status !== 'COMPLETED') {
       throw new UnauthorizedException(`Potential faulty receiver detected!`);
     }
 
@@ -444,7 +441,7 @@ export class TransactionsService {
           phone_number: receiver.phone_number ?? undefined,
           national_id_number: receiver.national_id_number ?? undefined,
         },
-        where: { cybrid_counterparty_id: receiver.cybrid_counterparty_id },
+        where: { cybrid_counterparty_id: receiver.receiver_id },
       });
     }
 

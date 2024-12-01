@@ -4,7 +4,7 @@ import {
   CybridTransaction,
   CybridTransactionStatus,
 } from '@prisma/client';
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude, Type } from 'class-transformer';
 import {
   IsEnum,
   IsIn,
@@ -28,9 +28,8 @@ export class ReceiverPayoutInfoDto {
   phone_number: string | null = null;
 
   @IsString()
-  @ApiProperty({ name: 'receiver_id' })
-  @Expose({ name: 'receiver_id' })
-  cybrid_counterparty_id: string;
+  @ApiProperty()
+  receiver_id: string;
 
   constructor(props: ReceiverPayoutInfoDto) {
     Object.assign(this, props);
