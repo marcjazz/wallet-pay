@@ -89,6 +89,7 @@ export class RecieversService {
 
     return await this.prismaService.cybridCounterparty.create({
       data: {
+        address: newReceiver.address.toString(), // CM-OU, Bangangte, Chumba
         cybrid_counterparty_guid: counterparty.guid as string,
         fullname: newReceiver.fullname,
         phone_number: newReceiver.phone_number,

@@ -12,12 +12,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const status = exception.status || 500;
     
+    console.log(exception)
     this.logger.error(exception);
 
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
-      message: exception.xhr ? exception.response.error_message : exception.message,
+      message: exception.xhr ? exception.response?.error_message : exception.message,
       path: request.url,
     });
   }

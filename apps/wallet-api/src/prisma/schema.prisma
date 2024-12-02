@@ -290,6 +290,7 @@ model CybridCounterparty {
   fullname                   String                      @db.VarChar(45)
   phone_number               String                      @db.VarChar(45)
   national_id_number         String?                     @db.VarChar(45)
+  address                    String                      @db.VarChar(90)
   cybrid_counterparty_guid   String                      @unique @db.VarChar(45)
   status                     CybridCounterpartyStatus
   identity_verification_guid String?                     @db.VarChar(45)

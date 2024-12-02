@@ -27,6 +27,10 @@ export class ReceiverEntity {
   phone_number: string;
 
   @IsString()
+  @ApiProperty({ example: 'Bangangte, Chumba (CM-OU)' })
+  address: string;
+
+  @IsString()
   @ApiProperty({ name: 'receiver_id' })
   @Expose({ name: 'receiver_id' })
   cybrid_counterparty_id: string;
@@ -88,6 +92,10 @@ export class AddressDto {
   @IsOptional()
   @ApiPropertyOptional()
   postal_code: string | null = null;
+
+  toString() {
+    return `${this.city}, ${this.street} (${this.country_code}-${this.subdivision})`;
+  }
 
   constructor(props: AddressDto) {
     Object.assign(this, props);
