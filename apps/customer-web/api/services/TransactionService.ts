@@ -22,14 +22,24 @@ export interface GetTransactionsQueryParams {
 export class TransactionService {
   constructor(private apiClient: ApiClient) {}
 
-  async initiateTransfer(
+  async initiateAccountFunding(
     payload: InitiateTransferDto
   ): Promise<CybridTransactionEntity> {
     return this.apiClient.post<CybridTransactionEntity>(
-      '/api/v1/transactions/initiate',
+      '/api/v1/transactions/fund',
       payload
     );
   }
+
+  async initiateRemittance(
+    payload: InitiateTransferDto
+  ): Promise<CybridTransactionEntity> {
+    return this.apiClient.post<CybridTransactionEntity>(
+      '/api/v1/transactions/remit',
+      payload
+    );
+  }
+
 
   /**
    * Fetch all transactions with optional query parameters.

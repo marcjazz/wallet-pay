@@ -4,16 +4,12 @@ import { CameroonRegions } from './EnumTypes';
  * DTO for receiver payout information.
  */
 export interface ReceiverPayoutInfoDto {
-  /** Full name of the receiver. */
-  fullname: string;
-  /** Receiver address */
-  address: AddressDto;
   /** Receiver's national ID number. Optional if not applicable. */
   national_id_number?: string | null;
   /** Receiver's phone number. */
-  phone_number: string;
+  phone_number?: string | null;
   /** Unique ID for the receiver, if applicable. */
-  receiver_id?: string | null;
+  receiver_id: string;
 }
 
 export interface ReceiverEntity {
@@ -30,6 +26,13 @@ export interface ReceiverEntity {
   /** Timestamp of creation. */
   created_at: string;
 }
+
+export type CreateReceiverDto = {
+  fullname: string;
+  address: AddressDto;
+  national_id_number?: string | null;
+  phone_number: string;
+};
 
 /**
  * Represents an address with details about location and optional metadata.

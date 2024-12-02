@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -9,12 +10,14 @@ import {
   Typography,
 } from '@mui/material';
 import {
+  CameroonRegions,
+  CreateReceiverDto,
   ReceiverEntity,
-  ReceiverPayoutInfoDto,
 } from 'apps/customer-web/api/types';
 import { FormikErrors, FormikTouched, useFormik } from 'formik';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
+import { useCreateReceiver } from '../../../api/hooks/useReciever';
 import BottomSheet from '../../shared/BottomSheet';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';
@@ -38,13 +41,13 @@ export default function RecipientDetailsBottomSheet({
   const isBank = selectedPayoutMethod === SupportedPayoutMethod.bank;
 
   const momoInitialValues: Receiver = {
-    receiver_id: selectedReceiver?.receiver_id || '',
+    receiver_id: (selectedReceiver as ReceiverEntity)?.receiver_id || '',
     fullname: selectedReceiver?.fullname || '',
     phone_number: selectedReceiver?.phone_number || '',
     national_id_number: selectedReceiver?.national_id_number || '',
     created_at: (selectedReceiver as ReceiverEntity)?.created_at || '',
     receiver_guid: (selectedReceiver as ReceiverEntity)?.receiver_guid || '',
-    address: (selectedReceiver as ReceiverPayoutInfoDto)?.address || {
+    address: (selectedReceiver as CreateReceiverDto)?.address || {
       city: '',
       street: '',
       subdivision: '',
@@ -85,14 +88,50 @@ export default function RecipientDetailsBottomSheet({
       .required(formatMessage({ id: 'requiredField' })),
     // }),
   });
+
+  const { mutate: createReceiver, isPending: isCreatingReceiver } =
+    useCreateReceiver();
+
   const formik = useFormik({
     // initialValues: isBank ? bankInitialValues : momoInitialValues,
     initialValues: momoInitialValues,
     validationSchema,
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
-      handleNext(values);
-      resetForm();
+      if (selectedReceiver) {
+        handleNext({
+          ...values,
+          phone_number: values.phone_number,
+        });
+        resetForm();
+      } else {
+        createReceiver(
+          {
+            fullname: values.fullname,
+            phone_number: `+237${values.phone_number}`,
+            national_id_number: values.national_id_number,
+            address: {
+              city: 'Bangangte',
+              street: 'Noutong',
+              subdivision: CameroonRegions.LITTORAL,
+              country_code: 'CM',
+            },
+          },
+          {
+            onSuccess: (data) => {
+              handleNext({
+                ...data,
+                phone_number: data.phone_number.split('+237')[1],
+              });
+              resetForm();
+            },
+            onError: (error) => {
+              //TODO: USE alert in case of error. will be replaced with proper notifications later
+              alert(error.message);
+            },
+          }
+        );
+      }
     },
   });
 
@@ -213,6 +252,7 @@ export default function RecipientDetailsBottomSheet({
               error={Boolean(touched.fullname && errors.fullname)}
               required
               fullWidth
+              disabled={!!selectedReceiver}
             >
               <FormLabel htmlFor="fullname">
                 {formatMessage({ id: 'fullname' })}
@@ -259,6 +299,10 @@ export default function RecipientDetailsBottomSheet({
         variant="contained"
         color="primary"
         form="recipient-details-form"
+        disabled={isCreatingReceiver}
+        endIcon={
+          isCreatingReceiver && <CircularProgress size={20} thickness={23} />
+        }
       >
         {formatMessage({ id: 'confirm' })}
       </Button>

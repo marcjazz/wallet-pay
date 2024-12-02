@@ -71,7 +71,7 @@ export default function RecipientSummaryCard({
             }}
           >
             <Typography variant="l2r" color="#797A7B">
-              {receiver.phone_number.replace(/(.{3})(?=.)/g, '$1 ')}
+              {`+237 ${receiver.phone_number.replace(/(.{3})(?=.)/g, '$1 ')}`}
             </Typography>
             {PhoneNetworkIcon(receiver.phone_number)}
           </Box>

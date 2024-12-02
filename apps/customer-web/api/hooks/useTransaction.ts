@@ -33,6 +33,6 @@ export const useTransactions = (params?: GetTransactionsQueryParams) => {
 export const useInitiateTransfer = () => {
   return useMutation<CybridTransactionEntity, Error, InitiateTransferDto>({
     mutationKey: ['initiateTransfer'],
-    mutationFn: (payload) => transactionService.initiateTransfer(payload),
+    mutationFn: (payload) => transactionService.initiateAccountFunding(payload),
   });
 };

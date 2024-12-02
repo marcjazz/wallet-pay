@@ -6,14 +6,17 @@ import {
   Typography,
 } from '@mui/material';
 import { Scrollbars } from 'rc-scrollbars';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Search, Sliders } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { ReceiverEntity, ReceiverPayoutInfoDto } from '../../../api/types';
+import { useReceivers } from '../../../api/hooks/useReciever';
+import {
+  CreateReceiverDto,
+  ReceiverEntity
+} from '../../../api/types';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import RecipientCard from './RecipientCard';
 import RecipientDetailsBottomSheet from './RecipientDetailsBottomSheet';
-import { useReceivers } from '../../../api/hooks/useReciever';
 
 export interface MomoReceiver {
   receiver_payout_info_id: string;
@@ -29,7 +32,7 @@ export interface BankReceiver {
   IBAN: string;
 }
 
-export type Receiver = ReceiverEntity | ReceiverPayoutInfoDto;
+export type Receiver = ReceiverEntity | CreateReceiverDto;
 // MomoReceiver | BankReceiver;
 
 interface ReceiverStepProps {
@@ -52,29 +55,26 @@ export default function ReceiverStep({
   >(receiverData);
 
   // TODO: receivers will be stored based on payout method. so fetch data based on selected payout method
-  const {
-    data: receivers,
-    isFetching: areReceiversLoading,
-  } = useReceivers();
+  const { data: receivers, isFetching: areReceiversLoading } = useReceivers();
 
   // useEffect(() => {
-    // setAreReceiversLoading(true);
-    // TODO: CALL API TO FETCH RECEIVERS of given payout method
-    // TODO:  we need to decide if we want to keep the details seperately or not (i.e. bank and momo),
-    // TODO: if yes then we need to fetch the details seperately else we can fetch the details together.
-    // TODO: and now we'll have to decide how to handle more data for same receiver for example, multiple bank accounts (or momo accounts) for same receiver
-    // TODO: we will also have to rethink the ui wrt the user presentation. (how do we show bank details? do we show them alongside the momo? how?)
-    // setTimeout(() => {
-      // setReceivers([
-      //   {
-      //     receiver_payout_info_id: '1',
-      //     fullname: 'John Doe Mary',
-      //     phone_number: '657140183',
-      //     national_id_number: '000316122',
-      //   },
-      // ]);
-      // setAreReceiversLoading(false);
-    // }, 3000);
+  // setAreReceiversLoading(true);
+  // TODO: CALL API TO FETCH RECEIVERS of given payout method
+  // TODO:  we need to decide if we want to keep the details seperately or not (i.e. bank and momo),
+  // TODO: if yes then we need to fetch the details seperately else we can fetch the details together.
+  // TODO: and now we'll have to decide how to handle more data for same receiver for example, multiple bank accounts (or momo accounts) for same receiver
+  // TODO: we will also have to rethink the ui wrt the user presentation. (how do we show bank details? do we show them alongside the momo? how?)
+  // setTimeout(() => {
+  // setReceivers([
+  //   {
+  //     receiver_payout_info_id: '1',
+  //     fullname: 'John Doe Mary',
+  //     phone_number: '657140183',
+  //     national_id_number: '000316122',
+  //   },
+  // ]);
+  // setAreReceiversLoading(false);
+  // }, 3000);
   // }, []);
 
   const [isReceipientDetailsOpen, setIsReceipientDetailsOpen] = useState(
