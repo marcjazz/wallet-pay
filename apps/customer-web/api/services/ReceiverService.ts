@@ -1,4 +1,4 @@
-import { ReceiverEntity } from '../types';
+import { CreateReceiverDto, ReceiverEntity } from '../types';
 import { ApiClient } from './ApiClient';
 
 /**
@@ -23,5 +23,18 @@ export class ReceiverService {
    */
   async findReceiverById(id: string): Promise<ReceiverEntity> {
     return this.apiClient.get<ReceiverEntity>(`/api/v1/receivers/${id}`);
+  }
+
+  /**
+   * Create a new receiver.
+   * @param receiverData Data for the new receiver.
+   */
+  async createReceiver(
+    receiverData: CreateReceiverDto
+  ): Promise<ReceiverEntity> {
+    return this.apiClient.post<ReceiverEntity>(
+      '/api/v1/receivers',
+      receiverData
+    );
   }
 }

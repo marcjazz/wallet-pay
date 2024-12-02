@@ -2,15 +2,16 @@ import { Avatar, Box, Button, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { CheckCircle } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { ReceiverEntity } from '../../../api/types';
 import { getUsernameInitials } from '../../shared/utilities';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';
 import { Receiver } from './ReceiverStep';
 
 interface ReceiverCardProps {
-  receiver: Receiver;
+  receiver: ReceiverEntity;
   selectedPayoutMethod: SupportedPayoutMethod;
-  selectedReceiver?: Receiver;
+  selectedReceiver?: ReceiverEntity;
   setSelectedReceiver: (receiver?: Receiver) => void;
 }
 export default function RecipientCard({
