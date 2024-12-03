@@ -28,8 +28,12 @@ export interface CybridTransactionEntity {
   cybrid_transaction_id: string;
   /** Globally unique transaction GUID. */
   cybrid_transaction_guid: string;
-  /** Transaction amount. */
+  /** Transaction amount on Sol network. */
   amount: number;
+  /** Transaction amount on Sol network. */
+  initial_currency_amount: number;
+  /** Currency of the transaction: USDC_SOL. */
+  currency: string;
   /** Initial currency of the transaction. */
   initial_currency?: string | null;
   /** Conversion rate for the transaction, if applicable. */

@@ -89,7 +89,8 @@ export default function RemittanceDetail({
               </Typography>
               <Typography variant="h1">
                 {formatNumber(
-                  transaction.amount * (transaction.conversion_rate ?? 1),
+                  transaction.initial_currency_amount *
+                    (transaction.conversion_rate ?? 1),
                   {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
@@ -109,7 +110,7 @@ export default function RemittanceDetail({
                 {transaction.initial_currency}
               </Typography>
               <Typography variant="h4" color="#B1ACA5">
-                {formatNumber(transaction.amount, {
+                {formatNumber(transaction.initial_currency_amount, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
