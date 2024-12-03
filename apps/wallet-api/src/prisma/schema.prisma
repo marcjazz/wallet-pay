@@ -90,6 +90,8 @@ model CybridTransaction {
   cybrid_transaction_guid         String                  @unique @db.VarChar(45)
   cybrid_transfer_settlement_guid String?                 @db.VarChar(45)
   amount                          Float
+  currency                        CybridSupportedCurrency @default(USD)
+  initial_currency_amount         Float
   initial_currency                CybridSupportedCurrency
   converstion_rate                Float?
   fees                            Float
