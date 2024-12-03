@@ -55,3 +55,19 @@ export const useInitiateRemittance = () => {
     mutationFn: (payload) => transactionService.initiateRemittance(payload),
   });
 };
+
+/**
+ * Hook for fetching a specific transaction by its ID.
+ * @param id Unique ID of the transaction.
+ */
+export const useTransaction = (id: string) => {
+  const tt = useQuery<CybridTransactionEntity, Error>({
+    queryKey: ['transaction', id],
+    queryFn: () => transactionService.findTransactionById(id),
+  });
+  const { isError, error } = tt;
+  // TODO: Use alert in case of error. Will be replaced with proper notifications later.
+  if (isError) alert(error.message);
+
+  return tt;
+};

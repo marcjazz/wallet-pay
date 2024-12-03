@@ -33,7 +33,7 @@ export interface CybridTransactionEntity {
   /** Initial currency of the transaction. */
   initial_currency?: string | null;
   /** Conversion rate for the transaction, if applicable. */
-  conversion_rate?: string | null;
+  conversion_rate?: number | null;
   /** Transaction fees. */
   fees: number;
   /** External transaction ID. */

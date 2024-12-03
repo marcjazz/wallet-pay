@@ -26,6 +26,21 @@ export const useReceivers = (search?: string) => {
 };
 
 /**
+ * Hook for fetching a specific receiver by its ID.
+ */
+export const useReceiver = (id: string) => {
+  const tt = useQuery<ReceiverEntity, Error>({
+    queryKey: ['receiver', id],
+    enabled: !!id,
+    queryFn: () => receiverService.findReceiverById(id),
+  });
+  const { isError, error } = tt;
+  //TODO: USE alert in case of error. will be replaced with proper notifications later
+  if (isError) alert(error.message);
+  return tt;
+};
+
+/**
  * Hook for creating a new receiver.
  */
 export const useCreateReceiver = () => {
