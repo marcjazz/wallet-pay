@@ -9,14 +9,11 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material';
-import {
-  CameroonRegions,
-  ReceiverEntity
-} from 'apps/customer-web/api/types';
 import { FormikErrors, FormikTouched, useFormik } from 'formik';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { useCreateReceiver } from '../../../api/hooks/useReciever';
+import { CameroonRegions, ReceiverEntity } from '../../../api/types';
 import BottomSheet from '../../shared/BottomSheet';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';

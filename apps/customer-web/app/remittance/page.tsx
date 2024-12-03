@@ -1,12 +1,12 @@
 'use client';
 
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import { useCurrencies } from 'apps/customer-web/api/hooks/useCurrency';
-import { ReceiverEntity } from 'apps/customer-web/api/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { useCurrencies } from '../../api/hooks/useCurrency';
+import { ReceiverEntity } from '../../api/types';
 import { CurrencyEnum } from '../../components/Home/MainCard';
 import Footer from '../../components/layout/footer/Footer';
 import SendAmountStep, {

@@ -1,9 +1,9 @@
 import { Box, Divider, Skeleton, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { useReceiver } from 'apps/customer-web/api/hooks/useReciever';
 import Image from 'next/image';
 import { AlertCircle, RefreshCcw } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { useReceiver } from '../../../api/hooks/useReciever';
 import { CybridTransactionEntity, TransactionStatus } from '../../../api/types';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import ReceiptLine from '../receipt/ReceiptLine';

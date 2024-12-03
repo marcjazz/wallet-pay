@@ -5,12 +5,12 @@ import {
   Divider,
   Typography,
 } from '@mui/material';
-import { useRequestOtp } from 'apps/customer-web/api/hooks/useOtp';
-import { useInitiateRemittance } from 'apps/customer-web/api/hooks/useTransaction';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useRequestOtp } from '../../../api/hooks/useOtp';
+import { useInitiateRemittance } from '../../../api/hooks/useTransaction';
 import { CurrencyEntity, OTPUsage, ReceiverEntity } from '../../../api/types';
 import OTPBottomSheet from '../../auth/forgot-password/OTPBottomSheet';
 import { AmountStepData } from '../amount/SendAmountStep';
