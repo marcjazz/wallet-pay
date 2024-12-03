@@ -11,8 +11,7 @@ import {
 } from '@mui/material';
 import {
   CameroonRegions,
-  CreateReceiverDto,
-  ReceiverEntity,
+  ReceiverEntity
 } from 'apps/customer-web/api/types';
 import { FormikErrors, FormikTouched, useFormik } from 'formik';
 import { useIntl } from 'react-intl';
@@ -27,8 +26,8 @@ interface RecipientBottomSheetProps {
   isOpen: boolean;
   closeBottomSheet: () => void;
   selectedPayoutMethod: SupportedPayoutMethod;
-  selectedReceiver?: Receiver;
-  handleNext: (receiverData: Receiver) => void;
+  selectedReceiver?: ReceiverEntity;
+  handleNext: (receiverData: ReceiverEntity) => void;
 }
 export default function RecipientDetailsBottomSheet({
   isOpen,
@@ -47,10 +46,10 @@ export default function RecipientDetailsBottomSheet({
     national_id_number: selectedReceiver?.national_id_number || '',
     created_at: (selectedReceiver as ReceiverEntity)?.created_at || '',
     receiver_guid: (selectedReceiver as ReceiverEntity)?.receiver_guid || '',
-    address: (selectedReceiver as CreateReceiverDto)?.address || {
+    address: {
       city: '',
       street: '',
-      subdivision: '',
+      subdivision: CameroonRegions.LITTORAL,
     },
   };
 
@@ -100,7 +99,7 @@ export default function RecipientDetailsBottomSheet({
     onSubmit: (values, { resetForm }) => {
       if (selectedReceiver) {
         handleNext({
-          ...values,
+          ...(values as ReceiverEntity),
           phone_number: values.phone_number,
         });
         resetForm();

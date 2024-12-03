@@ -2,6 +2,7 @@
 
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { useCurrencies } from 'apps/customer-web/api/hooks/useCurrency';
+import { ReceiverEntity } from 'apps/customer-web/api/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
@@ -73,7 +74,7 @@ export default function Transactions() {
       payoutMethod: undefined,
     }
   );
-  const [recipientData, setRecipientData] = useState<Receiver>();
+  const [recipientData, setRecipientData] = useState<ReceiverEntity>();
 
   const stepComponent: Record<
     RemittanceStep,
@@ -120,7 +121,7 @@ export default function Transactions() {
       stepComponent: (
         <TransferSummary
           amountStepData={amountStepData as AmountStepData}
-          receiverData={recipientData as Receiver}
+          receiverData={recipientData as ReceiverEntity}
           handleBack={() => handleBackStep(() => null)}
           activeCurrency={currencies.find(
             (currency) =>

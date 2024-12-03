@@ -1,9 +1,9 @@
-import { ApiClient } from './ApiClient';
 import {
-  InitiateTransferDto,
   CybridTransactionEntity,
+  InitiateFundingTransferDto,
   TransactionStatus,
 } from '../types';
+import { ApiClient } from './ApiClient';
 
 export interface GetTransactionsQueryParams {
   /** Search term for filtering transactions. */
@@ -23,7 +23,7 @@ export class TransactionService {
   constructor(private apiClient: ApiClient) {}
 
   async initiateAccountFunding(
-    payload: InitiateTransferDto
+    payload: InitiateFundingTransferDto
   ): Promise<CybridTransactionEntity> {
     return this.apiClient.post<CybridTransactionEntity>(
       '/api/v1/transactions/fund',
@@ -32,14 +32,13 @@ export class TransactionService {
   }
 
   async initiateRemittance(
-    payload: InitiateTransferDto
+    payload: InitiateFundingTransferDto
   ): Promise<CybridTransactionEntity> {
     return this.apiClient.post<CybridTransactionEntity>(
       '/api/v1/transactions/remit',
       payload
     );
   }
-
 
   /**
    * Fetch all transactions with optional query parameters.

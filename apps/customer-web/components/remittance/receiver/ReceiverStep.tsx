@@ -10,10 +10,7 @@ import { useState } from 'react';
 import { Plus, Search, Sliders } from 'react-feather';
 import { useIntl } from 'react-intl';
 import { useReceivers } from '../../../api/hooks/useReciever';
-import {
-  CreateReceiverDto,
-  ReceiverEntity
-} from '../../../api/types';
+import { CreateReceiverDto, ReceiverEntity } from '../../../api/types';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import RecipientCard from './RecipientCard';
 import RecipientDetailsBottomSheet from './RecipientDetailsBottomSheet';
@@ -37,8 +34,8 @@ export type Receiver = ReceiverEntity | CreateReceiverDto;
 
 interface ReceiverStepProps {
   selectedPayoutMethod: SupportedPayoutMethod;
-  handleNext: (receiverData: Receiver) => void;
-  receiverData?: Receiver;
+  handleNext: (receiverData: ReceiverEntity) => void;
+  receiverData?: ReceiverEntity;
 }
 export default function ReceiverStep({
   receiverData,
@@ -51,7 +48,7 @@ export default function ReceiverStep({
   // const [areReceiversLoading, setAreReceiversLoading] =
   //   useState<boolean>(false);
   const [selectedReceiver, setSelectedReceiver] = useState<
-    Receiver | undefined
+    ReceiverEntity | undefined
   >(receiverData);
 
   // TODO: receivers will be stored based on payout method. so fetch data based on selected payout method
@@ -139,7 +136,7 @@ export default function ReceiverStep({
                   receiver={receiver}
                   selectedPayoutMethod={selectedPayoutMethod}
                   selectedReceiver={selectedReceiver}
-                  setSelectedReceiver={(selectedReceiver?: Receiver) => {
+                  setSelectedReceiver={(selectedReceiver) => {
                     setSelectedReceiver(selectedReceiver);
                     if (selectedReceiver) setIsReceipientDetailsOpen(true);
                   }}

@@ -15,16 +15,8 @@ const receiverService = new ReceiverService(apiClient);
 export const useReceivers = (search?: string) => {
   const tt = useQuery<ReceiverEntity[], Error>({
     queryKey: ['receivers'],
-    queryFn: async () => {
-      const receivers = await receiverService.findReceivers(search);
+    queryFn: () => receiverService.findReceivers(search),
 
-      return receivers.map((receiver) => {
-        return {
-          ...receiver,
-          phone_number: receiver.phone_number.split('+237')[1],
-        };
-      });
-    },
     initialData: [],
   });
   const { isError, error } = tt;

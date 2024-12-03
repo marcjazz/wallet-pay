@@ -9,7 +9,8 @@ import {
 } from '../services/TransactionService';
 import {
   CybridTransactionEntity,
-  InitiateTransferDto,
+  InitiateFundingTransferDto,
+  InitiateRemittanceTransferDto,
 } from '../types/TransactionTypes';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
@@ -30,9 +31,27 @@ export const useTransactions = (params?: GetTransactionsQueryParams) => {
 /**
  * Hook for initiating a transfer.
  */
-export const useInitiateTransfer = () => {
-  return useMutation<CybridTransactionEntity, Error, InitiateTransferDto>({
+export const useInitiateFunding = () => {
+  return useMutation<
+    CybridTransactionEntity,
+    Error,
+    InitiateFundingTransferDto
+  >({
     mutationKey: ['initiateTransfer'],
     mutationFn: (payload) => transactionService.initiateAccountFunding(payload),
+  });
+};
+
+/**
+ * Hook for initiating a transfer.
+ */
+export const useInitiateRemittance = () => {
+  return useMutation<
+    CybridTransactionEntity,
+    Error,
+    InitiateRemittanceTransferDto
+  >({
+    mutationKey: ['initiateFunding'],
+    mutationFn: (payload) => transactionService.initiateRemittance(payload),
   });
 };
