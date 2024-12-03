@@ -4,7 +4,7 @@ import {
   CybridTransaction,
   CybridTransactionStatus,
 } from '@prisma/client';
-import { Exclude, Type } from 'class-transformer';
+import { Exclude, Transform, Type } from 'class-transformer';
 import {
   IsEnum,
   IsIn,
@@ -45,7 +45,8 @@ export class InitiateFundingTransferDto {
   cybrid_source_account_id: string;
 
   @IsNumber()
-  @ApiProperty({ description: 'Amount in currency base unit' })
+  @ApiProperty({ description: 'Amount in USD, CAD' })
+  @Transform(({ value }) => parseFloat(value) * 100)
   amount: number;
 
   @ValidateNested()
@@ -91,7 +92,13 @@ export class CybridTransactionEntity implements CybridTransaction {
   @ApiProperty()
   amount: number;
 
+  @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
+  currency: $Enums.CybridSupportedCurrency;
+
   @ApiProperty()
+  initial_currency_amount: number;
+
+  @ApiProperty({ enum: $Enums.CybridSupportedCurrency })
   initial_currency: $Enums.CybridSupportedCurrency;
 
   @ApiProperty()

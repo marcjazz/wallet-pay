@@ -105,8 +105,10 @@ export class TransactionsService {
       {
         data: {
           fees: 0,
+          currency,
           initial_currency: currency,
           amount: fundingTransfer.amount as number,
+          initial_currency_amount: payload.amount,
           transaction_id: generateTransactionId(),
           cybrid_transaction_guid: fundingTransfer.guid as string,
           transaction_type:
@@ -161,6 +163,7 @@ export class TransactionsService {
     // execute book transfer on customer's  USDC_SOL to xafpay bank level account
     const cybridTransaction = await this.executeBookTransfer(
       fiatTrade.receive_amount as number,
+      payload.amount,
       sourceAccountGuids,
       cybridCounterparty.cybrid_counterparty_guid
     );
@@ -300,7 +303,8 @@ export class TransactionsService {
 
   private async executeBookTransfer(
     amount: number,
-    { customerGuid, cryptoAccountGuid }: CustomerAccountGuids,
+    initialCurrencyAmount: number,
+    { currency, customerGuid, cryptoAccountGuid }: CustomerAccountGuids,
     counterpartyGuid: string
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
@@ -347,8 +351,10 @@ export class TransactionsService {
       {
         data: {
           fees: 0,
-          initial_currency: 'USDC_SOL',
-          amount: bookTransfer.amount as number,
+          currency: 'USDC_SOL',
+          initial_currency: currency,
+          initial_currency_amount: initialCurrencyAmount,
+          amount: Number(bookTransfer.amount) / 10e6,
           transaction_type: 'REMITTANCE',
           transaction_id: generateTransactionId(),
           cybrid_transaction_guid: bookTransfer.guid as string,
@@ -399,9 +405,11 @@ export class TransactionsService {
       {
         data: {
           fees: 0,
-          amount: fiatAmount,
+          currency: 'USDC_SOL',
           initial_currency: currency,
+          initial_currency_amount: fiatAmount,
           transaction_id: generateTransactionId(),
+          amount: tradeTransaction.receive_amount as number,
           cybrid_transaction_guid: tradeTransaction.guid as string,
           status:
             tradeTransaction.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
