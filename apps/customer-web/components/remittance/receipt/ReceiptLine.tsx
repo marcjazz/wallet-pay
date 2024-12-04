@@ -1,10 +1,15 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Skeleton, Typography } from '@mui/material';
 
 interface ReceiptLineProps {
   title: string;
   value: string;
+  isLoading?: boolean;
 }
-export default function ReceiptLine({ title, value }: ReceiptLineProps) {
+export default function ReceiptLine({
+  title,
+  value,
+  isLoading = false,
+}: ReceiptLineProps) {
   return (
     <Box
       sx={{
@@ -16,7 +21,9 @@ export default function ReceiptLine({ title, value }: ReceiptLineProps) {
       }}
     >
       <Typography variant="p2m">{title}</Typography>
-      <Typography variant="p1r">{value}</Typography>
+      <Typography variant="p1r">
+        {isLoading ? <Skeleton width={100} /> : value}
+      </Typography>
     </Box>
   );
 }

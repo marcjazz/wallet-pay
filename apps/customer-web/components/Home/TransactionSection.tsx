@@ -43,7 +43,7 @@ export default function TransactionSection({
 
       <Scrollbars universal autoHide>
         <TransactionList
-          transactions={transactions}
+          transactions={transactions.slice(0, 4)}
           areTransactionsLoading={areTransactionsLoading}
         />
       </Scrollbars>
