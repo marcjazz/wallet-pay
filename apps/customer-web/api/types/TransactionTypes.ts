@@ -1,23 +1,23 @@
-import { TransactionStatus, TransactionType, TransferType } from './EnumTypes';
+import { TransactionStatus, TransactionType } from './EnumTypes';
 import { OTPPayloadDto } from './OTPTypes';
 import { ReceiverPayoutInfoDto } from './ReceiverTypes';
 
-/**
- * DTO for initiating a transfer.
- */
-export interface InitiateTransferDto {
+export interface InitiateFundingTransferDto {
   /** Unique ID of the source account for the transfer. */
   cybrid_source_account_id: string;
-  /** Type of transfer being initiated. */
-  transfer_type: TransferType;
-  /** Currency code for the transfer (e.g., USD, CAD). */
-  currency: string;
   /** Amount to be transferred. */
   amount: number;
   /** OTP details for verification. */
   otp: OTPPayloadDto;
+}
+
+/**
+ * DTO for initiating a transfer.
+ */
+export interface InitiateRemittanceTransferDto
+  extends InitiateFundingTransferDto {
   /** Receiver payout information. */
-  receiver?: ReceiverPayoutInfoDto;
+  receiver: ReceiverPayoutInfoDto;
 }
 
 /**
@@ -28,12 +28,16 @@ export interface CybridTransactionEntity {
   cybrid_transaction_id: string;
   /** Globally unique transaction GUID. */
   cybrid_transaction_guid: string;
-  /** Transaction amount. */
+  /** Transaction amount on Sol network. */
   amount: number;
+  /** Transaction amount on Sol network. */
+  initial_currency_amount: number;
+  /** Currency of the transaction: USDC_SOL. */
+  currency: string;
   /** Initial currency of the transaction. */
   initial_currency?: string | null;
   /** Conversion rate for the transaction, if applicable. */
-  conversion_rate?: string | null;
+  conversion_rate?: number | null;
   /** Transaction fees. */
   fees: number;
   /** External transaction ID. */

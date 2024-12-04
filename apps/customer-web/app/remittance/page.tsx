@@ -1,11 +1,12 @@
 'use client';
 
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import { useCurrencies } from 'apps/customer-web/api/hooks/useCurrency';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { useCurrencies } from '../../api/hooks/useCurrency';
+import { ReceiverEntity } from '../../api/types';
 import { CurrencyEnum } from '../../components/Home/MainCard';
 import Footer from '../../components/layout/footer/Footer';
 import SendAmountStep, {
@@ -73,7 +74,7 @@ export default function Transactions() {
       payoutMethod: undefined,
     }
   );
-  const [recipientData, setRecipientData] = useState<Receiver>();
+  const [recipientData, setRecipientData] = useState<ReceiverEntity>();
 
   const stepComponent: Record<
     RemittanceStep,
@@ -120,7 +121,7 @@ export default function Transactions() {
       stepComponent: (
         <TransferSummary
           amountStepData={amountStepData as AmountStepData}
-          receiverData={recipientData as Receiver}
+          receiverData={recipientData as ReceiverEntity}
           handleBack={() => handleBackStep(() => null)}
           activeCurrency={currencies.find(
             (currency) =>

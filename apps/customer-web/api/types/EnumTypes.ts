@@ -50,7 +50,7 @@ export enum TransferType {
 export enum TransactionType {
   REMITTANCE = 'REMITTANCE',
   CONVERT = 'CONVERT',
-  FUNDING = 'FUNDING',
+  INSTANT_FUNDING = 'INSTANT_FUNDING',
   WITHDRAWAL = 'WITHDRAWAL',
   ACCOUNT = 'ACCOUNT',
   XAF = 'XAF',

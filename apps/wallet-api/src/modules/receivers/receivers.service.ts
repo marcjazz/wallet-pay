@@ -39,7 +39,10 @@ export class RecieversService {
     });
   }
 
-  async create(newReceiver: CreateReceiverDto, personId: string) {
+  async create(
+    { address, ...newReceiver }: CreateReceiverDto,
+    personId: string
+  ) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
       where: { person_id: personId },
     });
@@ -51,7 +54,7 @@ export class RecieversService {
     const counterparty = await this.cybridService.createCounterparty(
       customer.cybrid_customer_guid,
       {
-        address: newReceiver.address,
+        address,
         name: { full: newReceiver.fullname, last, first },
         type: PostCounterpartyBankModelTypeEnum.Individual,
       }
@@ -89,7 +92,7 @@ export class RecieversService {
 
     return await this.prismaService.cybridCounterparty.create({
       data: {
-        address: newReceiver.address.getAddressString(), // CM-OU, Bangangte, Chumba
+        address: `${address.city}, ${address.street} (${address.country_code}-${address.subdivision})`,
         cybrid_counterparty_guid: counterparty.guid as string,
         fullname: newReceiver.fullname,
         phone_number: newReceiver.phone_number,

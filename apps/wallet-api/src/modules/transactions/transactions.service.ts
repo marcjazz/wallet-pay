@@ -136,7 +136,7 @@ export class TransactionsService {
 
     return new CybridTransactionEntity({
       ...cybridTransaction,
-      reciepient_fullname: null,
+      recipient_fullname: null,
     });
   }
 
@@ -180,7 +180,7 @@ export class TransactionsService {
 
     return new CybridTransactionEntity({
       ...cybridTransaction,
-      reciepient_fullname: cybridCounterparty.fullname,
+      recipient_fullname: cybridCounterparty.fullname,
     });
   }
 
@@ -192,12 +192,12 @@ export class TransactionsService {
 
   async getTransactions(
     { order_by, order_direction, search, status }: QueryTransactionDto,
-    initiatedBy: string
+    personId: string
   ) {
     const personFullnameSelect = {
       select: { Person: { select: { first_name: true, last_name: true } } },
     };
-    const transantions = await this.prismaService.cybridTransaction.findMany({
+    const transactions = await this.prismaService.cybridTransaction.findMany({
       orderBy:
         order_by === 'amount'
           ? { amount: order_direction }
@@ -205,21 +205,28 @@ export class TransactionsService {
       include: {
         LocalCustomer: personFullnameSelect,
         ReceiverPayoutInfo: {
-          ...personFullnameSelect,
-          where: { fullname: { search } },
+          select: { fullname: true },
+          where: search ? { fullname: { search } } : undefined,
         },
       },
-      where: { status, initiated_by: initiatedBy },
+      where: {
+        InitiatedBy: { person_id: personId },
+        transaction_type: {
+          not: 'CONVERT',
+        },
+        ...(status ? { status } : {}),
+      },
     });
 
-    return transantions.map(
+    return transactions.map(
       ({ LocalCustomer, ReceiverPayoutInfo, ...transantion }) => {
-        const person = ReceiverPayoutInfo?.Person ?? LocalCustomer?.Person;
+        console.log(ReceiverPayoutInfo);
+        const person = LocalCustomer?.Person;
         return new CybridTransactionEntity({
           ...transantion,
-          reciepient_fullname: person
-            ? `${person.first_name} ${person.last_name}`
-            : null,
+          recipient_fullname:
+            ReceiverPayoutInfo?.fullname ??
+            (person ? `${person.first_name} ${person.last_name}` : null),
         });
       }
     );
@@ -397,13 +404,23 @@ export class TransactionsService {
       }
     );
 
+    const usedCurrency = await this.prismaService.supportedCurrency.findFirst({
+      select: { currency: true, xaf_rate: true },
+      where: { currency },
+    });
+
+    console.log('Book_Transfer', bookTransfer);
+    console.log('initialCurrencyAmount', initialCurrencyAmount);
+    console.log('amount', amount);
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
           fees: 0,
           currency: 'USDC_SOL',
+          conversion_rate: usedCurrency?.xaf_rate,
           initial_currency: currency,
-          initial_currency_amount: initialCurrencyAmount,
+          // convert cents to dollars
+          initial_currency_amount: initialCurrencyAmount / 100,
           amount: Number(bookTransfer.amount) / 10e6,
           transaction_type: 'REMITTANCE',
           transaction_id: generateTransactionId(),
@@ -457,9 +474,11 @@ export class TransactionsService {
           fees: 0,
           currency: 'USDC_SOL',
           initial_currency: currency,
-          initial_currency_amount: fiatAmount,
+          // convert cents to dollars
+          initial_currency_amount: fiatAmount / 100,
           transaction_id: generateTransactionId(),
-          amount: tradeTransaction.receive_amount as number,
+          // convert lamports to USDC_SOL
+          amount: (tradeTransaction.receive_amount as number) / 1e6,
           cybrid_transaction_guid: tradeTransaction.guid as string,
           status:
             tradeTransaction.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,

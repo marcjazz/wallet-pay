@@ -15,17 +15,24 @@ const receiverService = new ReceiverService(apiClient);
 export const useReceivers = (search?: string) => {
   const tt = useQuery<ReceiverEntity[], Error>({
     queryKey: ['receivers'],
-    queryFn: async () => {
-      const receivers = await receiverService.findReceivers(search);
+    queryFn: () => receiverService.findReceivers(search),
 
-      return receivers.map((receiver) => {
-        return {
-          ...receiver,
-          phone_number: receiver.phone_number.split('+237')[1],
-        };
-      });
-    },
     initialData: [],
+  });
+  const { isError, error } = tt;
+  //TODO: USE alert in case of error. will be replaced with proper notifications later
+  if (isError) alert(error.message);
+  return tt;
+};
+
+/**
+ * Hook for fetching a specific receiver by its ID.
+ */
+export const useReceiver = (id: string) => {
+  const tt = useQuery<ReceiverEntity, Error>({
+    queryKey: ['receiver', id],
+    enabled: !!id,
+    queryFn: () => receiverService.findReceiverById(id),
   });
   const { isError, error } = tt;
   //TODO: USE alert in case of error. will be replaced with proper notifications later

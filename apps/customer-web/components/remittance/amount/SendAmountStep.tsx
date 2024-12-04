@@ -11,14 +11,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { useCybridAccounts } from 'apps/customer-web/api/hooks/useAccounts';
-import { CurrencyEntity } from 'apps/customer-web/api/types';
-import { CybridAccountEntity } from 'apps/customer-web/api/types/AccountTypes';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
+import { useCybridAccounts } from '../../../api/hooks/useAccounts';
+import { CurrencyEntity } from '../../../api/types';
+import { CybridAccountEntity } from '../../../api/types/AccountTypes';
 import ChangeCurrencyMenu from './ChangeCurrencyMenu';
 
 export enum SupportedPayoutMethod {

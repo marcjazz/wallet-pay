@@ -93,7 +93,7 @@ model CybridTransaction {
   currency                        CybridSupportedCurrency @default(USD)
   initial_currency_amount         Float
   initial_currency                CybridSupportedCurrency
-  converstion_rate                Float?
+  conversion_rate                Float?
   fees                            Float
   transaction_id                  String                  @db.VarChar(45)
   transaction_type                CybridTransactionType
@@ -340,7 +340,7 @@ model StripeTransaction {
   stripe_transaction_id   String                  @id @default(cuid()) @db.VarChar(36)
   amount_sent             Float
   fees                    Float
-  converstion_rate        Float
+  conversion_rate        Float
   transaction_id          String                  @db.VarChar(45)
   stripe_transaction_guid String                  @db.VarChar(45)
   created_at              DateTime                @default(now()) @db.Timestamp()

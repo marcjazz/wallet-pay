@@ -19,13 +19,8 @@ import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { useExternalAccounts } from '../../api/hooks/useAccounts';
 import { useRequestOtp } from '../../api/hooks/useOtp';
-import { useInitiateTransfer } from '../../api/hooks/useTransaction';
-import {
-  Currency,
-  OTPUsage,
-  TransferType,
-  VerificationStatus,
-} from '../../api/types';
+import { useInitiateFunding } from '../../api/hooks/useTransaction';
+import { OTPUsage, VerificationStatus } from '../../api/types';
 import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import BottomSheet from '../shared/BottomSheet';
 
@@ -67,7 +62,7 @@ export default function DepositBottomSheet({
 
   const { mutate: requestOtp, isPending: isRequestingOtp } = useRequestOtp();
   const { mutate: initiateTransfer, isPending: isSubmitting } =
-    useInitiateTransfer();
+    useInitiateFunding();
 
   const formik = useFormik({
     initialValues,
@@ -101,8 +96,6 @@ export default function DepositBottomSheet({
             initiateTransfer(
               {
                 amount: formik.values.amount,
-                currency: Currency.USD,
-                transfer_type: TransferType.INSTANT_FUNDING,
                 cybrid_source_account_id: formik.values.selectedAccount,
                 otp: {
                   code: code,

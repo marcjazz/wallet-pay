@@ -93,10 +93,6 @@ export class AddressDto {
   @ApiPropertyOptional()
   postal_code: string | null = null;
 
-  getAddressString() {
-    return `${this.city}, ${this.street} (${this.country_code}-${this.subdivision})`;
-  }
-
   constructor(props: AddressDto) {
     Object.assign(this, props);
   }

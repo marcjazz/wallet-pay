@@ -6,13 +6,12 @@ import { ReceiverEntity } from '../../../api/types';
 import { getUsernameInitials } from '../../shared/utilities';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';
-import { Receiver } from './ReceiverStep';
 
 interface ReceiverCardProps {
   receiver: ReceiverEntity;
   selectedPayoutMethod: SupportedPayoutMethod;
   selectedReceiver?: ReceiverEntity;
-  setSelectedReceiver: (receiver?: Receiver) => void;
+  setSelectedReceiver: (receiver?: ReceiverEntity) => void;
 }
 export default function RecipientCard({
   receiver,

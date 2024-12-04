@@ -1,25 +1,47 @@
-import { Box, Divider, Typography } from '@mui/material';
+import {
+  Box,
+  Divider,
+  IconButton,
+  Skeleton,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useTheme } from '@xafpay/theme';
+import { useExternalAccounts } from 'apps/customer-web/api/hooks/useAccounts';
 import Image from 'next/image';
-import { AlertCircle, RefreshCcw } from 'react-feather';
+import { useRouter } from 'next/navigation';
+import { AlertCircle, ChevronLeft, RefreshCcw } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { RemittanceTransaction } from '../../../app/remittance/page';
-import { TransactionStatus } from '../../../types';
+import { useReceiver } from '../../../api/hooks/useReciever';
+import {
+  CybridTransactionEntity,
+  TransactionStatus,
+  TransactionType,
+  VerificationStatus,
+} from '../../../api/types';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import ReceiptLine from '../receipt/ReceiptLine';
-import { BankReceiver, MomoReceiver } from '../receiver/ReceiverStep';
 import RemittanceDetailSkeleton from './RemittanceDetailSkeleton';
 
 interface RemittanceDetailProps {
-  transaction?: RemittanceTransaction;
+  transaction?: CybridTransactionEntity;
   isTransactionLoading?: boolean;
+  fromBottomSheet?: boolean;
 }
 export default function RemittanceDetail({
   transaction,
   isTransactionLoading = false,
+  fromBottomSheet = true,
 }: RemittanceDetailProps) {
   const { formatMessage, formatDate, formatNumber } = useIntl();
   const theme = useTheme();
+  const { push } = useRouter();
+
+  const { data: receiver, isFetching: isReceiverLoading } = useReceiver(
+    transaction?.receiver_payout_info_id as string
+  );
+  const { data: externalAccounts, isFetching: isLoadingExternalAccounts } =
+    useExternalAccounts(VerificationStatus.COMPLETED);
 
   const receiptHeader: Record<
     TransactionStatus,
@@ -33,7 +55,15 @@ export default function RemittanceDetail({
       image: <RefreshCcw color="black" size="76" />,
       title: formatMessage({ id: 'transferPending' }),
     },
-    SETTLED: {
+    REVIEWING: {
+      image: <RefreshCcw color="black" size="76" />,
+      title: formatMessage({ id: 'transferPending' }),
+    },
+    STORING: {
+      image: <RefreshCcw color="black" size="76" />,
+      title: formatMessage({ id: 'transferPending' }),
+    },
+    COMPLETED: {
       image: (
         <Image
           src="/assets/remittance_success.svg"
@@ -48,141 +78,232 @@ export default function RemittanceDetail({
   return isTransactionLoading || !transaction ? (
     <RemittanceDetailSkeleton />
   ) : (
-    <Box sx={{ padding: 2, display: 'grid', rowGap: 6 }}>
-      <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 4 }}>
-        <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 2 }}>
-          {receiptHeader[transaction.status].image}
-          <Typography variant="h2">
-            {receiptHeader[transaction.status].title}
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1 }}>
-          <Box
-            sx={{
-              display: 'grid',
-              justifyItems: 'center',
-              rowGap: 0.5,
-            }}
-          >
-            <Box
+    <Box
+      sx={{
+        padding: 2,
+        display: 'grid',
+        gridTemplateRows: fromBottomSheet ? '1fr' : 'auto 1fr',
+        rowGap: 5,
+      }}
+    >
+      {!fromBottomSheet && (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 1fr',
+            alignItems: 'center',
+            columnGap: 2,
+          }}
+        >
+          <Tooltip title={formatMessage({ id: 'back' })}>
+            <IconButton
+              size="small"
+              onClick={() => push('/')}
               sx={{
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr',
-                columnGap: 0.5,
-                alignItems: 'center',
+                padding: 0,
               }}
             >
-              <Typography variant="h5" color="#C8CDD0">
-                XAF
-              </Typography>
-              <Typography variant="h1">
-                {formatNumber(transaction.amount_received, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr',
-                columnGap: 0.5,
-                alignItems: 'center',
-              }}
-            >
-              <Typography variant="h6" color="#C8CDD0">
-                {transaction.initial_currency}
-              </Typography>
-              <Typography variant="h4" color="#B1ACA5">
-                {formatNumber(transaction.amount_sent, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </Typography>
-            </Box>
-          </Box>
-          <Typography variant="l3r" color="#BABDBE">
-            {`1 ${transaction.initial_currency} = ${transaction.exchange_rate} XAF`}
-          </Typography>
-          <Typography variant="p3r">
-            {`${formatMessage({ id: 'transactionFee' })}: ${
-              transaction.initial_currency
-            } ${formatNumber(transaction.transaction_fee, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`}
+              <ChevronLeft color="#1F2223" />
+            </IconButton>
+          </Tooltip>
+
+          <Typography variant="h3">
+            {formatMessage({ id: 'transactionDetails' })}
           </Typography>
         </Box>
-      </Box>
-
-      <Divider sx={{ justifySelf: 'stretch' }} />
-
-      {transaction && (
-        <Box sx={{ display: 'grid', rowGap: 4 }}>
-          <Box sx={{ display: 'grid', rowGap: 2 }}>
-            <Typography variant="p1m" color="#B1ACA5">
-              {formatMessage({ id: 'transferDestination' })}
+      )}
+      <Box sx={{ padding: 2, display: 'grid', rowGap: 6 }}>
+        <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 4 }}>
+          <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 2 }}>
+            {receiptHeader[transaction.status].image}
+            <Typography variant="h2">
+              {receiptHeader[transaction.status].title}
             </Typography>
-            <ReceiptLine
-              title={formatMessage({ id: 'transactionId' })}
-              value={transaction.cybrid_transaction_id}
-            />
-            <ReceiptLine
-              title={formatMessage({ id: 'receiver' })}
-              value={transaction.receiver.fullname}
-            />
-            {/* add the details of the receiver. phone number, network, nid, bank name, account number */}
-            {transaction.payout_method === SupportedPayoutMethod.bank ? (
-              <>
-                <ReceiptLine
-                  title={formatMessage({ id: 'bankName' })}
-                  value={(transaction.receiver as BankReceiver).bank_name}
-                />
-                <ReceiptLine
-                  title={formatMessage({ id: 'IBAN' })}
-                  value={(transaction.receiver as BankReceiver).IBAN.replace(
-                    /^([A-Z]{2})(\d{2})(\d{5})(\d{5})(\d{11})(\d{2})$/,
-                    '$1$2 $3 $4 $5 $6'
+          </Box>
+
+          <Box sx={{ display: 'grid', justifyItems: 'center', rowGap: 1 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                justifyItems: 'center',
+                rowGap: 0.5,
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr',
+                  columnGap: 0.5,
+                  alignItems: 'center',
+                }}
+              >
+                <Typography variant="h5" color="#C8CDD0">
+                  {transaction.transaction_type === TransactionType.REMITTANCE
+                    ? 'XAF'
+                    : transaction.initial_currency}
+                </Typography>
+                <Typography variant="h1">
+                  {formatNumber(
+                    transaction.initial_currency_amount *
+                      (transaction.conversion_rate ?? 1),
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
                   )}
-                />
-              </>
-            ) : (
-              <>
+                </Typography>
+              </Box>
+              {transaction.transaction_type === TransactionType.REMITTANCE ? (
+                <>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'auto 1fr',
+                      columnGap: 0.5,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="h6" color="#C8CDD0">
+                      {transaction.initial_currency}
+                    </Typography>
+                    <Typography variant="h4" color="#B1ACA5">
+                      {formatNumber(transaction.initial_currency_amount, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Typography>
+                  </Box>
+                  <Typography variant="l3r" color="#BABDBE">
+                    {`1 ${transaction.initial_currency} = ${
+                      transaction.conversion_rate ?? 1
+                    } XAF`}
+                  </Typography>
+                </>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'auto 1fr',
+                    columnGap: 0.5,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography variant="h6" color="#C8CDD0">
+                    {formatMessage({ id: 'from' })}
+                  </Typography>
+                  <Typography variant="h4" color="#B1ACA5">
+                    {isLoadingExternalAccounts ? (
+                      <Skeleton />
+                    ) : (
+                      externalAccounts?.find(
+                        (account) =>
+                          account.cybrid_external_account_id ===
+                          transaction.cybrid_external_account_id
+                      )?.name
+                    )}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+            <Typography variant="p3r">
+              {`${formatMessage({ id: 'transactionFee' })}: ${
+                transaction.initial_currency
+              } ${formatNumber(transaction.fees, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Divider sx={{ justifySelf: 'stretch' }} />
+
+        {transaction && (
+          <Box sx={{ display: 'grid', rowGap: 4 }}>
+            <Box sx={{ display: 'grid', rowGap: 2 }}>
+              <Typography variant="p1m" color="#B1ACA5">
+                {formatMessage({
+                  id:
+                    transaction.transaction_type === TransactionType.REMITTANCE
+                      ? 'transferDestination'
+                      : 'transactionDetails',
+                })}
+              </Typography>
+              <ReceiptLine
+                title={formatMessage({ id: 'transactionId' })}
+                value={transaction.transaction_id}
+              />
+              {transaction.transaction_type === TransactionType.REMITTANCE && (
                 <ReceiptLine
-                  title={formatMessage({ id: 'phoneNumber' })}
-                  value={(
-                    transaction.receiver as MomoReceiver
-                  ).phone_number.replace(/(.{3})(?=.)/g, '$1 ')}
+                  title={formatMessage({ id: 'receiver' })}
+                  value={receiver?.fullname as string}
                 />
-                {transaction.payout_method === SupportedPayoutMethod.cash && (
+              )}
+              {transaction.transaction_type ===
+                TransactionType.INSTANT_FUNDING && (
+                <ReceiptLine
+                  title={formatMessage({ id: 'transactionType' })}
+                  value={formatMessage({ id: transaction.transaction_type })}
+                />
+              )}
+              {/* add the details of the receiver. phone number, network, nid, bank name, account number */}
+              {
+                // transaction.payout_method === SupportedPayoutMethod.bank ? (
+                //   <>
+                //     <ReceiptLine
+                //       title={formatMessage({ id: 'bankName' })}
+                //       value={(transaction.receiver as BankReceiver).bank_name}
+                //     />
+                //     <ReceiptLine
+                //       title={formatMessage({ id: 'IBAN' })}
+                //       value={(transaction.receiver as BankReceiver).IBAN.replace(
+                //         /^([A-Z]{2})(\d{2})(\d{5})(\d{5})(\d{11})(\d{2})$/,
+                //         '$1$2 $3 $4 $5 $6'
+                //       )}
+                //     />
+                //   </>
+                // ) :
+                <>
+                  {transaction.transaction_type ===
+                  TransactionType.REMITTANCE ? (
+                    isReceiverLoading || !receiver ? (
+                      <Typography variant="p1r">
+                        <Skeleton
+                          sx={{
+                            minWidth: '100px',
+                            backgroundColor: 'rgb(179 167 167 / 12%)',
+                          }}
+                        />
+                      </Typography>
+                    ) : (
+                      <ReceiptLine
+                        title={formatMessage({ id: 'phoneNumber' })}
+                        value={receiver.phone_number.replace(
+                          /(.{3})(?=.)/g,
+                          '$1 '
+                        )}
+                      />
+                    )
+                  ) : null}
+                  {/* {transaction.payout_method === SupportedPayoutMethod.cash && (
                   <ReceiptLine
                     title={formatMessage({ id: 'nationalIdNumber' })}
                     value={
                       (transaction.receiver as MomoReceiver).national_id_number
                     }
                   />
-                )}
-              </>
-            )}
-            <ReceiptLine
-              title={formatMessage({ id: 'payoutMethod' })}
-              value={formatMessage({ id: transaction.payout_method })}
-            />
-            <ReceiptLine
-              title={formatMessage({ id: 'initiatedAt' })}
-              value={formatDate(transaction.initiated_at, {
-                year: '2-digit',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-              })}
-            />
-            {transaction.settled_at && (
+                )} */}
+                </>
+              }
+              {transaction.transaction_type === TransactionType.REMITTANCE && (
+                <ReceiptLine
+                  title={formatMessage({ id: 'payoutMethod' })}
+                  value={formatMessage({ id: SupportedPayoutMethod.mobile })}
+                />
+              )}
               <ReceiptLine
-                title={formatMessage({ id: 'settledAt' })}
-                value={formatDate(transaction.settled_at, {
+                title={formatMessage({ id: 'initiatedAt' })}
+                value={formatDate(transaction.initiated_at, {
                   year: '2-digit',
                   month: 'short',
                   day: 'numeric',
@@ -190,15 +311,22 @@ export default function RemittanceDetail({
                   minute: 'numeric',
                 })}
               />
-            )}
+              {transaction.settled_at && (
+                <ReceiptLine
+                  title={formatMessage({ id: 'settledAt' })}
+                  value={formatDate(transaction.settled_at, {
+                    year: '2-digit',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                  })}
+                />
+              )}
+            </Box>
           </Box>
-          {/* {!fullTransaction && (
-            <Button variant="text" onClick={() => push('/')}>
-              {formatMessage({ id: 'backToHome' })}
-            </Button>
-          )} */}
-        </Box>
-      )}
+        )}
+      </Box>
     </Box>
   );
 }

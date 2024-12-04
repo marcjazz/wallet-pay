@@ -8,7 +8,8 @@ services:
     volumes:
       - .:/app
       - /app/node_modules # Ensures node_modules are accessible inside the container
-    command: sh -c "npm install --force && npm run migrate-reset && npx nx serve wallet-api"
+    command: sh -c "npm install --force && npx nx serve wallet-api"
+    # command: sh -c "npm install --force && npm run migrate-reset && npx nx serve wallet-api"
     env_file:
       - .env
     depends_on:

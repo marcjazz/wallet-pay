@@ -46,7 +46,6 @@ export class InitiateFundingTransferDto {
 
   @IsNumber()
   @ApiProperty({ description: 'Amount in USD, CAD' })
-  @Transform(({ value }) => parseFloat(value) * 100)
   amount: number;
 
   @ValidateNested()
@@ -110,7 +109,7 @@ export class CybridTransactionEntity implements CybridTransaction {
   initial_currency: $Enums.CybridSupportedCurrency;
 
   @ApiProperty()
-  converstion_rate: number | null = null;
+  conversion_rate: number | null = null;
 
   @ApiProperty()
   fees: number;
@@ -164,7 +163,7 @@ export class CybridTransactionEntity implements CybridTransaction {
     nullable: true,
     description: 'Receipient can be either payout or cybrid account.',
   })
-  reciepient_fullname: string | null = null;
+  recipient_fullname: string | null = null;
 
   @ApiProperty({ nullable: true, type: Date })
   payout_at: Date | null;
@@ -191,12 +190,12 @@ export class QueryTransactionDto {
   @IsOptional()
   @IsIn(['date', 'amount'])
   @ApiPropertyOptional({ enum: ['date', 'amount'] })
-  order_by?: 'date' | 'amount';
+  order_by?: 'date' | 'amount'='date';
 
   @IsOptional()
   @IsIn(['asc', 'desc'])
   @ApiPropertyOptional()
-  order_direction?: 'asc' | 'desc';
+  order_direction?: 'asc' | 'desc'='desc';
 
   constructor(props: QueryTransactionDto) {
     Object.assign(this, props);

@@ -1,10 +1,10 @@
-import { RemittanceTransaction } from '../../app/remittance/page';
+import { CybridTransactionEntity } from '../../api/types';
 import RemittanceDetail from '../remittance/details/RemittanceDetail';
 import BottomSheet from '../shared/BottomSheet';
 
 interface TransactionDetailsBottomSheetProps {
   closeBottomSheet: () => void;
-  selectedTransaction: RemittanceTransaction;
+  selectedTransaction: CybridTransactionEntity;
 }
 export default function TransactionDetailsBottomSheet({
   closeBottomSheet,

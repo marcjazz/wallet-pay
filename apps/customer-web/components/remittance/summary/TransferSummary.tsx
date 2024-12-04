@@ -5,27 +5,21 @@ import {
   Divider,
   Typography,
 } from '@mui/material';
-import { useRequestOtp } from 'apps/customer-web/api/hooks/useOtp';
-import { useInitiateTransfer } from 'apps/customer-web/api/hooks/useTransaction';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import {
-  CameroonRegions,
-  CurrencyEntity,
-  OTPUsage,
-  TransferType,
-} from '../../../api/types';
+import { useRequestOtp } from '../../../api/hooks/useOtp';
+import { useInitiateRemittance } from '../../../api/hooks/useTransaction';
+import { CurrencyEntity, OTPUsage, ReceiverEntity } from '../../../api/types';
 import OTPBottomSheet from '../../auth/forgot-password/OTPBottomSheet';
 import { AmountStepData } from '../amount/SendAmountStep';
-import { Receiver } from '../receiver/ReceiverStep';
 import RecipientSummaryCard from './RecipientSummaryCard';
 import SummaryLine from './SummaryLine';
 
 interface TransferSummaryProps {
   amountStepData: AmountStepData;
-  receiverData: Receiver;
+  receiverData: ReceiverEntity;
   handleBack: () => void;
   activeCurrency: CurrencyEntity | undefined;
 }
@@ -67,34 +61,31 @@ export default function TransferSummary({
     );
   }
 
-  const { mutate: initiateTransfer, isPending: isInitiatingTransfer } =
-    useInitiateTransfer();
+  const { mutate: initiateRemittance, isPending: isInitiatingRemittance } =
+    useInitiateRemittance();
   function submitTransfer(otp: string) {
     if (!transferOtpId) return setIsConfirmTransactionOtpOpen(false);
-    initiateTransfer(
+    initiateRemittance(
       {
         otp: {
           code: otp,
           otp_id: transferOtpId,
         },
-        transfer_type: TransferType.BOOK,
         amount: amountStepData.sendingAmount,
-        currency: amountStepData.sendingAccount.currency,
         cybrid_source_account_id:
           amountStepData.sendingAccount.cybrid_account_id,
         receiver: {
-          address: {
-            city: 'Douala',
-            street: 'Bonamoussadi',
-            subdivision: CameroonRegions.LITTORAL,
-            country_code:'CM'
-          },
-          fullname: receiverData.fullname,
           phone_number: receiverData.phone_number,
+          receiver_id: receiverData.receiver_id,
+          national_id_number: receiverData.national_id_number,
         },
       },
       {
-        onSuccess: (data) => push(data.cybrid_transaction_id),
+        onSuccess: (data) => {
+          alert('remittance success');
+          console.log(data);
+          push(`remittance/${data.cybrid_transaction_id}`);
+        },
         //TODO: USE alert in case of error. will be replaced with proper notifications later
         onError: (error) => alert(error.message),
       }
@@ -109,7 +100,7 @@ export default function TransferSummary({
           if (!otp) setIsConfirmTransactionOtpOpen(false);
           else submitTransfer(otp);
         }}
-        isSubmitting={isInitiatingTransfer}
+        isSubmitting={isInitiatingRemittance}
         otpUsage={OTPUsage.TRANSFER}
         title={formatMessage({ id: 'confirmTransaction' })}
         description={formatMessage({ id: 'confirmTransactionDescription' })}
@@ -253,9 +244,9 @@ export default function TransferSummary({
 
         <Button
           onClick={requestTransferOtp}
-          disabled={isRequestingOtp || isInitiatingTransfer}
+          disabled={isRequestingOtp || isInitiatingRemittance}
           endIcon={
-            (isRequestingOtp || isInitiatingTransfer) && (
+            (isRequestingOtp || isInitiatingRemittance) && (
               <CircularProgress size={20} thickness={23} />
             )
           }
