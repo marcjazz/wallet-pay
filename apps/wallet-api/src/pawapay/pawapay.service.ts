@@ -5,7 +5,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { validatePhoneNumber } from '../helpers/utils';
-import { SignatureService } from './signature.service';
+// import { SignatureService } from './signature.service';
 
 type InitiatePayoutPayload = {
   amount: number;
@@ -21,7 +21,7 @@ export class PawapayService {
 
   constructor(
     private readonly httpService: HttpService,
-    private readonly signatureService: SignatureService
+    // private readonly signatureService: SignatureService
   ) {
     const baseUrl = this.httpService.axiosRef.defaults.baseURL;
 

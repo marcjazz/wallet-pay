@@ -193,12 +193,12 @@ export class QueryTransactionDto {
   @IsOptional()
   @IsIn(['date', 'amount'])
   @ApiPropertyOptional({ enum: ['date', 'amount'] })
-  order_by?: 'date' | 'amount'='date';
+  order_by?: 'date' | 'amount' = 'date';
 
   @IsOptional()
   @IsIn(['asc', 'desc'])
   @ApiPropertyOptional()
-  order_direction?: 'asc' | 'desc'='desc';
+  order_direction?: 'asc' | 'desc' = 'desc';
 
   constructor(props: QueryTransactionDto) {
     Object.assign(this, props);

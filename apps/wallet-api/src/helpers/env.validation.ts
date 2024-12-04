@@ -102,8 +102,8 @@ class EnvironmentVariables {
   @IsJWT()
   PAWAPAY_API_BEARER_TOKEN: string;
 
-  @IsString()
-  PRIVATE_KEY_ID: string;
+  // @IsString()
+  // PRIVATE_KEY_ID: string;
 }
 
 export function validate(config: Record<string, unknown>) {
