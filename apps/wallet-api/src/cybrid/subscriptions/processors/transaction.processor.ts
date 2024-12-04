@@ -1,98 +1,25 @@
 import { Process, Processor } from '@nestjs/bull';
+import { Logger, NotImplementedException } from '@nestjs/common';
 import {
-  Logger,
-  NotImplementedException
-} from '@nestjs/common';
-import {
-  CybridTransactionStatus,
-  IdentityVerificationStatus,
-  PrismaPromise,
+    CybridTransactionStatus,
+    PrismaPromise
 } from '@prisma/client';
 import { Job } from 'bull';
-import { PrismaService } from '../prisma/prisma.service';
-import { cybridConstants, cybridJobs } from './constants';
-import { CybridService } from './cybrid.service';
-import { CybridSubscriptionEventObjectDto } from './subscriptions/cybrid-subscription.dto';
+import { cybridConstants, cybridJobs } from '../../constants';
+import { CybridService } from '../../cybrid.service';
+import { CybridSubscriptionEventObjectDto } from '../cybrid-subscription.dto';
+import { PrismaService } from '../../../prisma/prisma.service';
 
-@Processor(cybridConstants.QUEUE)
-//FIXME: Move database related instruction out of this module
-export class CybridProcessor {
-  private readonly logger = new Logger(CybridProcessor.name);
+@Processor(cybridConstants.WEBHOOK_QUEUE)
+export class TransactionProcessor {
+  private readonly logger = new Logger(TransactionProcessor.name);
 
   constructor(
     private readonly cybridService: CybridService,
     private readonly prismaService: PrismaService
   ) {}
 
-  @Process(cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE)
-  async handleIdentityVerificationEvents(
-    job: Job<CybridSubscriptionEventObjectDto>
-  ) {
-    const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, status] = eventType.split('.');
-    const verificationStatus =
-      status.toLocaleUpperCase() as IdentityVerificationStatus;
-
-    const counterparty = await this.prismaService.cybridCounterparty.findUnique(
-      {
-        where: {
-          identity_verification_guid: guid,
-          cybrid_counterparty_guid: objectGuid,
-        },
-      }
-    );
-
-    if (counterparty) {
-      await this.prismaService.cybridCounterparty.update({
-        data: { verification_status: verificationStatus },
-        where: {
-          identity_verification_guid: guid,
-          cybrid_counterparty_guid: objectGuid,
-        },
-      });
-    } else {
-      const externalAccount =
-        await this.prismaService.cybridExternalAccount.findUnique({
-          where: {
-            identity_verification_guid: guid,
-            cybrid_external_account_guid: objectGuid,
-          },
-        });
-
-      if (externalAccount) {
-        await this.prismaService.cybridExternalAccount.update({
-          data: { verification_status: verificationStatus },
-          where: {
-            identity_verification_guid: guid,
-            cybrid_external_account_guid: objectGuid,
-          },
-        });
-      } else {
-        const customer = await this.prismaService.cybridCustomer.findUnique({
-          where: {
-            identity_verification_guid: guid,
-            cybrid_customer_guid: objectGuid,
-          },
-        });
-        if (customer) {
-          await this.prismaService.cybridCustomer.update({
-            data: { verification_status: verificationStatus },
-            where: {
-              identity_verification_guid: guid,
-              cybrid_customer_guid: objectGuid,
-            },
-          });
-        }
-      }
-    }
-
-    this.logger.log(
-      `Successfully processed ${eventType} from cybrid and updated database`
-    );
-  }
-
-  @Process(cybridJobs.TRANSFER_STATUS_UPDATE)
+  @Process(cybridJobs.CYBRID_TRANSFER_EVENTS)
   async handleCybridTransferEvents(job: Job<CybridSubscriptionEventObjectDto>) {
     this.logger.log(`Handling cybrid's ${job.data.event_type}...`);
 
@@ -175,7 +102,7 @@ export class CybridProcessor {
     this.logger.log(`Successfully handled cybrid's ${job.data.event_type}.`);
   }
 
-  @Process(cybridJobs.TRADE_STATUS_UPDATE)
+  @Process(cybridJobs.CYBRID_TRADE_EVENTS)
   async handleCybridTradeEvents(job: Job<CybridSubscriptionEventObjectDto>) {
     this.logger.log(`Handling cybrid's ${job.data.event_type}...`);
 

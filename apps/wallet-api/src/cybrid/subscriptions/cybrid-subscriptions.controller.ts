@@ -7,26 +7,27 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
+import { Response } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { cybridConstants, cybridJobs } from '../constants';
 import { CybridSubscriptionEventObjectDto } from './cybrid-subscription.dto';
-import { Response } from 'express';
 import { CybridSubscriptionsGuard } from './cybrid-subscriptions.guard';
-import { ApiExcludeController } from '@nestjs/swagger';
 
-@ApiExcludeController()
+@ApiTags('Cybrid Subsciptions')
 @Controller('cybrid-subscriptions')
 @UseGuards(CybridSubscriptionsGuard)
 export class CybridSubscriptionsController {
   constructor(
     private readonly prismaService: PrismaService,
-    @InjectQueue(cybridConstants.QUEUE)
-    private cybridQueue: Queue
+    @InjectQueue(cybridConstants.WEBHOOK_QUEUE)
+    private cybridWebhookQueue: Queue
   ) {}
 
   @Post('handle')
-  async handleIdentityVerificationEvent(
+  @ApiOperation({ summary: 'Cybrid subscription events handler. ' })
+  async handleSubscriptionEvents(
     @Res() resp: Response,
     @Body() eventObject: CybridSubscriptionEventObjectDto
   ) {
@@ -37,13 +38,14 @@ export class CybridSubscriptionsController {
       const [eventType] = eventObject.event_type.split('.');
 
       const eventTypeMap: Record<string, string> = {
-        transfer: cybridJobs.TRANSFER_STATUS_UPDATE,
-        identity_verification: cybridJobs.IDENTITY_VERIFICATION_STATUS_UPDATE,
+        trade: cybridJobs.CYBRID_TRADE_EVENTS,
+        transfer: cybridJobs.CYBRID_TRANSFER_EVENTS,
+        identity_verification: cybridJobs.CYBRID_IDENTITY_VERIFICATION_EVENTS,
       };
       const event = eventTypeMap[eventType];
 
       if (event) {
-        this.cybridQueue.add(event, eventObject, {
+        this.cybridWebhookQueue.add(event, eventObject, {
           attempts: 3,
           backoff: 5000,
         });

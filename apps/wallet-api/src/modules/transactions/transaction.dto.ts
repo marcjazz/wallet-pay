@@ -4,7 +4,7 @@ import {
   CybridTransaction,
   CybridTransactionStatus,
 } from '@prisma/client';
-import { Exclude, Transform, Type } from 'class-transformer';
+import { Exclude, Type } from 'class-transformer';
 import {
   IsEnum,
   IsIn,

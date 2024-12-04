@@ -1,14 +1,11 @@
 import { Configuration } from '@cybrid/cybrid-api-bank-typescript';
 import { HttpModule } from '@nestjs/axios';
-import { BullModule } from '@nestjs/bull';
 import { CacheModule, CacheStore } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { redisStore } from 'cache-manager-redis-yet';
-import { cybridConstants } from './constants';
 import { CybridConfig } from './cybrid.config';
 import { CybridService } from './cybrid.service';
-import { CybridSubscriptionsController } from './subscriptions/cybrid-subscriptions.controller';
 
 @Module({
   imports: [
@@ -29,11 +26,7 @@ import { CybridSubscriptionsController } from './subscriptions/cybrid-subscripti
         };
       },
     }),
-    BullModule.registerQueue({
-      name: cybridConstants.QUEUE,
-    }),
   ],
-  controllers: [CybridSubscriptionsController],
   providers: [
     CybridService,
     CybridConfig,

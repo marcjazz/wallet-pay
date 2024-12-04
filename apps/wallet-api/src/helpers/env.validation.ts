@@ -5,6 +5,7 @@ import {
   IsFQDN,
   IsHexadecimal,
   IsIP,
+  IsJWT,
   IsNumber,
   IsPort,
   IsString,
@@ -94,6 +95,15 @@ class EnvironmentVariables {
 
   @IsString()
   RATE_API_KEY: string;
+
+  @IsUrl()
+  PAWAPAY_API_BASE_URL: string;
+
+  @IsJWT()
+  PAWAPAY_API_BEARER_TOKEN: string;
+
+  @IsString()
+  PRIVATE_KEY_ID: string;
 }
 
 export function validate(config: Record<string, unknown>) {

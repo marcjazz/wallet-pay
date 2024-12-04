@@ -48,3 +48,6 @@ Thumbs.db
 
 # package locks
 /package-lock.json
+
+#keys
+*.pem

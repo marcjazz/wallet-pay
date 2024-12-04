@@ -1,11 +1,11 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Prisma } from '@prisma/client';
 import { roundNumber } from '../../helpers/utils';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CurrencyEntity, ForexCurrencyEntity } from './currency.dto';
-import { ConfigService } from '@nestjs/config';
 
 type Rates = Record<string, number>;
 type Rate = { code: string; value: number };

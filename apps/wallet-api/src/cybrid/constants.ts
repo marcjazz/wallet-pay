@@ -1,5 +1,5 @@
 export const cybridConstants = {
-  QUEUE: 'CYBRID_QUEUE',
+  WEBHOOK_QUEUE: 'cybrid_webhook_queue',
   SCOPE: [
     'banks:read',
     'banks:write',
@@ -39,9 +39,8 @@ export const cybridConstants = {
   ],
 };
 
-
 export const cybridJobs = {
-  IDENTITY_VERIFICATION_STATUS_UPDATE: 'identity-verification-status-update',
-  TRANSFER_STATUS_UPDATE: 'cybrid-transfer-status-update',
-  TRADE_STATUS_UPDATE: 'cybrid-trade-status-update',
+  CYBRID_IDENTITY_VERIFICATION_EVENTS: 'cybrid_identity_verification_events',
+  CYBRID_TRANSFER_EVENTS: 'cybrid_transfer_events',
+  CYBRID_TRADE_EVENTS: 'cybrid_trade_events',
 };
