@@ -71,6 +71,14 @@ export class InitiateRemittanceDto extends InitiateFundingTransferDto {
   })
   receiver: ReceiverPayoutInfoDto;
 
+  @ApiProperty({
+    example: `http://localhost:4200/transactions/:generatedId`,
+    default: `http://localhost:4200/transactions`,
+    description: `Your application transaction details page to be include in receipt emails. 
+            The generated id will be appended to it as a path`,
+  })
+  receipt_url = 'http://localhost:4200/transactions';
+
   constructor(props: InitiateRemittanceDto) {
     super(props);
     Object.assign(this, props);

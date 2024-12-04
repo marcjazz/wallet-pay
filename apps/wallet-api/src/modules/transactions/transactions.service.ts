@@ -20,6 +20,9 @@ import {
 } from '@prisma/client';
 import { CybridService, Participants } from '../../cybrid/cybrid.service';
 import { generateTransactionId } from '../../helpers/otp-generator';
+import { validatePhoneNumber } from '../../helpers/utils';
+import { generateTransactionReceiptEmail } from '../../mailer/emails/transaction-email';
+import { MailerService } from '../../mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CybridTransactionEntity,
@@ -44,7 +47,8 @@ export class TransactionsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly mailerService: MailerService
   ) {}
 
   async initiateInstantFunding(
@@ -137,7 +141,7 @@ export class TransactionsService {
   }
 
   async initiateRemittance(
-    { receiver, ...payload }: InitiateRemittanceDto,
+    { receiver, receipt_url: receiptUrl, ...payload }: InitiateRemittanceDto,
     personId: string
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
@@ -166,6 +170,12 @@ export class TransactionsService {
       payload.amount,
       sourceAccountGuids,
       cybridCounterparty.cybrid_counterparty_guid
+    );
+
+    //FIXME: Move this to webhooks once they are avalaible
+    await this.sendTransactionReceiptMail(
+      cybridTransaction.cybrid_transaction_guid,
+      receiptUrl
     );
 
     return new CybridTransactionEntity({
@@ -213,6 +223,46 @@ export class TransactionsService {
         });
       }
     );
+  }
+
+  private async sendTransactionReceiptMail(
+    transactionGuid: string,
+    receiptUrl: string
+  ) {
+    const {
+      InitiatedBy: { Person: person },
+      ReceiverPayoutInfo: cybridCounterparty,
+      ...cybridTransaction
+    } = await this.prismaService.cybridTransaction.findUniqueOrThrow({
+      include: {
+        ReceiverPayoutInfo: true,
+        InitiatedBy: { select: { Person: true } },
+      },
+      where: { cybrid_transaction_guid: transactionGuid },
+    });
+
+    const transactionId = cybridTransaction.transaction_id;
+    const initiatedAt = new Date(cybridTransaction.initiated_at);
+    const recipientPhoneNumber = cybridCounterparty?.phone_number;
+    const mobileMoneyPartner = recipientPhoneNumber
+      ? validatePhoneNumber(recipientPhoneNumber) === 0
+        ? 'Mobile Money'
+        : 'Orange Money'
+      : 'N/A';
+
+    await this.mailerService.sendMessage({
+      to: person.email,
+      subject: `Transaction Receipt (${transactionId})`,
+      html: generateTransactionReceiptEmail({
+        transactionId,
+        initiatedAt: initiatedAt.toString(),
+        customerName: `${person.first_name} ${person.last_name}`,
+        receiptUrl: `${receiptUrl}/${cybridTransaction.cybrid_transaction_id}`,
+        recipientName: cybridCounterparty?.fullname ?? 'N/A',
+        recipientPhoneNumber: `${recipientPhoneNumber} (${mobileMoneyPartner})`,
+        amountSent: `${cybridTransaction.initial_currency_amount} ${cybridTransaction.initial_currency_amount}`,
+      }),
+    });
   }
 
   private async getSourceAccountGuids(
