@@ -3,9 +3,10 @@ import {
   Controller,
   Post,
   Req,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { generateOtpCodeEmail } from '../../../mailer/emails/otp-email';
 import { Request } from 'express';
 import { MailerService } from '../../../mailer/mailer.service';
 import { OTPEntity, OTPPayloadDto, OTPUsageDto } from '../dto/two-fa.dto';
@@ -30,10 +31,11 @@ export class OTPController {
     }
 
     const otp = await this.otpService.request(user.id, usagePayload.usage);
-    await this.mailerService.sendText({
+    await this.mailerService.sendMessage({
       to: `${user.first_name} <${user.email}>`,
-      subject: 'Verification code',
+      subject: 'One Time Password',
       text: `Your verification code is ${otp.code}`,
+      html: generateOtpCodeEmail({ otpCode: otp.code }),
     });
 
     return new OTPEntity({ ...otp, usage: otp.usage as TwoFAUsage });

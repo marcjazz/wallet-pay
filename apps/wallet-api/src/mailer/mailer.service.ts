@@ -13,8 +13,8 @@ export class MailerService {
     private mailerQueue: Queue
   ) {}
 
-  async sendText({
-    from = 'PAY.XAFSHOP LLC support@xafshop.com',
+  async sendMessage({
+    from = 'XAfPay Inc no-reply@xafpay.com',
     ...payload
   }: Mail.Options) {
     this.logger.debug('Add text-mailer job to queue...');

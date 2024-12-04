@@ -20,6 +20,8 @@ import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { RoleEnum } from './auth.decorator';
 import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
+import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
+import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
 
 @Injectable()
 export class AuthService {
@@ -149,10 +151,14 @@ export class AuthService {
         TwoFAUsage.VERIFY_EMAIL
       );
 
-      await this.mailerService.sendText({
-        to: `${user.first_name} <${user.email}>`,
+      const receiver = `${user.first_name} <${user.email}>`;
+      await this.mailerService.sendMessage({
+        to: receiver,
         subject: 'Email Verification',
-        text: `Your One time password is ${otpCode.code}`,
+        html: generateConfirmEmail({
+          customerName: receiver,
+          otpCode: otpCode.code,
+        }),
       });
 
       this.logger.debug(`Successfully sent requested otp user!`);
@@ -221,10 +227,11 @@ export class AuthService {
     );
 
     const person = user.Person;
-    await this.mailerService.sendText({
+    await this.mailerService.sendMessage({
       to: `${person.first_name} <${person.email}>`,
-      subject: 'Forgot password OTP',
+      subject: 'Forgot Password OTP',
       text: `Your verification code is ${otp.code}. Use OTP to sign-in and change your password`,
+      html: generateOtpCodeEmail({otpCode: otp.code})
     });
 
     return otp;
