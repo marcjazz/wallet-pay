@@ -81,11 +81,7 @@ export default function TransferSummary({
         },
       },
       {
-        onSuccess: (data) => {
-          alert('remittance success');
-          console.log(data);
-          push(`remittance/${data.cybrid_transaction_id}`);
-        },
+        onSuccess: (data) => push(`remittance/${data.cybrid_transaction_id}`),
         //TODO: USE alert in case of error. will be replaced with proper notifications later
         onError: (error) => alert(error.message),
       }
