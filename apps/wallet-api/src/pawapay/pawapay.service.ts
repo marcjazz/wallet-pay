@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { validatePhoneNumber } from '../helpers/utils';
 import { SignatureService } from './signature.service';
-import { PawapayPayoutResponse } from '../types/pawapay';
 
 type InitiatePayoutPayload = {
   amount: number;
@@ -40,7 +39,7 @@ export class PawapayService {
     customerEmail,
     receipientPhonenumber,
     transactionId,
-    payoutId
+    payoutId,
   }: InitiatePayoutPayload) {
     const result = validatePhoneNumber(receipientPhonenumber);
     if (result === -1) {
@@ -79,14 +78,19 @@ export class PawapayService {
       ],
     });
 
-    const endpoint = `${this.baseUrl}/payouts`;
-    const signRequest = await this.signatureService.signRequest(
-      'POST',
-      endpoint,
+    // const endpoint = `${this.baseUrl}/payouts`;
+    // const signRequest = await this.signatureService.signRequest(
+    //   'POST',
+    //   endpoint,
+    //   requestBody
+    // );
+    // const payoutResp = await this.httpService.axiosRef.request<PawapayPayoutResponse>(
+    //   signRequest
+    // );
+
+    const payoutResp = await this.httpService.axiosRef.post(
+      `/payouts`,
       requestBody
-    );
-    const payoutResp = await this.httpService.axiosRef.request<PawapayPayoutResponse>(
-      signRequest
     );
 
     return payoutResp.data;
