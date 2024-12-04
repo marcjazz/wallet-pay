@@ -198,4 +198,5 @@ export const website = {
   french: 'Français',
   german: 'Deutsch',
   partnerTermsAndConditions: 'Partner Terms and Conditions',
+  transactionDetails: 'Transaction Details',
 };
