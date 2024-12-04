@@ -98,7 +98,7 @@ export class TransactionsController {
   ) {
     return this.transactionsService.getTransactions(
       params,
-      req.user?.id as string
+      req.user?.person_id as string
     );
   }
 

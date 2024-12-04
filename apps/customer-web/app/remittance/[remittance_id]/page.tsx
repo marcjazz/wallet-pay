@@ -15,6 +15,7 @@ export default function RemittanceDetails() {
     <RemittanceDetail
       transaction={transaction}
       isTransactionLoading={isTransactionLoading}
+      fromBottomSheet={false}
     />
   );
 }

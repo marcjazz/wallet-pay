@@ -1,14 +1,13 @@
 import { Box, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { RemittanceTransaction } from '../../app/remittance/page';
+import { CybridTransactionEntity } from '../../api/types';
 import TransactionDetailsBottomSheet from './TransactionDetailsBottomSheet';
 import TransactionHistoryCard from './TransactionHistoryCard';
 
 interface TransactionListProps {
-  transactions: RemittanceTransaction[];
+  transactions: CybridTransactionEntity[];
   areTransactionsLoading: boolean;
-  // hadleSelectTransaction: (transaction: RemittanceTransaction) => void;
 }
 export default function TransactionList({
   transactions,
@@ -17,7 +16,7 @@ export default function TransactionList({
   const { formatMessage } = useIntl();
 
   const [selectedTransaction, setSelectedTransaction] =
-    useState<RemittanceTransaction>();
+    useState<CybridTransactionEntity>();
 
   return (
     <>
@@ -27,7 +26,7 @@ export default function TransactionList({
           selectedTransaction={selectedTransaction}
         />
       )}
-      <Box>
+      <Box sx={{ display: 'grid', rowGap: 2 }}>
         {areTransactionsLoading ? (
           // TODO: MAKE SKELETON SCREENS LATER
           <Typography
@@ -46,7 +45,7 @@ export default function TransactionList({
             <TransactionHistoryCard
               key={index}
               transaction={transaction}
-              hadleSelectTransaction={(transaction: RemittanceTransaction) => {
+              handleSelectTransaction={(transaction) => {
                 setSelectedTransaction(transaction);
               }}
             />

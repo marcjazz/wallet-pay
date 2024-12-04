@@ -24,6 +24,7 @@ export const useTransactions = (params?: GetTransactionsQueryParams) => {
   return useQuery<CybridTransactionEntity[], Error>({
     queryKey: ['transactions', params],
     queryFn: () => transactionService.findTransactions(params),
+    initialData: [],
     placeholderData: keepPreviousData, // Retains data during pagination or query updates.
   });
 };

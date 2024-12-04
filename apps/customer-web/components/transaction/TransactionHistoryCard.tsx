@@ -1,31 +1,43 @@
 import { Avatar, Box, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import Image from 'next/image';
-import { AlertCircle, CheckCircle, RefreshCcw } from 'react-feather';
+import { AlertCircle, ArrowDown, CheckCircle, RefreshCcw } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { RemittanceTransaction } from '../../app/remittance/page';
-import { TransactionStatus } from '../../types';
+import {
+  CybridTransactionEntity,
+  TransactionStatus,
+  TransactionType,
+} from '../../api/types';
 
 interface TransactionHistoryCardProps {
-  transaction: RemittanceTransaction;
-  hadleSelectTransaction: (transaction: RemittanceTransaction) => void;
+  transaction: CybridTransactionEntity;
+  handleSelectTransaction: (transaction: CybridTransactionEntity) => void;
 }
 export default function TransactionHistoryCard({
-  hadleSelectTransaction,
+  handleSelectTransaction,
+  transaction: {
+    initial_currency_amount,
+    initial_currency,
+    conversion_rate,
+    recipient_fullname,
+    transaction_type,
+  },
   transaction,
 }: TransactionHistoryCardProps) {
   const theme = useTheme();
-  const { formatDate, formatNumber } = useIntl();
+  const { formatDate, formatNumber, formatMessage } = useIntl();
 
   const statusIcon: Record<TransactionStatus, React.ReactNode> = {
     FAILED: <AlertCircle size={13} color={theme.palette.error.dark} />,
+    STORING: <RefreshCcw color="black" size={13} />,
+    REVIEWING: <RefreshCcw color="black" size={13} />,
     PENDING: <RefreshCcw color="black" size={13} />,
-    SETTLED: <CheckCircle size={13} color={theme.palette.success.dark} />,
+    COMPLETED: <CheckCircle size={13} color={theme.palette.success.dark} />,
   };
 
   return (
     <Box
-      onClick={() => hadleSelectTransaction(transaction)}
+      onClick={() => handleSelectTransaction(transaction)}
       sx={{
         display: 'grid',
         alignItems: 'center',
@@ -36,17 +48,24 @@ export default function TransactionHistoryCard({
       <Box sx={{ position: 'relative', width: 'fit-content' }}>
         <Avatar
           sx={{
-            bgcolor: theme.palette.primary.dark,
+            bgcolor:
+              transaction_type === TransactionType.INSTANT_FUNDING
+                ? theme.palette.secondary.main
+                : theme.palette.primary.dark,
             height: '50px',
             width: '50px',
           }}
         >
-          <Image
-            src="/assets/remittanceIcon.svg"
-            alt="transaction"
-            width={30}
-            height={30}
-          />
+          {transaction_type === TransactionType.INSTANT_FUNDING ? (
+            <ArrowDown size={30} color="white" />
+          ) : (
+            <Image
+              src="/assets/remittanceIcon.svg"
+              alt="transaction"
+              width={30}
+              height={30}
+            />
+          )}
         </Avatar>
         <Avatar
           sx={{
@@ -62,7 +81,11 @@ export default function TransactionHistoryCard({
         </Avatar>
       </Box>
       <Box sx={{ display: 'grid', rowGap: 0.5 }}>
-        <Typography variant="p1m">{transaction.receiver.fullname}</Typography>
+        <Typography variant="p1m">
+          {transaction_type === TransactionType.INSTANT_FUNDING
+            ? formatMessage({ id: transaction_type })
+            : recipient_fullname}
+        </Typography>
         <Typography variant="l3r" color="#797A7B">
           {formatDate(transaction.initiated_at, {
             year: '2-digit',
@@ -74,15 +97,18 @@ export default function TransactionHistoryCard({
         </Typography>
       </Box>
       <Box sx={{ display: 'grid', rowGap: 0.5, justifyItems: 'end' }}>
-        <Typography variant="h4">{`${formatNumber(transaction.amount_received, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })} XAF`}</Typography>
-        <Typography variant="l3r" color="#797A7B">
-          {`${formatNumber(transaction.amount_sent, {
+        <Typography variant="h4">{`${formatNumber(
+          initial_currency_amount * (conversion_rate || 1),
+          {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-          })} ${transaction.initial_currency}`}
+          }
+        )} XAF`}</Typography>
+        <Typography variant="l3r" color="#797A7B">
+          {`${formatNumber(transaction.initial_currency_amount, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })} ${initial_currency}`}
         </Typography>
       </Box>
     </Box>
