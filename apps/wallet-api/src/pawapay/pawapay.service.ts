@@ -13,6 +13,7 @@ type InitiatePayoutPayload = {
   receipientPhonenumber: string;
   customerEmail: string;
   transactionId: string;
+  payoutId: string;
 };
 
 @Injectable()
@@ -39,6 +40,7 @@ export class PawapayService {
     customerEmail,
     receipientPhonenumber,
     transactionId,
+    payoutId
   }: InitiatePayoutPayload) {
     const result = validatePhoneNumber(receipientPhonenumber);
     if (result === -1) {
@@ -51,8 +53,8 @@ export class PawapayService {
     };
 
     const requestBody = JSON.stringify({
-      payoutId: crypto.randomUUID(),
       amount,
+      payoutId,
       currency: 'XAF',
       correspondent: correspondents[result],
       recipient: {

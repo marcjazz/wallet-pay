@@ -21,8 +21,12 @@ import {
 import { CybridService, Participants } from '../../cybrid/cybrid.service';
 import { generateTransactionId } from '../../helpers/otp-generator';
 import { validatePhoneNumber } from '../../helpers/utils';
-import { generateTransactionReceiptEmail } from '../../mailer/emails/transaction-email';
+import {
+  generateTransactionReceiptEmail,
+  TransactionReceipt,
+} from '../../mailer/emails/transaction-email';
 import { MailerService } from '../../mailer/mailer.service';
+import { PawapayService } from '../../pawapay/pawapay.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CybridTransactionEntity,
@@ -31,6 +35,8 @@ import {
   QueryTransactionDto,
   ReceiverPayoutInfoDto,
 } from './transaction.dto';
+import { PawapayPayoutStatus } from '../../types/pawapay/enum';
+import { generatePayoutReceiptEmail } from '../../mailer/emails/payout-email';
 
 type CustomerAccountGuids = {
   customerGuid: string;
@@ -48,7 +54,8 @@ export class TransactionsService {
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
     private readonly configService: ConfigService,
-    private readonly mailerService: MailerService
+    private readonly mailerService: MailerService,
+    private readonly pawapayService: PawapayService
   ) {}
 
   async initiateInstantFunding(
@@ -172,11 +179,36 @@ export class TransactionsService {
       cybridCounterparty.cybrid_counterparty_guid
     );
 
-    //FIXME: Move this to webhooks once they are avalaible
-    await this.sendTransactionReceiptMail(
-      cybridTransaction.cybrid_transaction_guid,
-      receiptUrl
-    );
+    //FIXME: Move this to webhooks once they are tested
+    {
+      // Sending remittance settlement email
+      const person = await this.sendReceiptEmail(
+        cybridTransaction.cybrid_transaction_guid,
+        receiptUrl
+      );
+
+      const amountReceived =
+        cybridTransaction.amount *
+        (cybridTransaction.conversion_rate as number);
+      const payoutTransaction = await this.pawapayService.initiatePayout({
+        amount: amountReceived,
+        customerEmail: person.email,
+        payoutId: cybridTransaction.pawapay_payout_id,
+        transactionId: cybridTransaction.transaction_id,
+        receipientPhonenumber: person.phone_number.includes('237')
+          ? person.phone_number
+          : `237${person.phone_number}`,
+      });
+      if (payoutTransaction.status !== PawapayPayoutStatus.REJECTED) {
+        // Sending payout receipt email
+        await this.sendReceiptEmail(
+          cybridTransaction.cybrid_transaction_guid,
+          receiptUrl,
+          new Date(payoutTransaction.created),
+          amountReceived
+        );
+      }
+    }
 
     return new CybridTransactionEntity({
       ...cybridTransaction,
@@ -232,9 +264,11 @@ export class TransactionsService {
     );
   }
 
-  private async sendTransactionReceiptMail(
+  private async sendReceiptEmail(
     transactionGuid: string,
-    receiptUrl: string
+    receiptUrl: string,
+    payoutAt?: Date,
+    amountReceived?: number
   ) {
     const {
       InitiatedBy: { Person: person },
@@ -257,19 +291,31 @@ export class TransactionsService {
         : 'Orange Money'
       : 'N/A';
 
+    const receiptData: TransactionReceipt = {
+      transactionId,
+      initiatedAt: initiatedAt.toString(),
+      customerName: `${person.first_name} ${person.last_name}`,
+      receiptUrl: `${receiptUrl}/${cybridTransaction.cybrid_transaction_id}`,
+      recipientName: cybridCounterparty?.fullname ?? 'N/A',
+      recipientPhoneNumber: `${recipientPhoneNumber} (${mobileMoneyPartner} Cameroon)`,
+      amountSent: `${cybridTransaction.initial_currency_amount} ${cybridTransaction.initial_currency}`,
+    };
+
     await this.mailerService.sendMessage({
       to: person.email,
-      subject: `Transaction Receipt (${transactionId})`,
-      html: generateTransactionReceiptEmail({
-        transactionId,
-        initiatedAt: initiatedAt.toString(),
-        customerName: `${person.first_name} ${person.last_name}`,
-        receiptUrl: `${receiptUrl}/${cybridTransaction.cybrid_transaction_id}`,
-        recipientName: cybridCounterparty?.fullname ?? 'N/A',
-        recipientPhoneNumber: `${recipientPhoneNumber} (${mobileMoneyPartner})`,
-        amountSent: `${cybridTransaction.initial_currency_amount} ${cybridTransaction.initial_currency_amount}`,
-      }),
+      subject: payoutAt
+        ? `Payout Receipt (${transactionId})`
+        : `Transaction Receipt (${transactionId})`,
+      html: amountReceived
+        ? generatePayoutReceiptEmail({
+            ...receiptData,
+            amountReceived: `${amountReceived} XAF`,
+            payoutAt: cybridTransaction.payout_at?.toString() ?? `N/A`,
+          })
+        : generateTransactionReceiptEmail(receiptData),
     });
+
+    return person;
   }
 
   private async getSourceAccountGuids(
@@ -471,8 +517,8 @@ export class TransactionsService {
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
-          fees: 0,
           currency: 'USDC_SOL',
+          fees: tradeTransaction.fee ?? 0,
           initial_currency: currency,
           // convert cents to dollars
           initial_currency_amount: fiatAmount / 100,

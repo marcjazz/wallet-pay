@@ -4,9 +4,10 @@ import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
 import { TwoFAModule } from '../../app/two-fa/two-fa.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { PawapayModule } from '../../pawapay/pawapay.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), TwoFAModule, CybridModule],
+  imports: [ScheduleModule.forRoot(), TwoFAModule, CybridModule, PawapayModule],
   controllers: [TransactionsController],
   providers: [TransactionsService],
 })

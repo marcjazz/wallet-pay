@@ -2,7 +2,10 @@ import { TransactionReceipt } from './transaction-email';
 
 interface PayoutReceipt extends TransactionReceipt {
   payoutAt: string;
-  amountReceived: number;
+  /**
+   * Append currency to amount.
+   */
+  amountReceived: string;
 }
 
 export function generatePayoutReceiptEmail(data: PayoutReceipt): string {
