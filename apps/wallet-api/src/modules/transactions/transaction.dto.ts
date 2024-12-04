@@ -46,7 +46,6 @@ export class InitiateFundingTransferDto {
 
   @IsNumber()
   @ApiProperty({ description: 'Amount in USD, CAD' })
-  @Transform(({ value }) => parseFloat(value) * 100)
   amount: number;
 
   @ValidateNested()
@@ -102,7 +101,7 @@ export class CybridTransactionEntity implements CybridTransaction {
   initial_currency: $Enums.CybridSupportedCurrency;
 
   @ApiProperty()
-  converstion_rate: number | null = null;
+  conversion_rate: number | null = null;
 
   @ApiProperty()
   fees: number;

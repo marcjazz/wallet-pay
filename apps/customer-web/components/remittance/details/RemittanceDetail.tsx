@@ -143,7 +143,7 @@ export default function RemittanceDetail({
             </Typography>
             <ReceiptLine
               title={formatMessage({ id: 'transactionId' })}
-              value={transaction.cybrid_transaction_id}
+              value={transaction.transaction_id}
             />
             <ReceiptLine
               title={formatMessage({ id: 'receiver' })}

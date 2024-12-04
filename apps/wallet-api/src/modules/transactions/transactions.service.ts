@@ -347,13 +347,20 @@ export class TransactionsService {
       }
     );
 
+    const usedCurrency = await this.prismaService.supportedCurrency.findFirst({
+      select: { currency: true, xaf_rate: true },
+      where: { currency },
+    });
+
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
           fees: 0,
           currency: 'USDC_SOL',
+          conversion_rate: usedCurrency?.xaf_rate,
           initial_currency: currency,
-          initial_currency_amount: initialCurrencyAmount,
+          // convert cents to dollars
+          initial_currency_amount: initialCurrencyAmount / 100,
           amount: Number(bookTransfer.amount) / 10e6,
           transaction_type: 'REMITTANCE',
           transaction_id: generateTransactionId(),
@@ -407,9 +414,11 @@ export class TransactionsService {
           fees: 0,
           currency: 'USDC_SOL',
           initial_currency: currency,
-          initial_currency_amount: fiatAmount,
+          // convert cents to dollars
+          initial_currency_amount: fiatAmount / 100,
           transaction_id: generateTransactionId(),
-          amount: tradeTransaction.receive_amount as number,
+          // convert lamports to USDC_SOL
+          amount: (tradeTransaction.receive_amount as number) / 10e6,
           cybrid_transaction_guid: tradeTransaction.guid as string,
           status:
             tradeTransaction.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,

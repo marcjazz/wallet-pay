@@ -26,13 +26,13 @@ export function generateOtp(length: number): string {
  * @returns
  */
 export function generateAccountNumber(prefix = '', numberOfBlocs = 4) {
-  const accNumber = new Array(numberOfBlocs).reduce<string>(
-    (accNumber) => accNumber.concat(generateOtp(4), ' '),
+  const accNumber = [...new Array(numberOfBlocs)].reduce<string>(
+    (accNumber) => accNumber.concat(generateOtp(4), ''),
     prefix
   );
   return accNumber.trim();
 }
 
 export function generateTransactionId() {
-  return generateAccountNumber(`${generateAccountNumber('XAF')}PAY`, 1);
+  return generateAccountNumber(`${generateAccountNumber('XAF', 1)}PAY`, 1);
 }

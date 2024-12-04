@@ -83,7 +83,8 @@ export class TransactionsController {
     }
 
     return this.transactionsService.initiateRemittance(
-      payload,
+      // Convert amount to cents
+      { ...payload, amount: payload.amount * 100 },
       req.user?.person_id as string
     );
   }
