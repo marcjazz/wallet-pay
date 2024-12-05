@@ -20,8 +20,7 @@ export class PawapayService {
   private baseUrl: string;
 
   constructor(
-    private readonly httpService: HttpService,
-    // private readonly signatureService: SignatureService
+    private readonly httpService: HttpService // private readonly signatureService: SignatureService
   ) {
     const baseUrl = this.httpService.axiosRef.defaults.baseURL;
 
@@ -42,6 +41,7 @@ export class PawapayService {
     payoutId,
   }: InitiatePayoutPayload) {
     const result = validatePhoneNumber(receipientPhonenumber);
+
     if (result === -1) {
       throw new UnprocessableEntityException(`Invalid reciepient phone number`);
     }

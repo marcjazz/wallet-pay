@@ -98,10 +98,10 @@ export default function TransactionHistoryCard({
       </Box>
       <Box sx={{ display: 'grid', rowGap: 0.5, justifyItems: 'end' }}>
         <Typography variant="h4">{`${formatNumber(
-          initial_currency_amount * (conversion_rate || 1),
+          Math.floor(initial_currency_amount * (conversion_rate || 1)),
           {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
           }
         )} XAF`}</Typography>
         <Typography variant="l3r" color="#797A7B">

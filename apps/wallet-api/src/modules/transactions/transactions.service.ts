@@ -21,6 +21,7 @@ import {
 import { CybridService, Participants } from '../../cybrid/cybrid.service';
 import { generateTransactionId } from '../../helpers/otp-generator';
 import { validatePhoneNumber } from '../../helpers/utils';
+import { generatePayoutReceiptEmail } from '../../mailer/emails/payout-email';
 import {
   generateTransactionReceiptEmail,
   TransactionReceipt,
@@ -28,6 +29,7 @@ import {
 import { MailerService } from '../../mailer/mailer.service';
 import { PawapayService } from '../../pawapay/pawapay.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PawapayPayoutStatus } from '../../types/pawapay/enum';
 import {
   CybridTransactionEntity,
   InitiateFundingTransferDto,
@@ -35,8 +37,6 @@ import {
   QueryTransactionDto,
   ReceiverPayoutInfoDto,
 } from './transaction.dto';
-import { PawapayPayoutStatus } from '../../types/pawapay/enum';
-import { generatePayoutReceiptEmail } from '../../mailer/emails/payout-email';
 
 type CustomerAccountGuids = {
   customerGuid: string;
@@ -182,23 +182,25 @@ export class TransactionsService {
     //FIXME: Move this to webhooks once they are tested
     {
       // Sending remittance settlement email
-      const person = await this.sendReceiptEmail(
+      const { person, cybridCounterparty } = await this.sendReceiptEmail(
         cybridTransaction.cybrid_transaction_guid,
         receiptUrl
       );
 
-      const amountReceived =
-        cybridTransaction.amount *
-        (cybridTransaction.conversion_rate as number);
+      const amountReceived = Math.floor(
+        cybridTransaction.initial_currency_amount *
+          (cybridTransaction.conversion_rate as number)
+      );
       const payoutTransaction = await this.pawapayService.initiatePayout({
         amount: amountReceived,
         customerEmail: person.email,
         payoutId: cybridTransaction.pawapay_payout_id,
         transactionId: cybridTransaction.transaction_id,
-        receipientPhonenumber: person.phone_number.includes('237')
-          ? person.phone_number
-          : `237${person.phone_number}`,
+        receipientPhonenumber: cybridCounterparty?.phone_number.includes('237')
+          ? cybridCounterparty.phone_number
+          : `237${cybridCounterparty?.phone_number}`,
       });
+
       if (payoutTransaction.status !== PawapayPayoutStatus.REJECTED) {
         // Sending payout receipt email
         await this.sendReceiptEmail(
@@ -252,7 +254,6 @@ export class TransactionsService {
 
     return transactions.map(
       ({ LocalCustomer, ReceiverPayoutInfo, ...transantion }) => {
-        console.log(ReceiverPayoutInfo);
         const person = LocalCustomer?.Person;
         return new CybridTransactionEntity({
           ...transantion,
@@ -315,7 +316,7 @@ export class TransactionsService {
         : generateTransactionReceiptEmail(receiptData),
     });
 
-    return person;
+    return { person, cybridCounterparty };
   }
 
   private async getSourceAccountGuids(
@@ -455,9 +456,6 @@ export class TransactionsService {
       where: { currency },
     });
 
-    console.log('Book_Transfer', bookTransfer);
-    console.log('initialCurrencyAmount', initialCurrencyAmount);
-    console.log('amount', amount);
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
