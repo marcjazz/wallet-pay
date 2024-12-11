@@ -10,22 +10,22 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
 import { Response } from 'express';
+import { constants } from '../../constants';
 import { PrismaService } from '../../prisma/prisma.service';
-import { cybridConstants, cybridJobs } from '../constants';
-import { CybridSubscriptionEventObjectDto } from './cybrid-subscription.dto';
-import { CybridSubscriptionsGuard } from './cybrid-subscriptions.guard';
+import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto';
+import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
 
-@ApiTags('Cybrid Subsciptions')
-@Controller('cybrid-subscriptions')
-@UseGuards(CybridSubscriptionsGuard)
-export class CybridSubscriptionsController {
+@ApiTags('Webhooks')
+@Controller('webhooks')
+export class WebhooksController {
   constructor(
     private readonly prismaService: PrismaService,
-    @InjectQueue(cybridConstants.WEBHOOK_QUEUE)
+    @InjectQueue(constants.WEBHOOK_QUEUE)
     private cybridWebhookQueue: Queue
   ) {}
 
-  @Post('handle')
+  @Post('cybrid-subscriptions')
+  @UseGuards(CybridSubscriptionsGuard)
   @ApiOperation({ summary: 'Cybrid subscription events handler. ' })
   async handleSubscriptionEvents(
     @Res() resp: Response,
@@ -38,9 +38,9 @@ export class CybridSubscriptionsController {
       const [eventType] = eventObject.event_type.split('.');
 
       const eventTypeMap: Record<string, string> = {
-        trade: cybridJobs.CYBRID_TRADE_EVENTS,
-        transfer: cybridJobs.CYBRID_TRANSFER_EVENTS,
-        identity_verification: cybridJobs.CYBRID_IDENTITY_VERIFICATION_EVENTS,
+        trade: constants.CYBRID_TRADE_EVENTS,
+        transfer: constants.CYBRID_TRANSFER_EVENTS,
+        identity_verification: constants.CYBRID_IDENTITY_VERIFICATION_EVENTS,
       };
       const event = eventTypeMap[eventType];
 

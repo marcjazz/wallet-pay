@@ -13,12 +13,12 @@ import { CurrenciesModule } from '../modules/currencies/currencies.module';
 import { ReceiversModule } from '../modules/receivers/receivers.module';
 import { TransactionsModule } from '../modules/transactions/transactions.module';
 import { UsersModule } from '../modules/users/users.module';
+import { WebhooksModule } from '../modules/webhooks/webhooks.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
-import { CybridSubscriptionsModule } from '../cybrid/subscriptions/cybrid-subscriptions.module';
 
 @Module({
   imports: [
@@ -47,8 +47,8 @@ import { CybridSubscriptionsModule } from '../cybrid/subscriptions/cybrid-subscr
     ReceiversModule,
     CurrenciesModule,
 
-    //cybrid subscriptions
-    CybridSubscriptionsModule,
+    // Webhooks module
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [

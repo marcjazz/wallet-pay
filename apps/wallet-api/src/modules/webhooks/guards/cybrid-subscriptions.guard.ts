@@ -10,7 +10,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { createHmac } from 'crypto';
 import { Request } from 'express';
-import { CybridSubscriptionEventObjectDto } from './cybrid-subscription.dto';
+import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
 @Injectable()
 export class CybridSubscriptionsGuard implements CanActivate {

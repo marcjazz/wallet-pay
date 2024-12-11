@@ -1,6 +1,6 @@
-export const cybridConstants = {
-  WEBHOOK_QUEUE: 'cybrid_webhook_queue',
-  SCOPE: [
+export const constants = {
+  WEBHOOK_QUEUE: 'webhooks_processors_queue',
+  CYBRID_SCOPES: [
     'banks:read',
     'banks:write',
     'bank_applications:execute',
@@ -37,9 +37,6 @@ export const cybridConstants = {
     'identity_verifications:write',
     'identity_verifications:execute',
   ],
-};
-
-export const cybridJobs = {
   CYBRID_IDENTITY_VERIFICATION_EVENTS: 'cybrid_identity_verification_events',
   CYBRID_TRANSFER_EVENTS: 'cybrid_transfer_events',
   CYBRID_TRADE_EVENTS: 'cybrid_trade_events',

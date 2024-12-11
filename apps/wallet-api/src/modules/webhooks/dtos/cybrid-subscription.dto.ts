@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsString } from 'class-validator';
-import { CybridSubcriptionEvents } from '../../types/cybrid/enums';
+import { CybridSubcriptionEvents } from '../../../types/cybrid/enums';
 
 export class CybridSubscriptionEventObjectDto {
   @IsString()

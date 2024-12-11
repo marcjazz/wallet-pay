@@ -2,17 +2,17 @@ import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { IdentityVerificationStatus } from '@prisma/client';
 import { Job } from 'bull';
-import { cybridConstants, cybridJobs } from '../../constants';
-import { CybridSubscriptionEventObjectDto } from '../cybrid-subscription.dto';
+import { constants } from '../../../constants';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
-@Processor(cybridConstants.WEBHOOK_QUEUE)
+@Processor(constants.WEBHOOK_QUEUE)
 export class IdentityVerificationProcessor {
   private readonly logger = new Logger(IdentityVerificationProcessor.name);
 
   constructor(private readonly prismaService: PrismaService) {}
 
-  @Process(cybridJobs.CYBRID_IDENTITY_VERIFICATION_EVENTS)
+  @Process(constants.CYBRID_IDENTITY_VERIFICATION_EVENTS)
   async handleIdentityVerificationEvents(
     job: Job<CybridSubscriptionEventObjectDto>
   ) {

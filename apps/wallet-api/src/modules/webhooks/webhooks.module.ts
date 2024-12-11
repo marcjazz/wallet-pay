@@ -1,19 +1,21 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { cybridConstants } from '../constants';
-import { CybridSubscriptionsController } from './cybrid-subscriptions.controller';
+import { constants } from '../../constants';
+import { CybridModule } from '../../cybrid/cybrid.module';
+import { PawapayModule } from '../../pawapay/pawapay.module';
 import { IdentityVerificationProcessor } from './processors/identity-verification.processor';
 import { TransactionProcessor } from './processors/transaction.processor';
-import { CybridModule } from '../cybrid.module';
+import { WebhooksController } from './webhooks.controller';
 
 @Module({
   imports: [
     CybridModule,
+    PawapayModule,
     BullModule.registerQueue({
-      name: cybridConstants.WEBHOOK_QUEUE,
+      name: constants.WEBHOOK_QUEUE,
     }),
   ],
-  controllers: [CybridSubscriptionsController],
+  controllers: [WebhooksController],
   providers: [IdentityVerificationProcessor, TransactionProcessor],
 })
-export class CybridSubscriptionsModule {}
+export class WebhooksModule {}
