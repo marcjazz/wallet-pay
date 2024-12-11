@@ -25,3 +25,18 @@ export enum PawapayPayoutRejectionCode {
   PAYOUTS_NOT_ALLOWED = 'PAYOUTS_NOT_ALLOWED', // Payouts are not allowed for the merchant or correspondent.
   CORRESPONDENT_TEMPORARILY_UNAVAILABLE = 'CORRESPONDENT_TEMPORARILY_UNAVAILABLE', // The correspondent is temporarily unavailable.
 }
+
+/**
+ * Enum for supported correspondents.
+ */
+export enum Correspondent {
+  MTN_MOMO_CMR = 'MTN_MOMO_CMR',
+  ORANGE_CMR = 'ORANGE_CMR',
+}
+
+/**
+ * Enum for payout recipient type.
+ */
+export enum RecipientType {
+  MSISDN = 'MSISDN', // Mobile Station International Subscriber Directory Number
+}
