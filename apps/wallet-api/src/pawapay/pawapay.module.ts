@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { PawapayService } from './pawapay.service';
 import { HttpModule } from '@nestjs/axios';
+import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-// import { SignatureService } from './signature.service';
+import { PawapayService } from './pawapay.service';
+import { SignatureService } from './signature.service';
 
 @Module({
   imports: [
@@ -21,8 +21,7 @@ import { ConfigService } from '@nestjs/config';
       },
     }),
   ],
-  providers: [PawapayService],
-  // providers: [PawapayService, SignatureService],
-  exports: [PawapayService],
+  providers: [PawapayService, SignatureService],
+  exports: [PawapayService, SignatureService],
 })
 export class PawapayModule {}

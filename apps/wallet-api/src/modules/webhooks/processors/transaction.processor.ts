@@ -13,6 +13,8 @@ import {
 import { MailerService } from '../../../mailer/mailer.service';
 import { PawapayService } from '../../../pawapay/pawapay.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { PawapayPayoutEntity } from '../../../types/pawapay';
+import { PawapayPayoutStatus } from '../../../types/pawapay/enum';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
 @Processor(constants.WEBHOOK_QUEUE)
@@ -193,6 +195,39 @@ export class TransactionProcessor {
           data: { balance: cybridCryptoAccount.platform_available },
           where: { cybrid_account_guid: cryptoAccountGuid },
         })
+      );
+    }
+  }
+
+  @Process(constants.PAWAPAY_PAYOUT_EVENTS)
+  async handlePawapayPayoutEvents(job: Job<PawapayPayoutEntity>) {
+    const { payoutId, status, amount } = job.data;
+
+    let transaction = await this.prismaService.cybridTransaction.findFirst({
+      where: { pawapay_payout_id: payoutId, settled_at: null },
+    });
+    if (!transaction) {
+      throw new Error(
+        `No transaction record was found for payout Id: ${payoutId}!`
+      );
+    }
+
+    if (
+      transaction.status === 'COMPLETED' &&
+      status === PawapayPayoutStatus.ACCEPTED
+    ) {
+      transaction = await this.prismaService.cybridTransaction.update({
+        data: { settled_at: new Date() },
+        where: { cybrid_transaction_id: transaction.cybrid_transaction_id },
+      });
+
+      const receiptUrl = `/remittance/${transaction.cybrid_transaction_id}`;
+      // Sending payout receipt email
+      await this.sendReceiptEmail(
+        transaction.cybrid_transaction_guid,
+        receiptUrl,
+        new Date(),
+        Number(amount)
       );
     }
   }

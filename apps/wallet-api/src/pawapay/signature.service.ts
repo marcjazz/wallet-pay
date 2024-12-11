@@ -1,65 +1,34 @@
 import { HttpService } from '@nestjs/axios';
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { AxiosRequestConfig, Method } from 'axios';
-import {
-  createHash,
-  createPrivateKey,
-  createPublicKey,
-  createVerify,
-  KeyObject,
-} from 'crypto';
-import * as fs from 'fs';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { AxiosRequestConfig } from 'axios';
+import { createHash, createPublicKey, createVerify, KeyObject } from 'crypto';
 import {
   createSigner,
   httpbis,
-  Response
+  Request,
+  Response,
 } from 'http-message-signatures';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { PawapaySigningOptions } from '../types/pawapay';
 
 export type CustomResponse = Response & {
   body?: unknown;
 };
 
+export type CustomRequest = Request & {
+  body: string;
+  authToken: string;
+};
+
 @Injectable()
 export class SignatureService {
-  private privateKey: KeyObject;
-
-  constructor(
-    private readonly httpService: HttpService,
-    private readonly configService: ConfigService
-  ) {
-    // load private generated with
-    // openssl ecparam -name P-256 -genkey -noout -out private-key.pem
-    this.privateKey = createPrivateKey(
-      fs.readFileSync(path.join(__dirname, './private-key.pem'), 'utf8')
-    );
-  }
+  constructor(private readonly httpService: HttpService) {}
 
   async signRequest(
-    requestMethod: Method,
-    requestUrl: string,
-    requestBody: string
+    request: CustomRequest,
+    { alg = 'ecdsa-p256-sha256', secretKey, id: keyId }: PawapaySigningOptions
   ): Promise<AxiosRequestConfig> {
-    const authToken = this.configService.get<string>(
-      'PAWAPAY_API_BEARER_TOKEN'
-    );
-    const keyId = this.configService.get<string>('PRIVATE_KEY_ID');
-    if (!keyId) {
-      throw new InternalServerErrorException(
-        `Key ID not provided. Please add PRIVATE_KEY_ID to environmental variables`
-      );
-    }
-    const signingKey = createSigner(
-      this.privateKey,
-      'ecdsa-p256-sha256',
-      keyId
-    );
+    const signingKey = createSigner(secretKey, alg, keyId);
 
     const signedRequest = await httpbis.signMessage(
       {
@@ -76,29 +45,29 @@ export class SignatureService {
         ],
       },
       {
-        url: requestUrl,
-        method: requestMethod,
+        url: request.url as string,
+        method: request.method,
         headers: {
           'Signature-Date': new Date().toISOString(),
           'Content-Type': 'application/json; charset=UTF-8',
-          'Content-Digest': `sha-512=:${this.sha512Digest(requestBody)}:`,
-          'Content-Length': requestBody.length.toString(),
-          Authorization: `Bearer ${authToken}`,
+          'Content-Digest': `sha-512=:${this.sha512Digest(request.body)}:`,
+          'Content-Length': request.body.length.toString(),
+          Authorization: `Bearer ${request.authToken}`,
           'Accept-Signature': 'ecdsa-p256-sha256',
           'Accept-Digest': 'sha-512',
         },
-        data: requestBody,
+        data: request.body,
       }
     );
 
     return signedRequest;
   }
 
-  async verifyResponse(response: Response): Promise<boolean> {
-    const verified = await httpbis.verifyMessage(
+  async verifyRequest(request: Request): Promise<boolean> {
+    return !!(await httpbis.verifyMessage(
       {
         keyLookup: async (params) => {
-          const publicKey = await this.getPublicKey(params.keyid as string);
+          const publicKey = await this.getPublicKey(params.keyid);
           return {
             id: params.keyid,
             algs: ['ecdsa-p256-sha256'],
@@ -109,12 +78,8 @@ export class SignatureService {
           };
         },
       },
-      response
-    );
-
-    const digestValid = this.verifyDigest(response);
-
-    return !!verified && digestValid;
+      request
+    ));
   }
 
   private sha512Digest(data: string): string {
@@ -134,7 +99,7 @@ export class SignatureService {
     return message.headers[headerName].toString();
   }
 
-  private async getPublicKey(keyId: string): Promise<KeyObject> {
+  private async getPublicKey(keyId?: string): Promise<KeyObject> {
     type Pubkey = {
       id: string;
       key: string;
@@ -143,7 +108,9 @@ export class SignatureService {
     const { data: keys } = await this.httpService.axiosRef.get<Pubkey[]>(
       `/public-key/http`
     );
-    const pubkey = keys.find((element: Pubkey) => element.id === keyId);
+    const pubkey = keyId
+      ? keys.find((element: Pubkey) => element.id === keyId)
+      : keys[0];
 
     if (!pubkey) {
       throw new NotFoundException(`No pubkey found for ${keyId}.`);

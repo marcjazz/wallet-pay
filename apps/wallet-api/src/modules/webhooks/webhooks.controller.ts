@@ -12,8 +12,10 @@ import { Queue } from 'bull';
 import { Response } from 'express';
 import { constants } from '../../constants';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { PawapayPayoutEntity } from '../../types/pawapay';
 import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto';
 import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
+import { PawapayCallbacksGuard } from './guards/pawapay-callbacks.guard';
 
 @ApiTags('Webhooks')
 @Controller('webhooks')
@@ -21,7 +23,7 @@ export class WebhooksController {
   constructor(
     private readonly prismaService: PrismaService,
     @InjectQueue(constants.WEBHOOK_QUEUE)
-    private cybridWebhookQueue: Queue
+    private webhooksQueue: Queue
   ) {}
 
   @Post('cybrid-subscriptions')
@@ -45,7 +47,7 @@ export class WebhooksController {
       const event = eventTypeMap[eventType];
 
       if (event) {
-        this.cybridWebhookQueue.add(event, eventObject, {
+        this.webhooksQueue.add(event, eventObject, {
           attempts: 3,
           backoff: 5000,
         });
@@ -56,5 +58,18 @@ export class WebhooksController {
     }
 
     resp.status(200).send('OK');
+  }
+
+  @Post('pawapay-callbacks/payouts')
+  @UseGuards(PawapayCallbacksGuard)
+  async handlePawapayCallbacks(
+    @Res() res: Response,
+    @Body() payout: PawapayPayoutEntity
+  ) {
+    this.webhooksQueue.add(constants.PAWAPAY_PAYOUT_EVENTS, payout, {
+      attempts: 3,
+      backoff: 5000,
+    });
+    res.status(200).send('OK');
   }
 }

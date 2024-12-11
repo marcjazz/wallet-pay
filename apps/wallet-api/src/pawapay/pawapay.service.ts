@@ -1,11 +1,14 @@
 import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
-  InternalServerErrorException,
-  UnprocessableEntityException,
+  UnprocessableEntityException
 } from '@nestjs/common';
 import { validatePhoneNumber } from '../helpers/utils';
-// import { SignatureService } from './signature.service';
+import {
+  PawapayPayoutRequestBody,
+  PawapayPayoutResponse,
+} from '../types/pawapay';
+import { RecipientType } from '../types/pawapay/enum';
 
 type InitiatePayoutPayload = {
   amount: number;
@@ -17,22 +20,7 @@ type InitiatePayoutPayload = {
 
 @Injectable()
 export class PawapayService {
-  private baseUrl: string;
-
-  constructor(
-    private readonly httpService: HttpService,
-    // private readonly signatureService: SignatureService
-  ) {
-    const baseUrl = this.httpService.axiosRef.defaults.baseURL;
-
-    if (!baseUrl) {
-      throw new InternalServerErrorException(
-        `Base url not provided. Please add PAWAPAY_API_BASE_URL to environmental variables`
-      );
-    }
-
-    this.baseUrl = baseUrl;
-  }
+  constructor(private readonly httpService: HttpService) {}
 
   async initiatePayout({
     amount,
@@ -51,13 +39,13 @@ export class PawapayService {
       1: 'ORANGE_CMR',
     };
 
-    const requestBody = JSON.stringify({
+    const requestBody: PawapayPayoutRequestBody = {
       amount,
       payoutId,
       currency: 'XAF',
       correspondent: correspondents[result],
       recipient: {
-        type: 'MSISDN',
+        type: RecipientType.MSISDN,
         address: {
           value: receipientPhonenumber,
         },
@@ -76,22 +64,13 @@ export class PawapayService {
           fieldValue: transactionId,
         },
       ],
-    });
+    };
 
-    // const endpoint = `${this.baseUrl}/payouts`;
-    // const signRequest = await this.signatureService.signRequest(
-    //   'POST',
-    //   endpoint,
-    //   requestBody
-    // );
-    // const payoutResp = await this.httpService.axiosRef.request<PawapayPayoutResponse>(
-    //   signRequest
-    // );
-
-    const payoutResp = await this.httpService.axiosRef.post(
-      `/payouts`,
-      requestBody
-    );
+    const payoutResp =
+      await this.httpService.axiosRef.post<PawapayPayoutResponse>(
+        `/payouts`,
+        requestBody
+      );
 
     return payoutResp.data;
   }

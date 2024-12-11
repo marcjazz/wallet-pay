@@ -40,4 +40,5 @@ export const constants = {
   CYBRID_IDENTITY_VERIFICATION_EVENTS: 'cybrid_identity_verification_events',
   CYBRID_TRANSFER_EVENTS: 'cybrid_transfer_events',
   CYBRID_TRADE_EVENTS: 'cybrid_trade_events',
+  PAWAPAY_PAYOUT_EVENTS: 'pawapay_payout_events',
 };
