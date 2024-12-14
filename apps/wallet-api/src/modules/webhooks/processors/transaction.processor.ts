@@ -207,9 +207,10 @@ export class TransactionProcessor {
       where: { pawapay_payout_id: payoutId, settled_at: null },
     });
     if (!transaction) {
-      throw new Error(
+      this.logger.error(
         `No transaction record was found for payout Id: ${payoutId}!`
       );
+      return;
     }
 
     if (
@@ -246,15 +247,16 @@ export class TransactionProcessor {
       where: { cybrid_transaction_guid: transactionGuid },
     });
     if (!transaction) {
-      throw new Error(
+      this.logger.error(
         `No transaction record was found for ${transactionGuid}!`
       );
+      return;
     }
 
     //  Do nothing if transaction status was already set to a final state
     if (transaction.status === 'COMPLETED' || transaction.status === 'FAILED') {
-      this.logger.debug(
-        `Handled cybrid's ${eventType}: transaction was already finalized`
+      this.logger.log(
+        `Event ${eventType} was ignored because transaction was already is final state`
       );
       return;
     }
