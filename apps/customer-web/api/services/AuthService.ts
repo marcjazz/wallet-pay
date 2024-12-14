@@ -43,13 +43,4 @@ export class AuthService {
   async resetPassword(payload: ResetPasswordDto): Promise<void> {
     await this.apiClient.post('/api/v1/auth/reset-password', payload);
   }
-
-  async refreshToken(): Promise<AccessTokenResponse> {
-    const tokenResp = await this.apiClient.post<AccessTokenResponse>(
-      '/api/v1/auth/refresh',
-      {}
-    );
-    this.apiClient.setAuthToken(tokenResp); // Set token for future requests
-    return tokenResp;
-  }
 }

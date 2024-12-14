@@ -141,20 +141,20 @@ export class AuthController {
         message: 'Refresh token not found!',
         path: req.url,
       });
+    } else {
+      const tokens = await this.authService.refreshAuthTokens(refreshToken);
+      // Set new Http-Only cookies
+      this.setCookies(tokens, res);
+
+      res.status(HttpStatus.CREATED).json(
+        new AccessTokenResponse({
+          expires_in: 900000, // 15 minutes
+          token_type: 'Bearer',
+          issued_at: tokens.issued_at,
+          access_token: tokens.access_token,
+        })
+      );
     }
-
-    const tokens = await this.authService.refreshAuthTokens(refreshToken);
-    // Set new Http-Only cookies
-    this.setCookies(tokens, res);
-
-    res.status(HttpStatus.CREATED).json(
-      new AccessTokenResponse({
-        expires_in: 900000, // 15 minutes
-        token_type: 'Bearer',
-        issued_at: tokens.issued_at,
-        access_token: tokens.access_token,
-      })
-    );
   }
 
   @SkipAuth(false)

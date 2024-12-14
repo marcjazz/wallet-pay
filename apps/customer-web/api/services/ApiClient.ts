@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
+import { API_BASE_URL } from '../constants';
 import { AccessTokenResponse } from '../types';
-import { AuthService } from './AuthService';
 
 export class ApiClient {
   private client: AxiosInstance;
@@ -27,7 +27,7 @@ export class ApiClient {
 
     // Request interceptor to add Authorization header
     this.client.interceptors.request.use(async (config) => {
-      if (this.authToken) {
+      if (this.authToken && !config.url?.includes('auth')) {
         const { issued_at, expires_in } = this.authToken;
         const isTokenExpired = Date.now() >= issued_at + expires_in;
 
@@ -49,17 +49,20 @@ export class ApiClient {
   private async handleTokenRefresh(): Promise<AccessTokenResponse> {
     if (this.isRefreshing) {
       return new Promise((resolve) => {
-        this.refreshSubscribers.push(resolve);
+        this.refreshSubscribers.push((value) => {
+          resolve(value);
+        });
       });
     }
 
     this.isRefreshing = true;
-
     try {
-      const authService = new AuthService(this); // Use the authentication service
-      const tokenResp = await authService.refreshToken();
+      const { data: tokenResp } = await axios.post<AccessTokenResponse>(
+        `${API_BASE_URL}/api/v1/auth/refresh`,
+        {},
+        { withCredentials: true }
+      );
       this.setAuthToken(tokenResp);
-
       // Notify all subscribers with the new token
       this.refreshSubscribers.forEach((callback) => callback(tokenResp));
       this.refreshSubscribers = [];
