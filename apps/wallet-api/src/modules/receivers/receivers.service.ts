@@ -77,7 +77,9 @@ export class RecieversService {
           data: {
             identity_verification_guid: counterpartyVerification.guid as string,
             verification_status:
-              counterpartyVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
+              counterpartyVerification.outcome === 'failed'
+                ? $Enums.IdentityVerificationStatus.FAILED
+                : (counterpartyVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus),
           },
           where: { cybrid_counterparty_guid: counterparty.guid },
         });

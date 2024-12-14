@@ -487,6 +487,7 @@ enum IdentityVerificationStatus {
   REVIEWING @map("reviewing")
   EXPIRED   @map("expired")
   COMPLETED @map("completed")
+  FAILED    @map("failed")
 
   @@map("identity_verification_status")
 }
