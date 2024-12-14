@@ -205,28 +205,24 @@ export default function TransferSummary({
               value={`${formatNumber(1, {
                 style: 'currency',
                 currency: amountStepData.sendingAccount.currency,
-              })} = ${formatNumber(
-                activeCurrency?.xaf_rate ?? 1,
-                // amountStepData.sendingAccount.xaf_conversion_rate,
-                {
-                  style: 'currency',
-                  currency: 'XAF',
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }
-              )}`}
+              })} = ${formatNumber(activeCurrency?.xaf_rate ?? 1, {
+                style: 'currency',
+                currency: 'XAF',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
             />
             <SummaryLine
               title={formatMessage({ id: 'totalReceived' })}
               value={formatNumber(
-                amountStepData.sendingAmount *
-                  // amountStepData.sendingAccount.xaf_conversion_rate,
-                  (activeCurrency?.xaf_rate ?? 1),
+                Math.floor(
+                  amountStepData.sendingAmount * (activeCurrency?.xaf_rate ?? 1)
+                ),
                 {
                   style: 'currency',
                   currency: 'XAF',
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
                 }
               )}
               isColored

@@ -370,13 +370,15 @@ export default function RemittanceDetail({
             <ReceiptLine
               title={formatMessage({ id: 'totalPaidOut' })}
               value={formatNumber(
-                (transaction.initial_currency_amount + transaction.fees) *
-                  (transaction.conversion_rate ?? 1),
+                Math.floor(
+                  (transaction.initial_currency_amount + transaction.fees) *
+                    (transaction.conversion_rate ?? 1)
+                ),
                 {
                   currency: 'xaf',
                   style: 'currency',
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
                 }
               )}
             />

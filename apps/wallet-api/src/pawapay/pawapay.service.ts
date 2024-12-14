@@ -30,6 +30,7 @@ export class PawapayService {
     payoutId,
   }: InitiatePayoutPayload) {
     const result = validatePhoneNumber(receipientPhonenumber);
+
     if (result === -1) {
       throw new UnprocessableEntityException(`Invalid reciepient phone number`);
     }

@@ -350,14 +350,16 @@ export default function SendAmountStep({
                 value={
                   sendingAccount
                     ? formatNumber(
-                        formik.values.sendingAmount *
-                          (currencies?.find(
-                            (currency) =>
-                              currency.currency === sendingAccount.currency
-                          )?.xaf_rate ?? 1),
+                        Math.floor(
+                          formik.values.sendingAmount *
+                            (currencies?.find(
+                              (currency) =>
+                                currency.currency === sendingAccount.currency
+                            )?.xaf_rate ?? 1)
+                        ),
                         {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
                         }
                       )
                     : 0
