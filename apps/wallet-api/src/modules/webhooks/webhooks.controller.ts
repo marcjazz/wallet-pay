@@ -10,6 +10,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
 import { Response } from 'express';
+import { SkipAuth } from '../../app/auth/auth.decorator';
 import { constants } from '../../constants';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { PawapayPayoutEntity } from '../../types/pawapay';
@@ -17,6 +18,7 @@ import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto
 import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
 import { PawapayCallbacksGuard } from './guards/pawapay-callbacks.guard';
 
+@SkipAuth()
 @ApiTags('Webhooks')
 @Controller('webhooks')
 export class WebhooksController {

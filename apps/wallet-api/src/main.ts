@@ -20,6 +20,7 @@ async function bootstrap() {
           : /^http:\/\/localhost/,
       credentials: true,
     },
+    rawBody: true,
   });
   app.use(cookieParser());
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
