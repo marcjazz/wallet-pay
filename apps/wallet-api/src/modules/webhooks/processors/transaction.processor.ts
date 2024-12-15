@@ -30,7 +30,10 @@ export class TransactionProcessor {
 
   @Process(constants.CYBRID_TRANSFER_EVENTS)
   async handleCybridTransferEvents(job: Job<CybridSubscriptionEventObjectDto>) {
-    this.logger.log(`Handling cybrid's ${job.data.event_type}...`);
+    const { event_type: eventType, guid } = job.data;
+    this.logger.log(
+      `Processing (event: ${eventType}, Guid: ${guid}) from cybrid...`
+    );
 
     const parsedObject = await this.parseCybridEventObject(job.data);
     if (!parsedObject) {
@@ -141,12 +144,17 @@ export class TransactionProcessor {
     // execute prisma transaction against database
     await this.prismaService.$transaction(prismaPromises);
 
-    this.logger.log(`Successfully handled cybrid's ${job.data.event_type}.`);
+    this.logger.log(
+      `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
+    );
   }
 
   @Process(constants.CYBRID_TRADE_EVENTS)
   async handleCybridTradeEvents(job: Job<CybridSubscriptionEventObjectDto>) {
-    this.logger.log(`Handling cybrid's ${job.data.event_type}...`);
+    const { event_type: eventType, guid } = job.data;
+    this.logger.log(
+      `Processing (event: ${eventType}, Guid: ${guid}) from cybrid...`
+    );
 
     const parsedObject = await this.parseCybridEventObject(job.data);
     if (!parsedObject) {
@@ -183,7 +191,9 @@ export class TransactionProcessor {
       }),
     ]);
 
-    this.logger.log(`Successfully handled cybrid's ${job.data.event_type}.`);
+    this.logger.log(
+      `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
+    );
 
     async function updateAccountBalance(cryptoAccountGuid: string) {
       const cybridCryptoAccount = await this.cybridService.getAccount(
@@ -236,7 +246,11 @@ export class TransactionProcessor {
   private async parseCybridEventObject(
     eventObject: CybridSubscriptionEventObjectDto
   ) {
-    const { event_type: eventType, object_guid: transactionGuid } = eventObject;
+    const {
+      guid,
+      event_type: eventType,
+      object_guid: transactionGuid,
+    } = eventObject;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, status] = eventType.split('.');
     const transactionStatus =
@@ -256,7 +270,7 @@ export class TransactionProcessor {
     //  Do nothing if transaction status was already set to a final state
     if (transaction.status === 'COMPLETED' || transaction.status === 'FAILED') {
       this.logger.log(
-        `Event ${eventType} was ignored because transaction was already is final state`
+        `(event: ${eventType}, Guid: ${guid}) from cybrid was ignored because transaction was already is final state`
       );
       return;
     }
