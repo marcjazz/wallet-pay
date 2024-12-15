@@ -19,7 +19,7 @@ import {
   useVerifyAccount,
 } from '../../api/hooks/useAccounts';
 import { useCurrencies } from '../../api/hooks/useCurrency';
-import { AccountType } from '../../api/types';
+import { AccountType, VerificationStatus } from '../../api/types';
 import { CybridAccountEntity } from '../../api/types/AccountTypes';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
@@ -179,11 +179,12 @@ export default function MainCard() {
                 ? '... '
                 : currencies?.find(
                     (currency) => currency.currency === activeAccount.currency
-                  )?.xaf_rate??'...'
+                  )?.xaf_rate ?? '...'
             }XAF`}</Typography>
           )}
           {activeAccount &&
-            (activeAccount.verification_status !== null ? (
+            (activeAccount.verification_status ===
+            VerificationStatus.COMPLETED ? (
               <Box
                 sx={{
                   backgroundColor: '#157CFB',
@@ -231,7 +232,13 @@ export default function MainCard() {
                     }
                   )
                 }
-                disabled={isVerifyingAccount}
+                disabled={
+                  (activeAccount.verification_status !==
+                    VerificationStatus.EXPIRED &&
+                    activeAccount.verification_status !==
+                      VerificationStatus.FAILED) ||
+                  isVerifyingAccount
+                }
                 endIcon={
                   isVerifyingAccount && (
                     <CircularProgress size={20} thickness={23} />

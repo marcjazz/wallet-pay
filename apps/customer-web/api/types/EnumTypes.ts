@@ -77,6 +77,7 @@ export enum VerificationStatus {
   REVIEWING = 'REVIEWING',
   EXPIRED = 'EXPIRED',
   COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
 }
 
 /**
