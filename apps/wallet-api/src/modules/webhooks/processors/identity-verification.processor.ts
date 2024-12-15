@@ -22,11 +22,25 @@ export class IdentityVerificationProcessor {
   ) {
     const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
 
+    this.logger.log(
+      `Processing (event: ${eventType}, Guid: ${guid}) from cybrid...`
+    );
+
     const customer = await this.prismaService.cybridCustomer.findFirst({
-      select: {
-        cybrid_customer_guid: true,
-        CybridExternalAccounts: { take: 1 },
-        Person: { select: { Receivers: { take: 1 } } },
+      include: {
+        // cybrid_customer_guid: true,
+        CybridExternalAccounts: {
+          take: 1,
+          where: { identity_verification_guid: objectGuid },
+        },
+        Person: {
+          select: {
+            Receivers: {
+              take: 1,
+              where: { identity_verification_guid: objectGuid },
+            },
+          },
+        },
       },
       where: {
         OR: [
@@ -54,6 +68,8 @@ export class IdentityVerificationProcessor {
       return;
     }
 
+    console.log(customer);
+
     const {
       Person: {
         Receivers: [counterparty],
@@ -77,7 +93,11 @@ export class IdentityVerificationProcessor {
 
     if (counterparty) {
       await this.prismaService.cybridCounterparty.updateMany({
-        data: { verification_status: verificationStatus },
+        data: {
+          verification_status: verificationStatus,
+          status:
+            verificationStatus === 'COMPLETED' ? 'VERIFIED' : 'UNVERIFIED',
+        },
         where: {
           identity_verification_guid: objectGuid,
           cybrid_counterparty_guid: counterparty.cybrid_counterparty_guid,
@@ -85,7 +105,11 @@ export class IdentityVerificationProcessor {
       });
     } else if (externalAccount) {
       await this.prismaService.cybridExternalAccount.update({
-        data: { verification_status: verificationStatus },
+        data: {
+          verification_status: verificationStatus,
+          status:
+            verificationStatus === 'COMPLETED' ? 'COMPLETED' : 'UNVERIFIED',
+        },
         where: {
           identity_verification_guid: objectGuid,
           cybrid_external_account_guid:
@@ -94,7 +118,11 @@ export class IdentityVerificationProcessor {
       });
     } else {
       await this.prismaService.cybridCustomer.update({
-        data: { verification_status: verificationStatus },
+        data: {
+          verification_status: verificationStatus,
+          status:
+            verificationStatus === 'COMPLETED' ? 'VERIFIED' : 'UNVERIFIED',
+        },
         where: {
           cybrid_customer_guid: customerGuid,
           identity_verification_guid: objectGuid,
@@ -103,7 +131,7 @@ export class IdentityVerificationProcessor {
     }
 
     this.logger.log(
-      `Successfully processed ${eventType} from cybrid and updated database`
+      `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid`
     );
   }
 }
