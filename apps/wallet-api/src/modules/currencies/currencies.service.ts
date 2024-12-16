@@ -114,8 +114,10 @@ export class CurrenciesService {
         });
       this.logger.log('Successfully fetched currencies from fastforex.com...');
     } catch (error) {
-      console.log(error);
-      this.logger.error(error);
+      this.logger.error(
+        error.response?.data.error ??
+          `Could not fetch currencies from api.fastforex.io`
+      );
     }
   }
 
