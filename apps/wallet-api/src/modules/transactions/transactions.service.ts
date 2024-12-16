@@ -29,7 +29,6 @@ import {
 import { MailerService } from '../../mailer/mailer.service';
 import { PawapayService } from '../../pawapay/pawapay.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { PawapayPayoutStatus } from '../../types/pawapay/enum';
 import {
   CybridTransactionEntity,
   InitiateFundingTransferDto,
@@ -148,7 +147,7 @@ export class TransactionsService {
   }
 
   async initiateRemittance(
-    { receiver, receipt_url: receiptUrl, ...payload }: InitiateRemittanceDto,
+    { receiver, ...payload }: InitiateRemittanceDto,
     personId: string
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
@@ -178,39 +177,6 @@ export class TransactionsService {
       sourceAccountGuids,
       cybridCounterparty.cybrid_counterparty_guid
     );
-
-    //FIXME: Move this to webhooks once they are tested
-    {
-      // Sending remittance settlement email
-      const { person, cybridCounterparty } = await this.sendReceiptEmail(
-        cybridTransaction.cybrid_transaction_guid,
-        receiptUrl
-      );
-
-      const amountReceived = Math.floor(
-        cybridTransaction.initial_currency_amount *
-          (cybridTransaction.conversion_rate as number)
-      );
-      const payoutTransaction = await this.pawapayService.initiatePayout({
-        amount: amountReceived,
-        customerEmail: person.email,
-        payoutId: cybridTransaction.pawapay_payout_id,
-        transactionId: cybridTransaction.transaction_id,
-        receipientPhonenumber: cybridCounterparty?.phone_number.includes('237')
-          ? cybridCounterparty.phone_number
-          : `237${cybridCounterparty?.phone_number}`,
-      });
-
-      if (payoutTransaction.status !== PawapayPayoutStatus.REJECTED) {
-        // Sending payout receipt email
-        await this.sendReceiptEmail(
-          cybridTransaction.cybrid_transaction_guid,
-          receiptUrl,
-          new Date(payoutTransaction.created),
-          amountReceived
-        );
-      }
-    }
 
     return new CybridTransactionEntity({
       ...cybridTransaction,
@@ -465,7 +431,7 @@ export class TransactionsService {
           initial_currency: currency,
           // convert cents to dollars
           initial_currency_amount: initialCurrencyAmount / 100,
-          amount: Number(bookTransfer.amount) / 10e6,
+          amount: Number(bookTransfer.amount) / 1e6,
           transaction_type: 'REMITTANCE',
           transaction_id: generateTransactionId(),
           cybrid_transaction_guid: bookTransfer.guid as string,

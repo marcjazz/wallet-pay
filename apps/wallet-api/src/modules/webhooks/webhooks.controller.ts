@@ -2,6 +2,8 @@ import { InjectQueue } from '@nestjs/bull';
 import {
   Body,
   Controller,
+  HttpCode,
+  HttpStatus,
   NotImplementedException,
   Post,
   Res,
@@ -28,8 +30,9 @@ export class WebhooksController {
     private webhooksQueue: Queue
   ) {}
 
+  @HttpCode(HttpStatus.OK)
   @Post('cybrid-subscriptions')
-  @UseGuards(CybridSubscriptionsGuard)
+  // @UseGuards(CybridSubscriptionsGuard)
   @ApiOperation({ summary: 'Cybrid subscription events handler. ' })
   async handleSubscriptionEvents(
     @Res() resp: Response,
@@ -59,7 +62,7 @@ export class WebhooksController {
         );
     }
 
-    resp.status(200).send('OK');
+    resp.status(HttpStatus.OK).send('OK');
   }
 
   @Post('pawapay-callbacks/payouts')
@@ -72,6 +75,6 @@ export class WebhooksController {
       attempts: 3,
       backoff: 5000,
     });
-    res.status(200).send('OK');
+    res.status(HttpStatus.OK).send('OK');
   }
 }

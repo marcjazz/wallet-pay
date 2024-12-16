@@ -140,3 +140,11 @@ export type Algorithm =
   | 'hmac-sha256'
   | 'rsa-pss-sha512'
   | string;
+
+export type InitiatePayoutPayload = {
+  amount: number;
+  receipientPhonenumber: string;
+  customerEmail: string;
+  transactionId: string;
+  payoutId: string;
+};

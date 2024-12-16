@@ -1,22 +1,12 @@
 import { HttpService } from '@nestjs/axios';
-import {
-  Injectable,
-  UnprocessableEntityException
-} from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { validatePhoneNumber } from '../helpers/utils';
 import {
+  InitiatePayoutPayload,
   PawapayPayoutRequestBody,
   PawapayPayoutResponse,
 } from '../types/pawapay';
 import { RecipientType } from '../types/pawapay/enum';
-
-type InitiatePayoutPayload = {
-  amount: number;
-  receipientPhonenumber: string;
-  customerEmail: string;
-  transactionId: string;
-  payoutId: string;
-};
 
 @Injectable()
 export class PawapayService {

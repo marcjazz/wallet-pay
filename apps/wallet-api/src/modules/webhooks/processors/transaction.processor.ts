@@ -1,7 +1,7 @@
-import { Process, Processor } from '@nestjs/bull';
+import { InjectQueue, Process, Processor } from '@nestjs/bull';
 import { Logger, NotImplementedException } from '@nestjs/common';
 import { CybridTransactionStatus, PrismaPromise } from '@prisma/client';
-import { Job } from 'bull';
+import { Job, Queue } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
 import { validatePhoneNumber } from '../../../helpers/utils';
@@ -13,7 +13,10 @@ import {
 import { MailerService } from '../../../mailer/mailer.service';
 import { PawapayService } from '../../../pawapay/pawapay.service';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { PawapayPayoutEntity } from '../../../types/pawapay';
+import {
+  InitiatePayoutPayload,
+  PawapayPayoutEntity,
+} from '../../../types/pawapay';
 import { PawapayPayoutStatus } from '../../../types/pawapay/enum';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
@@ -25,7 +28,8 @@ export class TransactionProcessor {
     private readonly cybridService: CybridService,
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
-    private readonly pawapayService: PawapayService
+    private readonly pawapayService: PawapayService,
+    @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhookQueue: Queue
   ) {}
 
   @Process(constants.CYBRID_TRANSFER_EVENTS)
@@ -61,7 +65,10 @@ export class TransactionProcessor {
         );
       prismaPromises.push(
         this.prismaService.cybridExternalAccount.update({
-          data: { balance: externalBankAccount.balances?.current as number },
+          // Convert cents to USD
+          data: {
+            balance: (externalBankAccount.balances?.current as number) / 100,
+          },
           where: {
             cybrid_external_account_guid: transfer.external_bank_account_guid,
           },
@@ -89,9 +96,9 @@ export class TransactionProcessor {
         );
 
         const amountReceived =
-          cybridTransaction.amount *
+          cybridTransaction.initial_currency_amount *
           (cybridTransaction.conversion_rate as number);
-        const payoutTransaction = await this.pawapayService.initiatePayout({
+        const initiatePayoutPayload = {
           amount: amountReceived,
           customerEmail: person.email,
           payoutId: cybridTransaction.pawapay_payout_id,
@@ -99,9 +106,12 @@ export class TransactionProcessor {
           receipientPhonenumber: person.phone_number.includes('237')
             ? person.phone_number
             : `237${person.phone_number}`,
-        });
+        };
 
-        payoutId = payoutTransaction.payoutId;
+        await this.initiatePawapayPayout(
+          initiatePayoutPayload,
+          transactionGuid
+        );
       }
 
       prismaPromises.push(
@@ -136,7 +146,8 @@ export class TransactionProcessor {
     );
     prismaPromises.push(
       this.prismaService.cybridAccount.update({
-        data: { balance: customerAccount.platform_available },
+        // Convert cents to USD
+        data: { balance: (customerAccount.platform_available as number) / 100 },
         where: { cybrid_account_guid: accountGuid },
       })
     );
@@ -335,5 +346,43 @@ export class TransactionProcessor {
     });
 
     return person;
+  }
+
+  private async initiatePawapayPayout(
+    initiatePayoutPayload: InitiatePayoutPayload,
+    transactionGuid: string
+  ) {
+    const jobName = `initiate-remittance-payout-${transactionGuid}`;
+    this.webhookQueue.process(
+      jobName,
+      async (job: Job<typeof initiatePayoutPayload>, done) => {
+        this.logger.log(`Processing (event: ${jobName}) from server...`);
+
+        try {
+          const payoutTransaction = await this.pawapayService.initiatePayout(
+            job.data
+          );
+          await this.prismaService.cybridTransaction.update({
+            data: {
+              pawapay_payout_id: payoutTransaction.payoutId,
+            },
+            // Book transfers are settled by crypto transfers
+            where: { cybrid_transaction_guid: transactionGuid },
+          });
+          done(null, payoutTransaction.payoutId);
+
+          this.logger.log(
+            `Successfully processed (event: ${jobName}) from server.`
+          );
+        } catch (error) {
+          this.logger.error(error, jobName);
+          done(error, null);
+        }
+      }
+    );
+    await this.webhookQueue.add(jobName, initiatePayoutPayload, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
+    });
   }
 }

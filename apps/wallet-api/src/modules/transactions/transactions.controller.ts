@@ -56,7 +56,8 @@ export class TransactionsController {
     }
 
     return this.transactionsService.initiateInstantFunding(
-      payload,
+      // Convert amount to cents
+      { ...payload, amount: payload.amount * 100 },
       req.user?.person_id as string
     );
   }
