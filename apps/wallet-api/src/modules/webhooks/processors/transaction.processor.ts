@@ -29,7 +29,7 @@ export class TransactionProcessor {
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
     private readonly pawapayService: PawapayService,
-    @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhookQueue: Queue
+    @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhooksQueue: Queue
   ) {}
 
   @Process(constants.CYBRID_TRANSFER_EVENTS)
@@ -90,7 +90,7 @@ export class TransactionProcessor {
       if (transactionStatus === 'COMPLETED') {
         const receiptUrl = `/remittance/${cybridTransaction.cybrid_transaction_id}`;
         // Sending remittance settlement email
-        const person = await this.sendReceiptEmail(
+        const { person, cybridCounterparty } = await this.sendReceiptEmail(
           cybridTransaction.cybrid_transaction_guid,
           receiptUrl
         );
@@ -98,14 +98,15 @@ export class TransactionProcessor {
         const amountReceived =
           cybridTransaction.initial_currency_amount *
           (cybridTransaction.conversion_rate as number);
+        const phoneNumber = cybridCounterparty?.phone_number;
         const initiatePayoutPayload = {
           amount: amountReceived,
           customerEmail: person.email,
           payoutId: cybridTransaction.pawapay_payout_id,
           transactionId: cybridTransaction.transaction_id,
-          receipientPhonenumber: person.phone_number.includes('237')
-            ? person.phone_number
-            : `237${person.phone_number}`,
+          receipientPhonenumber: phoneNumber?.includes('237')
+            ? phoneNumber
+            : `237${phoneNumber}`,
         };
 
         await this.initiatePawapayPayout(
@@ -345,7 +346,7 @@ export class TransactionProcessor {
         : generateTransactionReceiptEmail(receiptData),
     });
 
-    return person;
+    return { person, cybridCounterparty };
   }
 
   private async initiatePawapayPayout(
@@ -353,11 +354,10 @@ export class TransactionProcessor {
     transactionGuid: string
   ) {
     const jobName = `initiate-remittance-payout-${transactionGuid}`;
-    this.webhookQueue.process(
+    this.webhooksQueue.process(
       jobName,
       async (job: Job<typeof initiatePayoutPayload>, done) => {
         this.logger.log(`Processing (event: ${jobName}) from server...`);
-
         try {
           const payoutTransaction = await this.pawapayService.initiatePayout(
             job.data
@@ -380,9 +380,9 @@ export class TransactionProcessor {
         }
       }
     );
-    await this.webhookQueue.add(jobName, initiatePayoutPayload, {
+    await this.webhooksQueue.add(jobName, initiatePayoutPayload, {
       attempts: 3,
-      backoff: { type: 'exponential', delay: 5000 },
+      backoff: { type: 'exponential', delay: 15000 },
     });
   }
 }
