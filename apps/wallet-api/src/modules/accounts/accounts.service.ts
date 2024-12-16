@@ -50,7 +50,8 @@ export class AccountsService {
 
     if (
       customer.identity_verification_guid == null ||
-      customer.verification_status === 'FAILED'
+      customer.verification_status === 'FAILED' ||
+      customer.verification_status === 'EXPIRED'
     ) {
       let identityVerificationPayload: PostIdentityVerificationBankModel;
       if (payload.external_bank_account_id) {
