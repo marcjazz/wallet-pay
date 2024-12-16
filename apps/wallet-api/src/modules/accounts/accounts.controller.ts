@@ -91,10 +91,17 @@ export class AccountsController {
       );
     }
 
-    const identityVerfication = await this.accountsService.verifyCybridAccount(
-      payload,
-      req.user?.person_id as string
-    );
+    let identityVerfication;
+    if (payload.external_bank_account_id) {
+      identityVerfication =
+        await this.accountsService.verifyCybridExternalAccount(
+          payload.external_bank_account_id
+        );
+    } else
+      identityVerfication = await this.accountsService.verifyCybridCustomer(
+        req.user?.person_id as string
+      );
+
     return new IdentityVerificationEntity({
       state:
         identityVerfication.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
