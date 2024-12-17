@@ -12,9 +12,11 @@ export class ApiClient {
     baseURL: string,
     private authToken?: AccessTokenResponse
   ) {
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      this.authToken = JSON.parse(storedToken);
+    if (typeof window != 'undefined') {
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
+        this.authToken = JSON.parse(storedToken);
+      }
     }
 
     this.client = axios.create({
