@@ -1,6 +1,7 @@
 'use client';
 
 import { Box } from '@mui/material';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import MainCard from '../components/Home/MainCard';
 import TransactionSection from '../components/Home/TransactionSection';
@@ -10,6 +11,7 @@ import WelcomeScreen from '../components/layout/WelcomeScreen';
 import TransactionHistory from '../components/transaction/TransactionHistory';
 
 export default function Index() {
+  const { push } = useRouter();
   const [isAllHistoryOpen, setIsAllHistoryOpen] = useState<boolean>(false);
   const [shouldShowWelcomeScreen, setShouldShowWelcomeScreen] =
     useState<boolean>(true);
@@ -20,16 +22,15 @@ export default function Index() {
     );
   }, []);
 
-  return (
+  return shouldShowWelcomeScreen ? (
+    <WelcomeScreen
+      handleSwipe={() => {
+        push('/register');
+        localStorage.setItem('shouldShowWelcomeScreen', 'false');
+      }}
+    />
+  ) : (
     <>
-      {shouldShowWelcomeScreen && (
-        <WelcomeScreen
-          handleSwipe={() => {
-            setShouldShowWelcomeScreen(false);
-            localStorage.setItem('shouldShowWelcomeScreen', 'false');
-          }}
-        />
-      )}
       <TransactionHistory
         isMenuOpen={isAllHistoryOpen}
         handleClose={() => setIsAllHistoryOpen(false)}
@@ -49,7 +50,12 @@ export default function Index() {
         >
           <Header />
           <Box
-            sx={{ display: 'grid', gridTemplateRows: 'auto 1fr', rowGap: 4, height:'100%' }}
+            sx={{
+              display: 'grid',
+              gridTemplateRows: 'auto 1fr',
+              rowGap: 4,
+              height: '100%',
+            }}
           >
             <MainCard />
             <TransactionSection
