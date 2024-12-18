@@ -210,4 +210,5 @@ export const website = {
   failed: 'Failed',
   pending: 'Pending',
   successful: 'Successful',
+  verifyNow: 'Verify Now',
 };
