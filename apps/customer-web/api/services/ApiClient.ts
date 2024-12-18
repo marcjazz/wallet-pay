@@ -29,11 +29,11 @@ export class ApiClient {
 
     // Request interceptor to add Authorization header
     this.client.interceptors.request.use(async (config) => {
-      if (this.authToken && !config.url?.includes('auth')) {
+      if (this.authToken) {
         const { issued_at, expires_in } = this.authToken;
         const isTokenExpired = Date.now() >= issued_at + expires_in;
 
-        if (isTokenExpired) {
+        if (isTokenExpired && !config.url?.includes('auth')) {
           this.authToken = await this.handleTokenRefresh();
         }
 
