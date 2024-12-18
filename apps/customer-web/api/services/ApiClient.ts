@@ -48,6 +48,15 @@ export class ApiClient {
     localStorage.setItem('authToken', JSON.stringify(token));
   }
 
+  clearAuthToken(): void {
+    this.authToken = undefined;
+    localStorage.removeItem('authToken');
+  }
+
+  getAuthToken(): AccessTokenResponse | undefined {
+    return this.authToken;
+  }
+
   private async handleTokenRefresh(): Promise<AccessTokenResponse> {
     if (this.isRefreshing) {
       return new Promise((resolve) => {

@@ -43,4 +43,9 @@ export class AuthService {
   async resetPassword(payload: ResetPasswordDto): Promise<void> {
     await this.apiClient.post('/api/v1/auth/reset-password', payload);
   }
+
+  async logOut(): Promise<void> {
+    await this.apiClient.post('/api/v1/auth/logout', {});
+    this.apiClient.clearAuthToken(); // Clear token
+  }
 }
