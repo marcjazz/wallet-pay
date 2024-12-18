@@ -183,7 +183,7 @@ export default function RegisterPartTwo({
                     textDecoration: 'none',
                   }}
                   component="a"
-                  href="https://www.cybrid.xyz/en/privacy-policy"
+                  href="https://cybrid.xyz/hubfs/Legal/Cybrid_User_Agreement.pdf"
                   target="_blank"
                 >
                   {formatMessage({ id: 'partners' })}
