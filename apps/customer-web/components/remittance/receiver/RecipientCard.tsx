@@ -93,9 +93,16 @@ export default function RecipientCard({
             }}
           >
             <Typography variant="l2r" color="#797A7B">
-              {`+237 ${receiver.phone_number.replace(/(.{3})(?=.)/g, '$1 ')}`}
+              {`+237 ${(receiver.phone_number.includes('+237')
+                ? receiver.phone_number.split('+237')[1]
+                : receiver.phone_number
+              ).replace(/(.{3})(?=.)/g, '$1 ')}`}
             </Typography>
-            {PhoneNetworkIcon(receiver.phone_number)}
+            {PhoneNetworkIcon(
+              receiver.phone_number.includes('+237')
+                ? receiver.phone_number.split('+237')[1]
+                : receiver.phone_number
+            )}
           </Box>
           {selectedPayoutMethod === SupportedPayoutMethod.cash && (
             <Typography
