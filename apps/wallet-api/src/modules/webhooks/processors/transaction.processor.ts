@@ -11,12 +11,10 @@ import {
   TransactionReceipt,
 } from '../../../mailer/emails/transaction-email';
 import { MailerService } from '../../../mailer/mailer.service';
-import { PawapayService } from '../../../pawapay/pawapay.service';
+import { MomoService } from '../../../momo/momo.service';
 import { PrismaService } from '../../../prisma/prisma.service';
-import {
-  InitiatePayoutPayload,
-  PawapayPayoutEntity,
-} from '../../../types/pawapay';
+import { InitiatePayoutPayload } from '../../../types/momo';
+import { PawapayPayoutEntity } from '../../../types/pawapay';
 import { PawapayPayoutStatus } from '../../../types/pawapay/enum';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
@@ -28,7 +26,7 @@ export class TransactionProcessor {
     private readonly cybridService: CybridService,
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
-    private readonly pawapayService: PawapayService,
+    private readonly momoService: MomoService,
     @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhooksQueue: Queue
   ) {}
 
@@ -99,7 +97,7 @@ export class TransactionProcessor {
           cybridTransaction.initial_currency_amount *
           (cybridTransaction.conversion_rate as number);
         const phoneNumber = cybridCounterparty?.phone_number;
-        const initiatePayoutPayload = {
+        const initiatePayoutPayload: InitiatePayoutPayload = {
           amount: amountReceived,
           customerEmail: person.email,
           payoutId: cybridTransaction.pawapay_payout_id,
@@ -107,12 +105,10 @@ export class TransactionProcessor {
           receipientPhonenumber: phoneNumber?.includes('237')
             ? phoneNumber
             : `237${phoneNumber}`,
+          callbackUrl: `${process.env.API_BASE_URL}/webhooks/payout-callback`,
         };
 
-        await this.initiatePawapayPayout(
-          initiatePayoutPayload,
-          transactionGuid
-        );
+        await this.initiatePayout(initiatePayoutPayload, transactionGuid);
       }
 
       prismaPromises.push(
@@ -349,27 +345,26 @@ export class TransactionProcessor {
     return { person, cybridCounterparty };
   }
 
-  private async initiatePawapayPayout(
+  private async initiatePayout(
     initiatePayoutPayload: InitiatePayoutPayload,
     transactionGuid: string
   ) {
     const jobName = `initiate-remittance-payout-${transactionGuid}`;
     this.webhooksQueue.process(
       jobName,
-      async (job: Job<typeof initiatePayoutPayload>, done) => {
+      async ({ data: jobData }: Job<InitiatePayoutPayload>, done) => {
         this.logger.log(`Processing (event: ${jobName}) from server...`);
         try {
-          const payoutTransaction = await this.pawapayService.initiatePayout(
-            job.data
+          const payoutRefId = await this.momoService.initiateCashTransfer(
+            jobData
           );
+
           await this.prismaService.cybridTransaction.update({
-            data: {
-              pawapay_payout_id: payoutTransaction.payoutId,
-            },
+            data: { pawapay_payout_id: payoutRefId },
             // Book transfers are settled by crypto transfers
             where: { cybrid_transaction_guid: transactionGuid },
           });
-          done(null, payoutTransaction.payoutId);
+          done(null, payoutRefId);
 
           this.logger.log(
             `Successfully processed (event: ${jobName}) from server.`

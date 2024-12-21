@@ -17,7 +17,6 @@ import { constants } from '../../constants';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { PawapayPayoutEntity } from '../../types/pawapay';
 import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto';
-import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
 import { PawapayCallbacksGuard } from './guards/pawapay-callbacks.guard';
 
 @SkipAuth()
@@ -65,7 +64,7 @@ export class WebhooksController {
     resp.status(HttpStatus.OK).send('OK');
   }
 
-  @Post('pawapay-callbacks/payouts')
+  @Post('payout-callback')
   @UseGuards(PawapayCallbacksGuard)
   async handlePawapayCallbacks(
     @Res() res: Response,
