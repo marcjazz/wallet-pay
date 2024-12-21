@@ -185,7 +185,7 @@ export class CybridConfig {
       authResp = resp.data;
       this.cacheManager.set(this.CUSTOMER_BANK_LEVEL_TOKEN, authResp);
       this.logger.debug(
-        'Cybrid access token was successfully retrieve and cached'
+        'Cybrid access token was successfully retrieved and cached'
       );
     } else {
       this.logger.debug('Loaded cybrid bearer token from cache!');

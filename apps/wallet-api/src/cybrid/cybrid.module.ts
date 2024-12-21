@@ -11,6 +11,7 @@ import { CybridService } from './cybrid.service';
   imports: [
     HttpModule,
     CacheModule.registerAsync({
+      isGlobal: true,
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const store = await redisStore({
