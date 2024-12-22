@@ -10,6 +10,7 @@ import {
   Logger,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -27,7 +28,7 @@ import {
   TransactionReceipt,
 } from '../../mailer/emails/transaction-email';
 import { MailerService } from '../../mailer/mailer.service';
-import { PawapayService } from '../../pawapay/pawapay.service';
+import { MomoService } from '../../momo/momo.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CybridTransactionEntity,
@@ -54,7 +55,7 @@ export class TransactionsService {
     private readonly cybridService: CybridService,
     private readonly configService: ConfigService,
     private readonly mailerService: MailerService,
-    private readonly pawapayService: PawapayService
+    private readonly momoService: MomoService
   ) {}
 
   async initiateInstantFunding(
@@ -163,6 +164,17 @@ export class TransactionsService {
     }
 
     const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
+
+    // Validate Receiver MoMo account status
+    const isReceiverMoMoAccountActive =
+      await this.momoService.validateAccountHolderStatus(
+        cybridCounterparty.phone_number
+      );
+    if (!isReceiverMoMoAccountActive) {
+      throw new UnprocessableEntityException(
+        `Receiver MoMo account is not active`
+      );
+    }
 
     // trade USD for USDC_SOL
     const [fiatTrade] = await this.trateFiatForCrypto(
