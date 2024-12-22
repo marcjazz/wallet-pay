@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { SearchQueryDto } from '../../app/app.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReceiverDto } from './receiver.dto';
@@ -9,6 +14,8 @@ import {
   PostIdentityVerificationBankModelTypeEnum,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { $Enums } from '@prisma/client';
+import { MomoService } from '../../momo/momo.service';
+import { validatePhoneNumber } from '../../helpers/utils';
 
 @Injectable()
 export class RecieversService {
@@ -16,7 +23,8 @@ export class RecieversService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly cybridService: CybridService
+    private readonly cybridService: CybridService,
+    private readonly momoService: MomoService
   ) {}
 
   async findAll(query?: SearchQueryDto) {
@@ -40,7 +48,12 @@ export class RecieversService {
   }
 
   async create(
-    { address, ...newReceiver }: CreateReceiverDto,
+    {
+      address,
+      phone_number: phoneNumber,
+      fullname,
+      ...newReceiver
+    }: CreateReceiverDto,
     personId: string
   ) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
@@ -50,12 +63,29 @@ export class RecieversService {
       throw new NotFoundException('No customer found!');
     }
 
-    const [first, last] = newReceiver.fullname.split(' ');
+    const [first, last] = fullname.split(' ');
+
+    // Validate receiver's phone number
+    if (validatePhoneNumber(phoneNumber) !== 0) {
+      throw new UnprocessableEntityException(
+        'Phone number must be a valid Mobile money number'
+      );
+    }
+
+    // Validate receiver's account name
+    const { family_name, given_name } =
+      await this.momoService.getAccountHolderBasicInfo(phoneNumber);
+    if (!fullname.includes(family_name) || !fullname.includes(given_name)) {
+      throw new UnprocessableEntityException(
+        `Receiver's fullname doesn't match MoMo account holder basic info`
+      );
+    }
+
     const counterparty = await this.cybridService.createCounterparty(
       customer.cybrid_customer_guid,
       {
         address,
-        name: { full: newReceiver.fullname, last, first },
+        name: { full: fullname, last, first },
         type: PostCounterpartyBankModelTypeEnum.Individual,
       }
     );
@@ -94,10 +124,10 @@ export class RecieversService {
 
     return await this.prismaService.cybridCounterparty.create({
       data: {
+        fullname,
         address: `${address.city}, ${address.street} (${address.country_code}-${address.subdivision})`,
         cybrid_counterparty_guid: counterparty.guid as string,
-        fullname: newReceiver.fullname,
-        phone_number: newReceiver.phone_number,
+        phone_number: phoneNumber,
         national_id_number: newReceiver.national_id_number,
         Person: { connect: { person_id: personId } },
         status:
