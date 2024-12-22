@@ -78,7 +78,8 @@ export class MomoService {
     callbackUrl,
   }: InitiatePayoutPayload) {
     await this.httpService.axiosRef.post(
-      '/remittance/v2_0/cashtransfer',
+      // '/remittance/v2_0/cashtransfer',
+      '/remittance/v1_0/transfer',
       {
         amount,
         currency: process.env.NODE_ENV === 'production' ? 'XAF' : 'EUR',
@@ -89,16 +90,16 @@ export class MomoService {
         },
         payeeNote: `Remittance from ${customerEmail}`,
         payerMessage: 'XafPay Remittance',
-        orginatingCountry: 'United States',
-        originalCurrency: 'USD',
-        payerIdentificationType: 'IDCD',
-        payerIdentificationNumber: 'A872349865',
-        payerIdentity: '9238674583',
-        payerFirstName: 'John',
-        payerLanguageCode: 'en',
-        payerEmail: 'john.doe@example.com',
-        payerMsisdn: '+1234567890',
-        payerGender: 'MALE',
+        // orginatingCountry: 'United States',
+        // originalCurrency: 'USD',
+        // payerIdentificationType: 'IDCD',
+        // payerIdentificationNumber: 'A872349865',
+        // payerIdentity: '9238674583',
+        // payerFirstName: 'John',
+        // payerLanguageCode: 'en',
+        // payerEmail: 'john.doe@example.com',
+        // payerMsisdn: '+1234567890',
+        // payerGender: 'MALE',
       },
       {
         headers: {
@@ -141,6 +142,6 @@ export class MomoService {
       `/remittance/v1_0/accountholder/msisdn/${phoneNumber}/active`
     );
 
-    return resp.data;
+    return resp.data.result;
   }
 }
