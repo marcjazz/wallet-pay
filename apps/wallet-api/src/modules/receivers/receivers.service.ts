@@ -77,7 +77,7 @@ export class RecieversService {
       await this.momoService.getAccountHolderBasicInfo(phoneNumber);
     if (!fullname.includes(family_name) || !fullname.includes(given_name)) {
       throw new UnprocessableEntityException(
-        `Receiver's fullname doesn't match MoMo account holder basic info`
+        `Receiver's fullname doesn't match MoMo Account holder basic info`
       );
     }
 
