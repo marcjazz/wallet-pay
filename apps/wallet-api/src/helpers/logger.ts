@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export function logger(req: Request, res: Response, next: NextFunction) {
   Logger.log(
-    `${req.url} (origin: ${req.headers.origin}, client IP: ${req.ip})`,
+    `${req.baseUrl} (origin: ${req.headers.origin}, client IP: ${req.ip})`,
     req.method
   );
   next();
