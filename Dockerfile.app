@@ -1,4 +1,4 @@
-FROM node:current-alpine3.19 as builder
+FROM node:18.19.1-alpine3.19 AS builder
 
 # #set the working directory
 WORKDIR /app
@@ -7,7 +7,8 @@ WORKDIR /app
 COPY package.json ./
 
 # #clean install dependecies
-RUN npm install --production
+RUN npm install
+# RUN npm install --omit=dev
 
 # COPY workspace configs
 COPY ./tsconfig.base.json ./
