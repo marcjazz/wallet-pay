@@ -40,6 +40,10 @@ export const kycChipVariants: Record<
     color: 'warning',
     icon: <RefreshCcw size={12} />,
   },
+  FAILED: {
+    color: 'error',
+    icon: <AlertTriangle size={12} color="white" />,
+  },
 };
 
 interface ExternalAccountCardProps {
