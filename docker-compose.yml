@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nestjs:
-    image: node:18-alpine # Use the Node.js image, or build from your own Dockerfile
+    image: node:20-alpine3.17 # Use the Node.js image, or build from your own Dockerfile
     container_name: xafpay_api
     working_dir: /app
     volumes:
