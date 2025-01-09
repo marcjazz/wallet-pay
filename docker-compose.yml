@@ -38,6 +38,8 @@ services:
       dockerfile: ./Dockerfile.app
       context: .
     restart: always
+    depends_on:
+      - nestjs
     ports:
       - '3000:3000'
 
