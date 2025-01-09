@@ -16,7 +16,7 @@ services:
       - postgres
       - redis
     ports:
-      - '3000:5000'
+      - '5000:5000'
 
   postgres:
     image: postgres:alpine
@@ -33,15 +33,13 @@ services:
     container_name: xafpay_api_cache
     ports:
       - '6379:6379'
-  # app:
-  #   build:
-  #     dockerfile: ./Dockerfile.app
-  #     context: .
-  #   restart: always
-  #   environment:
-  #     - NX_NODE_ENV=production
-  #   ports:
-  #     - '3000:3000'
+  app:
+    build:
+      dockerfile: ./Dockerfile.app
+      context: .
+    restart: always
+    ports:
+      - '3000:3000'
 
 volumes:
   xafpay_api_pgdata:
