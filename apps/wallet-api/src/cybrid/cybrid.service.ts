@@ -18,7 +18,6 @@ import {
   PostCustomerBankModelTypeEnum,
   PostExternalBankAccountBankModel,
   PostIdentityVerificationBankModel,
-  PostIdentityVerificationBankModelExpectedBehavioursEnum,
   PostQuoteBankModel,
   PostQuoteBankModelProductTypeEnum,
   PostTradeBankModel,
@@ -36,7 +35,7 @@ import {
   TransfersBankApi,
   WorkflowBankModel,
   WorkflowsBankApi,
-  WorkflowWithDetailsBankModel,
+  WorkflowWithDetailsBankModel
 } from '@cybrid/cybrid-api-bank-typescript';
 import { Injectable, Logger } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
@@ -169,9 +168,6 @@ export class CybridService {
       identityVerificationsApi.createIdentityVerification({
         postIdentityVerificationBankModel: {
           ...payload,
-          expected_behaviours: [
-            PostIdentityVerificationBankModelExpectedBehavioursEnum.PassedImmediately,
-          ],
         },
       });
     return new Promise<IdentityVerificationBankModel>((next, error) =>
