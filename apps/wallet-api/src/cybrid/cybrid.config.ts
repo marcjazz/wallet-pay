@@ -93,6 +93,9 @@ export class CybridConfig {
     return new ModelBankApi(
       new Configuration({
         ...this.configuration,
+        ...(process.env.NODE_ENV === 'production'
+          ? { basePath: 'https://bank.production.cybrid.app/' }
+          : {}),
         accessToken: `Bearer ${token}`,
       })
     ) as InstanceType<T>;
