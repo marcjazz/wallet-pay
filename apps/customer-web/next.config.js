@@ -16,7 +16,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://api.xafpay.com/:path*',
+        destination: 'https://api.xafpay.com/api/:path*',
       },
     ];
   },
