@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Param,
   Post,
+  Put,
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,6 +14,7 @@ import { MailerService } from '../../../mailer/mailer.service';
 import { OTPEntity, OTPPayloadDto, OTPUsageDto } from '../dto/two-fa.dto';
 import { TwoFAUsage } from '../two-fa.interface';
 import { OTPService } from './otp.service';
+import { SkipAuth } from '../../auth/auth.decorator';
 
 @ApiTags('2FA')
 @ApiBearerAuth()
@@ -35,6 +38,26 @@ export class OTPController {
       to: `${user.first_name} <${user.email}>`,
       subject: 'One Time Password',
       text: `Your verification code is ${otp.code}`,
+      html: generateOtpCodeEmail({ otpCode: otp.code }),
+    });
+
+    return new OTPEntity({ ...otp, usage: otp.usage as TwoFAUsage });
+  }
+
+  @SkipAuth()
+  @Put(':otp_id/resend')
+  @ApiCreatedResponse({ type: OTPEntity })
+  async resendOTP(@Req() req: Request, @Param('otp_id') otpId: string) {
+    const user = req.user;
+    if (!user) {
+      throw new UnauthorizedException('user not connected!');
+    }
+
+    const otp = await this.otpService.resend(user.id, otpId);
+    await this.mailerService.sendMessage({
+      to: `${user.first_name} <${user.email}>`,
+      subject: 'One Time Password',
+      text: `Your verification code is ${otp.code}. This code has 5 minutes validity period.`,
       html: generateOtpCodeEmail({ otpCode: otp.code }),
     });
 

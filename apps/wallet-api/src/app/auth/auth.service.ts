@@ -143,6 +143,7 @@ export class AuthService {
   }
 
   async login(user: Express.User): Promise<AuthTokensDto> {
+    let otpId: string | undefined;
     if (!user.is_verified) {
       this.logger.debug(`Request otp for user...`);
 
@@ -150,6 +151,7 @@ export class AuthService {
         user.id,
         TwoFAUsage.VERIFY_EMAIL
       );
+      otpId = otpCode.otp_id;
 
       const receiver = `${user.first_name} <${user.email}>`;
       await this.mailerService.sendMessage({
@@ -169,10 +171,10 @@ export class AuthService {
       data: { PersonHasRole: { connect: { person_has_role_id: user.id } } },
     });
 
-    return this.generateTokens(user.id);
+    return this.generateTokens(user.id, otpId);
   }
 
-  private async generateTokens(userId: string) {
+  private async generateTokens(userId: string, otpId?: string) {
     const refreshToken = this.jwtService.sign(
       { sub: userId, type: AuthService.REFRESH_TOKEN_TYPE },
       { expiresIn: '7d' }
@@ -186,6 +188,7 @@ export class AuthService {
       refresh_token: refreshToken,
       access_token: accessToken,
       issued_at: Date.now(),
+      otp_id: otpId,
     });
   }
 
@@ -231,7 +234,7 @@ export class AuthService {
       to: `${person.first_name} <${person.email}>`,
       subject: 'Forgot Password OTP',
       text: `Your verification code is ${otp.code}. Use OTP to sign-in and change your password`,
-      html: generateOtpCodeEmail({otpCode: otp.code})
+      html: generateOtpCodeEmail({ otpCode: otp.code }),
     });
 
     return otp;

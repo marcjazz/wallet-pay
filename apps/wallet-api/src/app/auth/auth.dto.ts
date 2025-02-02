@@ -1,4 +1,9 @@
-import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PickType,
+} from '@nestjs/swagger';
 import {
   CybridSupportedCountry,
   PersonGender,
@@ -139,6 +144,12 @@ export class AuthTokensDto {
 
   @ApiProperty({ type: Number, description: 'Issuance date in milliseconds' })
   issued_at: number;
+
+  @ApiPropertyOptional({
+    type: Number,
+    description: 'One time password identifier for unverified accounts',
+  })
+  otp_id?: string;
 
   constructor(props: AuthTokensDto) {
     Object.assign(this, props);

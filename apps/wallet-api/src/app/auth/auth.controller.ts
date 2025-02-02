@@ -80,6 +80,7 @@ export class AuthController {
         token_type: 'Bearer',
         issued_at: tokens.issued_at,
         access_token: tokens.access_token,
+        otp_id: tokens.otp_id,
       })
     );
   }
@@ -106,6 +107,7 @@ export class AuthController {
         token_type: 'Bearer',
         issued_at: tokens.issued_at,
         access_token: tokens.access_token,
+        otp_id: tokens.otp_id,
       })
     );
   }
