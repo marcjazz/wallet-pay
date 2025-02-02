@@ -1,18 +1,24 @@
 version: '3.8'
 
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    restart: always
+  nestjs:
+    image: node:20-alpine3.17 # Use the Node.js image, or build from your own Dockerfile
+    container_name: xafpay_api
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules # Ensures node_modules are accessible inside the container
+    # command: sh -c "npm install --force && npx nx serve wallet-api"
+    command: sh -c "npm install --force && npx prisma generate && npm run migrate-reset && npx nx serve wallet-api"
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
     env_file:
       - .env
     ports:
-      - '3000:5000'
+      - '5000:5000'
 
   postgres:
     image: postgres:alpine
@@ -29,15 +35,15 @@ services:
     container_name: xafpay_api_cache
     ports:
       - '6379:6379'
-  # app:
-  #   build:
-  #     dockerfile: ./Dockerfile.app
-  #     context: .
-  #   restart: always
-  #   environment:
-  #     - NX_NODE_ENV=production
-  #   ports:
-  #     - '3000:3000'
+  app:
+    build:
+      dockerfile: ./Dockerfile.app
+      context: .
+    restart: always
+    depends_on:
+      - nestjs
+    ports:
+      - '3000:3000'
 
 volumes:
   xafpay_api_pgdata:

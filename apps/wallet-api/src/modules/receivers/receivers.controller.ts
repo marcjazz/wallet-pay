@@ -15,10 +15,10 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { SearchQueryDto } from '../../app/app.dto';
-import { RecieversService as ReceiversService } from './receivers.service';
-import { ReceiverEntity, CreateReceiverDto } from './receiver.dto';
 import { Request } from 'express';
+import { SearchQueryDto } from '../../app/app.dto';
+import { CreateReceiverDto, ReceiverEntity } from './receiver.dto';
+import { RecieversService as ReceiversService } from './receivers.service';
 
 @ApiBearerAuth()
 @ApiTags('Receivers')
@@ -29,8 +29,14 @@ export class ReceiversController {
   @Get()
   @ApiResponse({ status: 200, type: [ReceiverEntity] })
   @ApiOperation({ summary: 'Fetch all receivers' })
-  async findCounterparties(@Query() query: SearchQueryDto) {
-    const counterparties = await this.receiversService.findAll(query);
+  async findCounterparties(
+    @Query() query: SearchQueryDto,
+    @Req() request: Request
+  ) {
+    const counterparties = await this.receiversService.findAll({
+      ...query,
+      person_id: request.user?.person_id as string,
+    });
     return counterparties.map(
       (counterparty) => new ReceiverEntity(counterparty)
     );

@@ -50,3 +50,10 @@ export const useResetPassword = () =>
     mutationKey: ['resetPassword'],
     mutationFn: (payload) => authService.resetPassword(payload),
   });
+
+export const useLogOut = () => {
+  return useMutation<void, Error, void>({
+    mutationKey: ['logOut'],
+    mutationFn: () => authService.logOut(),
+  });
+};

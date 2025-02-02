@@ -45,7 +45,10 @@ export default function Login() {
     validationSchema,
     onSubmit: (values, { setFieldValue }) => {
       signIn(values, {
-        onSuccess: () => push('/'),
+        onSuccess: () => {
+          push(localStorage.getItem('redirectPath') || '/');
+          localStorage.removeItem('redirectPath');
+        },
         onError: (error) => {
           //TODO: USE alert in case of error. will be replaced with proper notifications later
           alert(error.message);

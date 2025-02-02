@@ -233,8 +233,9 @@ export default function MainCard() {
                   )
                 }
                 disabled={
-                  (activeAccount.verification_status !==
-                    VerificationStatus.EXPIRED &&
+                  (activeAccount.verification_status &&
+                    activeAccount.verification_status !==
+                      VerificationStatus.EXPIRED &&
                     activeAccount.verification_status !==
                       VerificationStatus.FAILED) ||
                   isVerifyingAccount
@@ -245,7 +246,16 @@ export default function MainCard() {
                   )
                 }
               >
-                Verify Now
+                {formatMessage({
+                  id:
+                    activeAccount.verification_status &&
+                    ![
+                      VerificationStatus.FAILED,
+                      VerificationStatus.EXPIRED,
+                    ].includes(activeAccount.verification_status)
+                      ? activeAccount.verification_status
+                      : 'verifyNow',
+                })}
               </Button>
             ))}
         </Box>

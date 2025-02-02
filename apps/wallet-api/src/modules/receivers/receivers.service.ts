@@ -1,21 +1,21 @@
 import {
+  PostCounterpartyBankModelTypeEnum,
+  PostIdentityVerificationBankModelMethodEnum,
+  PostIdentityVerificationBankModelTypeEnum,
+} from '@cybrid/cybrid-api-bank-typescript';
+import {
   Injectable,
   Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { $Enums } from '@prisma/client';
 import { SearchQueryDto } from '../../app/app.dto';
+import { CybridService } from '../../cybrid/cybrid.service';
+import { validatePhoneNumber } from '../../helpers/utils';
+import { MomoService } from '../../momo/momo.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReceiverDto } from './receiver.dto';
-import { CybridService } from '../../cybrid/cybrid.service';
-import {
-  PostCounterpartyBankModelTypeEnum,
-  PostIdentityVerificationBankModelMethodEnum,
-  PostIdentityVerificationBankModelTypeEnum,
-} from '@cybrid/cybrid-api-bank-typescript';
-import { $Enums } from '@prisma/client';
-import { MomoService } from '../../momo/momo.service';
-import { validatePhoneNumber } from '../../helpers/utils';
 
 @Injectable()
 export class RecieversService {
@@ -27,17 +27,20 @@ export class RecieversService {
     private readonly momoService: MomoService
   ) {}
 
-  async findAll(query?: SearchQueryDto) {
+  async findAll(query: SearchQueryDto) {
     return this.prismaService.cybridCounterparty.findMany({
-      where: query?.search
-        ? {
-            OR: [
-              { fullname: { search: query?.search } },
-              { phone_number: { search: query?.search } },
-              { national_id_number: { search: query?.search } },
-            ],
-          }
-        : undefined,
+      where: {
+        person_id: query.person_id,
+        ...(query.search
+          ? {
+              OR: [
+                { fullname: { search: query?.search } },
+                { phone_number: { search: query?.search } },
+                { national_id_number: { search: query?.search } },
+              ],
+            }
+          : {}),
+      },
     });
   }
 

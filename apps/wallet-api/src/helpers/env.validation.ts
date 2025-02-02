@@ -42,7 +42,7 @@ class EnvironmentVariables {
   @IsString()
   POSTGRES_DB: string;
 
-  @IsUrl({ protocols: ['postgresql'] })
+  @IsString()
   DATABASE_URL: string;
 
   @IsString()
@@ -84,7 +84,7 @@ class EnvironmentVariables {
   @IsEmail({ allow_display_name: true })
   APP_EMAIL: string;
 
-  @IsIP()
+  @IsString()
   REDIS_HOST: string;
 
   @IsPort()

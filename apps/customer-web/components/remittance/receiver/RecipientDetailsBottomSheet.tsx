@@ -6,14 +6,21 @@ import {
   FormHelperText,
   FormLabel,
   InputAdornment,
+  MenuItem,
   OutlinedInput,
+  Select,
   Typography,
 } from '@mui/material';
 import { FormikErrors, FormikTouched, useFormik } from 'formik';
+import { ChevronDown } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { useCreateReceiver } from '../../../api/hooks/useReciever';
-import { CameroonRegions, ReceiverEntity } from '../../../api/types';
+import {
+  CameroonRegions,
+  CreateReceiverDto,
+  ReceiverEntity,
+} from '../../../api/types';
 import BottomSheet from '../../shared/BottomSheet';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';
@@ -57,6 +64,26 @@ export default function RecipientDetailsBottomSheet({
   //   IBAN: (selectedReceiver as BankReceiver)?.IBAN || '',
   // };
 
+  const addressSchema = Yup.object().shape(
+    {
+      city: Yup.string().required(formatMessage({ id: 'requiredField' })),
+      street: Yup.string().required(formatMessage({ id: 'requiredField' })),
+      subdivision: Yup.string()
+        .required(formatMessage({ id: 'requiredField' }))
+        .oneOf(
+          Object.values(CameroonRegions),
+          formatMessage({ id: 'invalidCountry' })
+        ),
+    }
+    //   {
+    //   city: Yup.string().required('City is required'),
+    //   street: Yup.string().required('Street is required'),
+    //   subdivision: Yup.string()
+    //     .oneOf([CameroonRegions.LITTORAL], 'Invalid subdivision')
+    //     .required('Subdivision is required'),
+    // }
+  );
+
   const validationSchema = Yup.object().shape({
     fullname: Yup.string().required(formatMessage({ id: 'requiredField' })),
     // ...(isBank
@@ -82,7 +109,11 @@ export default function RecipientDetailsBottomSheet({
     phone_number: Yup.string()
       .matches(/^(6)(5|[7-9])[0-9]{7}$/gm, '(6|2) (2|3|[5-9])x xxx xxx')
       .required(formatMessage({ id: 'requiredField' })),
-    // }),
+    ...(selectedReceiver
+      ? {}
+      : {
+          address: addressSchema,
+        }),
   });
 
   const { mutate: createReceiver, isPending: isCreatingReceiver } =
@@ -107,9 +138,7 @@ export default function RecipientDetailsBottomSheet({
             phone_number: `+237${values.phone_number}`,
             national_id_number: values.national_id_number,
             address: {
-              city: 'Bangangte',
-              street: 'Noutong',
-              subdivision: CameroonRegions.LITTORAL,
+              ...(values as CreateReceiverDto).address,
               country_code: 'CM',
             },
           },
@@ -262,6 +291,97 @@ export default function RecipientDetailsBottomSheet({
                 {touched.fullname && errors.fullname}
               </FormHelperText>
             </FormControl>
+
+            {!selectedReceiver && (
+              <>
+                <FormControl
+                  error={Boolean(
+                    (touched as FormikTouched<CreateReceiverDto>).address
+                      ?.subdivision &&
+                      (errors as FormikErrors<CreateReceiverDto>).address
+                        ?.subdivision
+                  )}
+                  required
+                >
+                  <FormLabel htmlFor="region">
+                    {formatMessage({ id: 'selectRegion' })}
+                  </FormLabel>
+                  <Select
+                    id="region"
+                    IconComponent={ChevronDown}
+                    sx={{
+                      '& .MuiSelect-icon': {
+                        top: 'inherit',
+                      },
+                    }}
+                    {...formik.getFieldProps('address.subdivision')}
+                    autoFocus
+                  >
+                    {Object.entries(CameroonRegions).map(([key, value]) => (
+                      <MenuItem key={value} value={value}>
+                        {formatMessage({ id: key })}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText error>
+                    {(touched as FormikTouched<CreateReceiverDto>).address
+                      ?.subdivision &&
+                      (errors as FormikErrors<CreateReceiverDto>).address
+                        ?.subdivision}
+                  </FormHelperText>
+                </FormControl>
+
+                <FormControl
+                  error={Boolean(
+                    (touched as FormikTouched<CreateReceiverDto>).address
+                      ?.city &&
+                      (errors as FormikErrors<CreateReceiverDto>).address?.city
+                  )}
+                  required
+                  fullWidth
+                >
+                  <FormLabel htmlFor="city">
+                    {formatMessage({ id: 'city' })}
+                  </FormLabel>
+                  <OutlinedInput
+                    id="city"
+                    {...formik.getFieldProps('address.city')}
+                    placeholder={formatMessage({ id: 'city' })}
+                  />
+                  <FormHelperText error>
+                    {(touched as FormikTouched<CreateReceiverDto>).address
+                      ?.city &&
+                      (errors as FormikErrors<CreateReceiverDto>).address?.city}
+                  </FormHelperText>
+                </FormControl>
+                <FormControl
+                  error={Boolean(
+                    (touched as FormikTouched<CreateReceiverDto>).address
+                      ?.street &&
+                      (errors as FormikErrors<CreateReceiverDto>).address
+                        ?.street
+                  )}
+                  required
+                  fullWidth
+                >
+                  <FormLabel htmlFor="street">
+                    {formatMessage({ id: 'street' })}
+                  </FormLabel>
+                  <OutlinedInput
+                    id="street"
+                    {...formik.getFieldProps('address.street')}
+                    placeholder={formatMessage({ id: 'street' })}
+                  />
+                  <FormHelperText error>
+                    {(touched as FormikTouched<CreateReceiverDto>).address
+                      ?.street &&
+                      (errors as FormikErrors<CreateReceiverDto>).address
+                        ?.street}
+                  </FormHelperText>
+                </FormControl>
+              </>
+            )}
+
             {selectedPayoutMethod === SupportedPayoutMethod.cash && (
               <FormControl
                 error={Boolean(

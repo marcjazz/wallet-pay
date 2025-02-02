@@ -1,4 +1,5 @@
 import { Box, Dialog, IconButton, Tooltip, Typography } from '@mui/material';
+import { useTheme } from '@xafpay/theme';
 import { useRouter } from 'next/navigation';
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -7,8 +8,10 @@ import {
   Grid as GridIcon,
   Layers as LayersIcon,
   Lock as LockIcon,
+  LogOut as LogOutIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { useLogOut } from '../../../api/hooks/useAuth';
 import { LeftDialogTransition } from '../../shared/dialog-transition';
 import MenuItem, { MenuItemProps } from './MenuItem';
 
@@ -21,6 +24,9 @@ interface SideMenuProps {
 export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
   const { formatMessage } = useIntl();
   const { push } = useRouter();
+  const theme = useTheme();
+
+  const { mutate: logOut } = useLogOut();
 
   const MenuItemGroups: MenuItemGroup = {
     '1': [
@@ -80,6 +86,21 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
         icon: <ExternalLinkIcon size={22} />,
         action: () =>
           open('https://www.cybrid.xyz/en/privacy-policy', '_blank'),
+      },
+    ],
+    '4': [
+      {
+        title: formatMessage({ id: 'logout' }),
+        icon: <LogOutIcon size={22} color={theme.palette.error.main} />,
+        action: () =>
+          logOut(undefined, {
+            onSuccess: () => {
+              push('/login');
+              localStorage.removeItem('redirectPath');
+            },
+            // TODO: USE alert in case of error. will be replaced with proper notifications later
+            onError: (error) => alert(error.message),
+          }),
       },
     ],
   };

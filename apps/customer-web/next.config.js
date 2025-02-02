@@ -12,6 +12,14 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
+  rewrites: async () => {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://api.xafpay.com/api/:path*',
+      },
+    ];
+  },
 };
 
 const plugins = [
