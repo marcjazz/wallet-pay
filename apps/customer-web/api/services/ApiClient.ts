@@ -96,6 +96,16 @@ export class ApiClient {
     return res.data;
   }
 
+  async put<T>(url: string, data: unknown): Promise<T> {
+    const res = await this.client.put<T>(url, data);
+    return res.data;
+  }
+
+  async patch<T>(url: string, data?: unknown): Promise<T> {
+    const res = await this.client.post<T>(url, data);
+    return res.data;
+  }
+
   static getInstance(
     baseURL: string,
     authToken?: AccessTokenResponse

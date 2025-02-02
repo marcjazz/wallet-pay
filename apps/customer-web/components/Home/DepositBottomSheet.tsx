@@ -119,9 +119,9 @@ export default function DepositBottomSheet({
             setIsOtpBottomSheetOpen(false);
           }
         }}
+        otpId={otpId}
         isSubmitting={isRequestingOtp}
         isOpen={isOtpBottomSheetOpen}
-        otpUsage={OTPUsage.TRANSFER}
         title={formatMessage({ id: 'confirmTransaction' })}
         confirmText={formatMessage({ id: 'confirmDeposit' })}
         description={formatMessage({ id: 'confirmDepositDescription' })}

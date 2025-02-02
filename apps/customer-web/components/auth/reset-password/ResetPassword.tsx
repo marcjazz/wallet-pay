@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
+import { useResendOTP } from '../../../api/hooks/useOtp';
 import { useFormik } from 'formik';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -19,7 +20,9 @@ import { useEffect, useState } from 'react';
 import { Key } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import { useResetPassword } from '../../../api/hooks/useAuth';
+import {
+  useResetPassword
+} from '../../../api/hooks/useAuth';
 
 export default function ResetPassword() {
   const { formatMessage } = useIntl();
@@ -84,27 +87,31 @@ export default function ResetPassword() {
     }
   };
 
-  const [countdown, setCountdown] = useState(60);
-  const [isResendingOtp, setIsResendingOtp] = useState(false);
+  const [countdown, setCountdown] = useState(60 * 5);
   const [isCountingDown, setIsCountingDown] = useState(false);
-  function resendOtp() {
-    //TODO: CALL API TO RESEND OTP with OTPUsage.RESET_PASSWORD
-    setIsResendingOtp(true);
-    setTimeout(() => {
-      setIsResendingOtp(false);
-      setCountdown(60);
-      setIsCountingDown(true);
-      const interval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev === 0) {
-            clearInterval(interval);
-            setIsCountingDown(false);
-            return 60;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }, 3000);
+
+  const { mutate: resendOTP, isPending: isResendingOtp } = useResendOTP();
+  function resendOtp(otpId: string) {
+    resendOTP(
+      { otp_id: otpId },
+      {
+        onSuccess(otp) {
+          const countdown = new Date(otp.expires_at).getTime() - Date.now();
+          setCountdown(countdown);
+          setIsCountingDown(true);
+          const interval = setInterval(() => {
+            setCountdown((prev) => {
+              if (prev === 0) {
+                clearInterval(interval);
+                setIsCountingDown(false);
+                return countdown;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        },
+      }
+    );
   }
 
   return (
@@ -138,9 +145,9 @@ export default function ResetPassword() {
             }}
           >
             <FormLabel htmlFor="otp">{formatMessage({ id: 'otp' })}</FormLabel>
-            {!isSubmitting && (
+            {!isSubmitting && otpId && (
               <Button
-                onClick={resendOtp}
+                onClick={() => resendOtp(otpId)}
                 variant="text"
                 size="small"
                 disabled={isResendingOtp || isCountingDown}

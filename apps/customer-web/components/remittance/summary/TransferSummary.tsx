@@ -96,8 +96,8 @@ export default function TransferSummary({
           if (!otp) setIsConfirmTransactionOtpOpen(false);
           else submitTransfer(otp);
         }}
+        otpId={transferOtpId}
         isSubmitting={isInitiatingRemittance}
-        otpUsage={OTPUsage.TRANSFER}
         title={formatMessage({ id: 'confirmTransaction' })}
         description={formatMessage({ id: 'confirmTransactionDescription' })}
         confirmText={formatMessage({ id: 'confirm' })}

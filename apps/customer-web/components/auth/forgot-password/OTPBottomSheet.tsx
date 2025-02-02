@@ -15,14 +15,14 @@ import { useState } from 'react';
 import { Key } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import { OTPUsage } from '../../../api/types';
+import { useResendOTP } from '../../../api/hooks/useOtp';
 import BottomSheet from '../../shared/BottomSheet';
 
 interface OTPBottomSheetProps {
   isOpen: boolean;
   closeBottomSheet: (isOtpValid?: string) => void;
-  otpUsage: OTPUsage;
   title?: string;
+  otpId?: string;
   description?: string;
   confirmText?: string;
   isSubmitting?: boolean;
@@ -32,7 +32,7 @@ export default function OTPBottomSheet({
   isOpen,
   closeBottomSheet,
   title,
-  otpUsage,
+  otpId,
   description,
   confirmText,
   isSubmitting,
@@ -61,26 +61,30 @@ export default function OTPBottomSheet({
   const { errors, touched } = formik;
 
   const [countdown, setCountdown] = useState(60);
-  const [isResendingOtp, setIsResendingOtp] = useState(false);
   const [isCountingDown, setIsCountingDown] = useState(false);
-  function resendOtp() {
-    //TODO: CALL API TO RESEND OTP with otpUsage
-    setIsResendingOtp(true);
-    setTimeout(() => {
-      setIsResendingOtp(false);
-      setCountdown(60);
-      setIsCountingDown(true);
-      const interval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev === 0) {
-            clearInterval(interval);
-            setIsCountingDown(false);
-            return 60;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }, 3000);
+
+  const { mutate: resendOTP, isPending: isResendingOtp } = useResendOTP();
+  function resendOtp(otpId: string) {
+    resendOTP(
+      { otp_id: otpId },
+      {
+        onSuccess(otp) {
+          const countdown = new Date(otp.expires_at).getTime() - Date.now();
+          setCountdown(countdown);
+          setIsCountingDown(true);
+          const interval = setInterval(() => {
+            setCountdown((prev) => {
+              if (prev === 0) {
+                clearInterval(interval);
+                setIsCountingDown(false);
+                return countdown;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        },
+      }
+    );
   }
 
   return (
@@ -121,9 +125,9 @@ export default function OTPBottomSheet({
             }}
           >
             <FormLabel htmlFor="otp">{formatMessage({ id: 'otp' })}</FormLabel>
-            {!isSubmitting && (
+            {!isSubmitting && otpId && (
               <Button
-                onClick={resendOtp}
+                onClick={() => resendOtp(otpId)}
                 variant="text"
                 size="small"
                 disabled={isResendingOtp || isCountingDown}

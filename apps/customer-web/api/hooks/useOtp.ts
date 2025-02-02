@@ -15,3 +15,9 @@ export const useRequestOtp = () =>
     mutationKey: ['requestOtp'],
     mutationFn: (payload) => otpService.requestOtp(payload),
   });
+
+export const useResendOTP = () =>
+  useMutation<OTPEntity, Error, { otp_id: string }>({
+    mutationKey: ['resendOTP'],
+    mutationFn: (payload) => otpService.resendOTP(payload.otp_id),
+  });

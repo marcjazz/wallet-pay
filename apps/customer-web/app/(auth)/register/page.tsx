@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useSignUp, useVerifyEmail } from '../../../api/hooks/useAuth';
-import { Country, Gender, OTPUsage } from '../../../api/types/EnumTypes';
+import { Country, Gender } from '../../../api/types/EnumTypes';
 import OTPBottomSheet from '../../../components/auth/forgot-password/OTPBottomSheet';
 import RegisterPartOne from '../../../components/auth/register/RegisterPartOne';
 import RegisterPartTwo from '../../../components/auth/register/RegisterPartTwo';
@@ -70,6 +70,7 @@ export default function Register() {
   const [isConfirmEmailBottomSheetOpen, setIsConfirmEmailBottomSheetOpen] =
     useState(false);
 
+  const [otpId, setOtpId] = useState<string>();
   function submitRegister(data: SecurityInfo) {
     if (!personalInfo) return;
     //TODO: the accept terms and conditions should be added to payload
@@ -87,7 +88,10 @@ export default function Register() {
         preferred_language: 'EN_US',
       },
       {
-        onSuccess: (data) => setIsConfirmEmailBottomSheetOpen(true),
+        onSuccess: (data) => {
+          setOtpId(data.otp_id);
+          setIsConfirmEmailBottomSheetOpen(true);
+        },
         //TODO: USE alert in case of error. will be replaced with proper notifications later
         onError: (error) => alert(error.message),
       }
@@ -129,9 +133,9 @@ export default function Register() {
   return (
     <>
       <OTPBottomSheet
+        otpId={otpId}
         isOpen={isConfirmEmailBottomSheetOpen}
         isSubmitting={isVerifyingEmail}
-        otpUsage={OTPUsage.VERIFY_EMAIL}
         closeBottomSheet={submitOTP}
         confirmText={formatMessage({ id: 'confirmEmail' })}
         description={formatMessage({ id: 'confirmEmailDescription' })}

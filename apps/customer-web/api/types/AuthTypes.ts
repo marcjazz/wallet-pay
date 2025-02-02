@@ -37,6 +37,8 @@ export interface AccessTokenResponse {
   issued_at: number;
   /** Token type, always `Bearer`. */
   token_type: 'Bearer';
+  /** One time password identifier for unverified accounts */
+  otp_id?: string;
 }
 
 export interface LogoutResponse {
