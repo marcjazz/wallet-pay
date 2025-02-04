@@ -28,9 +28,9 @@ RUN rm -r ./apps/wallet-api/src/prisma/db
 COPY ./apps/wallet-api/src/prisma ./dist/apps/wallet-api
 
 # #DELETE SOURCE CODE FROM CONTAINER
-RUN rm -r ./apps
+# RUN rm -r ./apps
 RUN rm nx.json
-RUN rm package.json
+# RUN rm package.json
 RUN rm package-lock.json
 RUN rm tsconfig.base.json
 RUN rm -r ./prisma
