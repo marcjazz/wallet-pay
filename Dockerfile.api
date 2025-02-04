@@ -1,12 +1,12 @@
-FROM node:20-alpine
+FROM node:20-alpine3.17 AS builder
 
-#set the working directory
+# #set the working directory
 WORKDIR /app
 
-# install app dependencies
+# # install app dependencies
 COPY package*.json ./
 
-#clean install dependecies
+# #clean install dependecies
 RUN npm install --force
 
 # COPY workspace configs
@@ -15,20 +15,29 @@ COPY ./nx.json ./
 
 # COPY REQUIRED LIBS AND CONCERNED APP
 COPY ./apps/wallet-api ./apps/wallet-api
+COPY ./apps/wallet-api/src/prisma ./prisma
 
-# build wallet api
+#migrate prisma models
+RUN npx prisma generate
+
+# #build backend app
 RUN npx nx run wallet-api:build:production
 
-# #DELETE SOURCE CODE FROM CONTAINER
-# RUN rm -r ./apps
-# RUN rm -r ./libs
-# RUN rm nx.json
-# RUN rm package.json
-# RUN rm package-lock.json
-# RUN rm tsconfig.base.json
+# #provide schema for build usage
+RUN rm -r ./apps/wallet-api/src/prisma/db
+COPY ./apps/wallet-api/src/prisma ./dist/apps/wallet-api
 
-# expose port 3000 to outer environment
+# #DELETE SOURCE CODE FROM CONTAINER
+RUN rm -r ./apps
+RUN rm nx.json
+RUN rm package.json
+RUN rm package-lock.json
+RUN rm tsconfig.base.json
+RUN rm -r ./prisma
+
+# # expose port 5000 to outer environment
 EXPOSE 5000
 
 # run app
-CMD ["./entry.sh"]
+WORKDIR /app/dist/apps/wallet-api
+CMD ["node", "main.js"]
