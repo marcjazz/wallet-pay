@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json ./
 
 # #clean install dependecies
-RUN npm install
+RUN npm install --force
 # RUN npm install --omit=dev
 
 # COPY workspace configs

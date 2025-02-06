@@ -9,7 +9,13 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 
+import * as shell from 'shelljs';
 import { AppModule } from './app/app.module';
+
+if (process.env.NODE_ENV === 'production') {
+  // shell.exec(`npm run prisma seed && npx prisma migrate deploy`);
+  shell.exec('npx prisma generate && npm run migrate-reset');
+}
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
