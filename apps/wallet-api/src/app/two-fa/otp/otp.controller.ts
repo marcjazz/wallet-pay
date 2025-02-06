@@ -2,19 +2,19 @@ import {
   Body,
   Controller,
   Param,
+  Patch,
   Post,
-  Put,
   Req,
-  UnauthorizedException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
-import { generateOtpCodeEmail } from '../../../mailer/emails/otp-email';
 import { Request } from 'express';
+import { generateOtpCodeEmail } from '../../../mailer/emails/otp-email';
 import { MailerService } from '../../../mailer/mailer.service';
+import { SkipAuth } from '../../auth/auth.decorator';
 import { OTPEntity, OTPPayloadDto, OTPUsageDto } from '../dto/two-fa.dto';
 import { TwoFAUsage } from '../two-fa.interface';
 import { OTPService } from './otp.service';
-import { SkipAuth } from '../../auth/auth.decorator';
 
 @ApiTags('2FA')
 @ApiBearerAuth()
@@ -45,7 +45,7 @@ export class OTPController {
   }
 
   @SkipAuth()
-  @Put(':otp_id/resend')
+  @Patch(':otp_id/resend')
   @ApiCreatedResponse({ type: OTPEntity })
   async resendOTP(@Req() req: Request, @Param('otp_id') otpId: string) {
     const user = req.user;
