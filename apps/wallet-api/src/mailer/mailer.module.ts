@@ -36,6 +36,11 @@ import { MailerService } from './mailer.service';
           secure,
           port: secure ? 465 : 587,
           auth: { user, pass },
+          requireTLS: true,
+          tls: {
+            ciphers: 'SSLv3',
+          },
+          debug: true,
         });
 
         transporter
