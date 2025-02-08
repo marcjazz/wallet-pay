@@ -26,19 +26,20 @@ import { MailerService } from './mailer.service';
     {
       provide: mailerConstants.TRANSPOTER,
       useFactory: async (configService: ConfigService) => {
-        const host = configService.get<string>('EMAIL_HOST');
-        const pass = configService.get<string>('EMAIL_PASS');
+        const host = configService.get<string>('SMTP_HOST');
+        const port = configService.get<number>('SMTP_PORT');
+        const pass = configService.get<string>('APP_EMAIL_PASS');
         const user = configService.get<string>('APP_EMAIL');
-        const secure = configService.get<string>('NODE_ENV') === 'production';
 
         const transporter = createTransport({
           host,
-          secure,
-          port: secure ? 465 : 587,
+          port,
+          secure: false,
           auth: { user, pass },
           requireTLS: true,
           tls: {
             ciphers: 'SSLv3',
+            rejectUnauthorized: false,
           },
           debug: true,
         });

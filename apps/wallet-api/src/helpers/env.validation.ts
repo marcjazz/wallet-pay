@@ -4,14 +4,13 @@ import {
   IsEnum,
   IsFQDN,
   IsHexadecimal,
-  IsIP,
   IsJWT,
   IsNumber,
   IsPort,
   IsString,
   IsStrongPassword,
   IsUrl,
-  validateSync,
+  validateSync
 } from 'class-validator';
 
 enum Environment {
@@ -76,10 +75,13 @@ class EnvironmentVariables {
   CYBRID_WEBHOOK_SIGNING_KEY: string;
 
   @IsFQDN()
-  EMAIL_HOST: string;
+  SMTP_HOST: string;
+
+  @IsPort()
+  SMTP_PORT: string;
 
   @IsString()
-  EMAIL_PASS: string;
+  APP_EMAIL_PASS: string;
 
   @IsEmail({ allow_display_name: true })
   APP_EMAIL: string;
