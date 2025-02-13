@@ -226,7 +226,16 @@ export default function MainCard() {
                   verifyAccount(
                     { account_type: AccountType.FIAT },
                     {
-                      onSuccess: () => refetchAccounts(),
+                      onSuccess: (data) => {
+                        if (data.persona_hosted_link) {
+                          window.open(
+                            data.persona_hosted_link,
+                            'Personna KYC',
+                            'popup'
+                          );
+                        }
+                        refetchAccounts();
+                      },
                       // TODO: USE alert in case of error. will be replaced with proper notifications later
                       onError: (error) => alert(error.message),
                     }

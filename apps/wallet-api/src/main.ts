@@ -38,7 +38,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   // swagger setup
-  if (process.env.NODE_ENV !== 'production') {
+  {
     const config = new DocumentBuilder()
       .setTitle('XAFPAY APIs')
       .setDescription('Detailed description of XAFPAY internal APIs.')
