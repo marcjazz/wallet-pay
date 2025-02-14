@@ -25,7 +25,9 @@ export class CybridSubscriptionsGuard implements CanActivate {
 
     const ALGORITHM = 'sha256';
     const SIGNATURE_HEADER = 'X-Cybrid-Signature';
-    const CYBRID_WEBHOOK_SIGNING_KEY = this.configService.get<string>('CYBRID_WEBHOOK_SIGNING_KEY');
+    const CYBRID_WEBHOOK_SIGNING_KEY = this.configService.get<string>(
+      'CYBRID_WEBHOOK_SIGNING_KEY'
+    );
 
     if (!CYBRID_WEBHOOK_SIGNING_KEY || !request.rawBody) {
       this.logger.error(
@@ -64,8 +66,10 @@ export class CybridSubscriptionsGuard implements CanActivate {
         !errors.length &&
         eventObject.organization_guid ===
           this.configService.get('CYBRID_ORGANIZATION_GUID') &&
-        eventObject.sandbox ===
-          (this.configService.get('NODE_ENV') !== 'production')
+        eventObject.environment ===
+          (this.configService.get('NODE_ENV') !== 'production'
+            ? 'sandbox'
+            : 'production')
       );
     } catch (error) {
       this.logger.error(`Invalid subscription event object: ${error.message}`);

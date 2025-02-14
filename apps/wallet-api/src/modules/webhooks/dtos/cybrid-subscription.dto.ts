@@ -21,7 +21,7 @@ export class CybridSubscriptionEventObjectDto {
 
   @IsBoolean()
   @ApiProperty()
-  sandbox: boolean;
+  environment: 'sandbox' | 'production';
 
   constructor(props: CybridSubscriptionEventObjectDto) {
     Object.assign(this, props);
