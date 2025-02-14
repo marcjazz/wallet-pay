@@ -1,6 +1,6 @@
-import { IsBoolean, IsEnum, IsString } from 'class-validator';
-import { CybridSubcriptionEvents } from '../../../types/cybrid/enums';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsString } from 'class-validator';
+import { CybridSubcriptionEvents } from '../../../types/cybrid/enums';
 
 export class CybridSubscriptionEventObjectDto {
   @IsString()
@@ -19,7 +19,7 @@ export class CybridSubscriptionEventObjectDto {
   @ApiProperty()
   object_guid: string;
 
-  @IsBoolean()
+  @IsString()
   @ApiProperty()
   environment: 'sandbox' | 'production';
 
