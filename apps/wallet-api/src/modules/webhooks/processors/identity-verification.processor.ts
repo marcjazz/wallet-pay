@@ -23,7 +23,7 @@ export class IdentityVerificationProcessor {
     const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
 
     this.logger.log(
-      `Processing (event: ${eventType}, Guid: ${guid}) from cybrid...`
+      `Processing (event: ${eventType}, Guid: ${guid}, objectGuid: ${objectGuid}) from cybrid...`
     );
 
     const customer = await this.prismaService.cybridCustomer.findFirst({
@@ -63,7 +63,7 @@ export class IdentityVerificationProcessor {
 
     if (!customer) {
       this.logger.debug(
-        `No customer found to process with ${eventType} event. Guid: ${guid}`
+        `No customer found to process for ${eventType} event. Guid: ${guid}, objectGuid: ${objectGuid}`
       );
       return;
     }

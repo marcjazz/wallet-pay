@@ -71,12 +71,13 @@ export class AuthService {
     { password, country, ...payload }: SignUpDto,
     createdBy?: string
   ): Promise<Express.User> {
-    const { fiatAccount, cryptoAccount, customer } =
-      await this.cybridService.createCustomer('USD');
     const user = await this.prismaService.person.findUnique({
       where: { email: payload.email },
     });
     if (user) throw new ConflictException('Email address already taken!');
+
+    const { fiatAccount, cryptoAccount, customer } =
+      await this.cybridService.createCustomer('USD');
 
     const {
       PersonHasRoles: [{ is_active, person_has_role_id }],
