@@ -69,7 +69,6 @@ export default function RegisterPartTwo({
     enableReinitialize: true,
     onSubmit: (values) => {
       handleNext(values);
-      console.log(values);
     },
   });
 

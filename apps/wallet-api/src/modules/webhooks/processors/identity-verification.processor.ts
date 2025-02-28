@@ -68,8 +68,6 @@ export class IdentityVerificationProcessor {
       return;
     }
 
-    console.log(customer);
-
     const {
       Person: {
         Receivers: [counterparty],

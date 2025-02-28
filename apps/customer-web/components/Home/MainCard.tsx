@@ -227,6 +227,7 @@ export default function MainCard() {
                     { account_type: AccountType.FIAT },
                     {
                       onSuccess: (data) => {
+                        console.log(data);
                         if (data.persona_hosted_link) {
                           window.open(
                             data.persona_hosted_link,
@@ -241,14 +242,7 @@ export default function MainCard() {
                     }
                   )
                 }
-                disabled={
-                  (activeAccount.verification_status &&
-                    activeAccount.verification_status !==
-                      VerificationStatus.EXPIRED &&
-                    activeAccount.verification_status !==
-                      VerificationStatus.FAILED) ||
-                  isVerifyingAccount
-                }
+                disabled={isVerifyingAccount}
                 endIcon={
                   isVerifyingAccount && (
                     <CircularProgress size={20} thickness={23} />

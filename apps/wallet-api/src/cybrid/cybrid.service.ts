@@ -35,7 +35,7 @@ import {
   TransfersBankApi,
   WorkflowBankModel,
   WorkflowsBankApi,
-  WorkflowWithDetailsBankModel
+  WorkflowWithDetailsBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
 import { Injectable, Logger } from '@nestjs/common';
 import { CybridSupportedCurrency } from '@prisma/client';
