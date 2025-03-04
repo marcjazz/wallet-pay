@@ -1,17 +1,10 @@
 services:
   xafpay_api:
     build:
-      dockerfile: ./Dockerfile.api
       context: .
-    restart: always
-    # image: node:20-alpine3.17 # Use the Node.js image, or build from your own Dockerfile
-    # container_name: xafpay_api
-    # working_dir: /app
-    # volumes:
-    #   - .:/app
-    #   - /app/node_modules # Ensures node_modules are accessible inside the container
-    # # command: sh -c "npm install --force && npx nx serve wallet-api"
-    # command: sh -c "npm install --force && npx prisma generate && npm run migrate-reset && npx nx serve wallet-api"
+      dockerfile: ./Dockerfile.api
+    restart: unless-stopped
+    image: ghcr.io/xafpay/xafpay_api:latest
     env_file:
       - .env
     depends_on:
@@ -39,9 +32,7 @@ services:
     build:
       dockerfile: ./Dockerfile.app
       context: .
-    restart: always
-    depends_on:
-      - xafpay_api
+    restart: unless-stopped
     ports:
       - '3000:3000'
 

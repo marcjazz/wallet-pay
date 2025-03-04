@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Write the SSH private key to a file
+echo "$SSH_PRIVATE_KEY" >key.pem
+
+# Set correct permissions for the SSH key file
+chmod 600 key.pem
+
+# SSH into the server and deploy the application
+echo "Starting deployment on the server..."
+
+# Copy docker-compose.yml to the server
+echo "Copying docker-compose.yml to the server..."
+scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
+
+# SSH into the server and execute docker-compose commands
+echo "Running docker-compose commands on the server..."
+ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
+  # Change to the target directory where docker-compose.yml is located
+  mkdir -p /home/xafpay/wallet
+  cd /home/xafpay/wallet
+
+  # Source the .env file to export variables
+  echo "$ENV_FILE" > .env
+  chmod 600 .env
+  echo "Environment variables updated!"
+
+  # login to gcr.io
+  echo "$REGISTRY_PASSWORD" | docker login "$CONTAINER_REGISTRY" -u "$REGISTRY_USERNAME" --password-stdin 
+  
+  # Pull the latest Docker images
+  docker compose pull
+
+  # Start the containers in detached mode
+  docker compose up -d --build
+EOF
+
+# Capture the exit status of the SSH command
+EXIT_STATUS=$?
+
+# Check if the remote script executed successfully
+if [ $EXIT_STATUS -ne 0 ]; then
+  echo "Deployment failed. Exiting."
+  exit $EXIT_STATUS
+fi
+
+echo "Deployment completed!"

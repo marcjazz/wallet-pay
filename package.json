@@ -2,11 +2,8 @@
   "name": "@wallet/source",
   "version": "0.0.0",
   "license": "MIT",
-  "prisma": {
-    "seed": "npx tsx apps/wallet-api/src/prisma/seed/seed.ts",
-    "schema": "apps/wallet-api/src/prisma/schema.prisma"
-  },
   "scripts": {
+    "start:prod": "prisma migrate deploy && node /app/dist/main.js",
     "migrate": "prisma migrate dev",
     "migrate:test": "npx dotenv -e .env.test -- prisma migrate dev",
     "migrate-reset": "npx dotenv -e .env.test -- npx prisma migrate reset --force"
@@ -90,7 +87,7 @@
     "@snaplet/seed": "^0.98.0",
     "@svgr/webpack": "^8.0.1",
     "@swc-node/register": "~1.8.0",
-    "@swc/core": "~1.3.85",
+    "@swc/core": "1.11.5",
     "@swc/helpers": "~0.5.2",
     "@tanstack/react-query": "^5.61.0",
     "@testing-library/react": "14.0.0",

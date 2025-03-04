@@ -1,4 +1,5 @@
-FROM node:20-alpine3.17 AS builder
+# syntax=docker.io/docker/dockerfile:1
+FROM node:23-alpine AS deps
 
 # #set the working directory
 WORKDIR /app
@@ -6,38 +7,42 @@ WORKDIR /app
 # # install app dependencies
 COPY package*.json ./
 
-# #clean install dependecies
-RUN npm install --force
+# clean install dependecies
+RUN --mount=type=cache,target=/app/node_modules \ 
+    npm ci
 
-# COPY workspace configs
-COPY ./tsconfig.base.json ./
-COPY ./nx.json ./
+FROM deps AS builder
+WORKDIR /app
 
-# COPY REQUIRED LIBS AND CONCERNED APP
+RUN --mount=type=cache,target=/app/node_modules \
+    --mount=type=bind,src=./prisma,target=/app/prisma \
+    cp -R ./node_modules /app/node_modules \
+    cp -R ./prisma /app/prisma
+
+COPY --from=deps /app/package*.json ./
+COPY --from=deps /app/node_modules ./node_modules
 COPY ./apps/wallet-api ./apps/wallet-api
-COPY ./apps/wallet-api/src/prisma ./prisma
+COPY ./prisma ./prisma
 
-#migrate prisma models
+# Migrate prisma models
 RUN npx prisma generate
 
-# #build backend app
-RUN npx nx run wallet-api:build:production
+# Build backend app
+RUN npx nx build wallet-api
 
-# #provide schema for build usage
-RUN rm -r ./apps/wallet-api/src/prisma/db
-COPY ./apps/wallet-api/src/prisma ./dist/apps/wallet-api
+FROM builder AS runner
+WORKDIR /app
 
-# #DELETE SOURCE CODE FROM CONTAINER
-# RUN rm -r ./apps
-RUN rm nx.json
-# RUN rm package.json
-RUN rm package-lock.json
-RUN rm tsconfig.base.json
-RUN rm -r ./prisma
+# Use a non-root user for securityRUN addgroup -S nodejs && adduser -S nestjs -G nodejs
+USER nestjs
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist/apps/wallet-api ./dist
+COPY --from=builder /app/apps/wallet-api/src/prisma ./dist/prisma
 
 # # expose port 5000 to outer environment
 EXPOSE 5000
 
 # run app
-WORKDIR /app/dist/apps/wallet-api
-CMD ["node", "main.js"]
+CMD ["npm", "run", "start:prod"]
