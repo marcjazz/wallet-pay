@@ -27,14 +27,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Image
+      - name: Build and Push Frontend Image
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: Dockerfile.api
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.run_number }}
+            ghcr.io/${{ github.repository }}_fe:latest
+            ghcr.io/${{ github.repository }}_fe:${{ github.run_number }}
+            
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile.api
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}_api:latest
+            ghcr.io/${{ github.repository }}_api:${{ github.run_number }}
 
   deploy:
     runs-on: ubuntu-22.04
