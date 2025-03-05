@@ -3,10 +3,9 @@ name: CD
 on:
   push:
     branches:
-      - master
 
 jobs:
-  deploy:
+  build-push:
     runs-on: ubuntu-22.04
 
     permissions:
@@ -38,21 +37,18 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ vars.CONTAINER_REGISTRY }}/${{ github.repository }}:latest
-            ${{ vars.CONTAINER_REGISTRY }}/${{ github.repository }}:${{ github.run_number }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.run_number }}
 
-      - name: Deploy on server
-        env:
-          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: |
-          if [ -f deploy.sh ]; then
-            chmod +x deploy.sh;
-            ./deploy.sh
-          else echo "Deploy script not found." && exit 1;
-          fi
+    deploy:
+      runs-on: ubuntu-22.04
+      depens-on: build-push
+
+      steps:
+        - name: Deploy on server
+          env:
+            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            SERVER_IP: ${{ secrets.SERVER_IP }}
+            SERVER_USER: ${{ secrets.SERVER_USER }}
+            ENV_FILE: ${{ secrets.ENV_FILE }}
+          run: . ./deploy.sh
