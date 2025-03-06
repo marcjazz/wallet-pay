@@ -1,6 +1,6 @@
 import { PrismaClient, SupportedLocalCurrency } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcrypt';
-import { generateAccountNumber } from '../../helpers/otp-generator';
+import { generateAccountNumber } from '@xafpay/api/helpers/otp-generator';
 const prisma = new PrismaClient();
 
 main()

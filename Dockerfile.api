@@ -39,7 +39,7 @@ USER nestjs
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist/apps/wallet-api ./dist
-COPY --from=builder /app/apps/wallet-api/src/prisma ./dist/prisma
+COPY --from=builder /app/prisma ./dist/prisma
 
 # # expose port 5000 to outer environment
 EXPOSE 5000
