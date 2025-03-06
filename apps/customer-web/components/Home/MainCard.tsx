@@ -256,7 +256,10 @@ export default function MainCard() {
                       VerificationStatus.FAILED,
                       VerificationStatus.EXPIRED,
                     ].includes(activeAccount.verification_status)
-                      ? activeAccount.verification_status
+                      ? activeAccount.verification_status ===
+                        VerificationStatus.STORING
+                        ? 'Preparing...'
+                        : 'startNow'
                       : 'verifyNow',
                 })}
               </Button>

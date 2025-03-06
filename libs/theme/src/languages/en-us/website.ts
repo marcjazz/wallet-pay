@@ -224,4 +224,5 @@ export const website = {
   WEST: 'West',
   SOUTH: 'South',
   SOUTH_WEST: 'South West',
+  startNow: "Start now"
 };
