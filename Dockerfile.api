@@ -9,7 +9,7 @@ COPY package*.json ./
 
 # clean install dependecies
 RUN --mount=type=cache,target=/app/node_modules \ 
-    npm ci
+    npm ci --verbose
 
 FROM deps AS builder
 WORKDIR /app
