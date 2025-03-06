@@ -16,16 +16,19 @@ RUN npm ci
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+
+# COPY workspace configs
+COPY ./tsconfig.base.json ./
+COPY ./nx.json ./
+
+# COPY REQUIRED LIBS AND CONCERNED APP
+COPY /libs/theme ./libs/theme
+COPY ./apps/customer-web ./apps/customer-web
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# Checking on filesystem
-RUN ls -R -a
-
 RUN npx nx run customer-web:build:production
 
 # Production image, copy all the files and run next
