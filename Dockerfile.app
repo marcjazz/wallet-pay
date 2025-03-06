@@ -18,6 +18,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 # COPY workspace configs
+COPY package*.json ./
 COPY ./tsconfig.base.json ./
 COPY ./nx.json ./
 
