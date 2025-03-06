@@ -1,4 +1,4 @@
-FROM node:current-apline3.21 AS base
+FROM node:current-alpine3.21 AS base
 
 # Install dependencies only when needed
 FROM base AS deps
