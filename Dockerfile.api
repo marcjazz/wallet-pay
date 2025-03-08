@@ -25,10 +25,9 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     --mount=type=bind,src=./prisma,target=/app/prisma \ 
     --mount=type=bind,src=./apps/wallet-api,target=/app/apps/wallet-api \ 
     --mount=type=cache,target=/app/node_modules \ 
-    --mount=type=cache,target=/app/dist \ 
-    cp -R /app/prisma ./prisma \
+    --mount=type=cache,target=/app/dist \
     # Generate prisma client
-    && npx prisma generate \
+    npx prisma generate \
     # Disable nx cloud & Build backend app
     && NX_CLOUD=0 npx nx run wallet-api:build:production
 
@@ -40,9 +39,9 @@ ENV PORT=5000
 # Use a non-root user for security
 RUN addgroup -S -g 1001 nodejs && adduser -S nestjs -G nodejs -u 1001
 
+COPY --chown=nestjs:nodejs ./prisma ./prisma
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist/apps/wallet-api ./
-COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 
 USER nestjs
 
@@ -50,4 +49,4 @@ USER nestjs
 EXPOSE 5000
 
 # run app
-CMD prisma migrate deploy && node /app/main.js
+CMD npx prisma migrate deploy && node /app/main.js
