@@ -29,8 +29,9 @@ jobs:
       - name: Build & Publish ${{ matrix.service.name }}
         uses: ./.github/actions/build
         with:
-          dockerfile: ${{ matrix.service.dockerfile }}
           publish: true
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: ${{ matrix.service.dockerfile }}
           docker-image-tags: |
             ghcr.io/${{ github.repository }}${{ matrix.service.image_suffix }}:latest
             ghcr.io/${{ github.repository }}${{ matrix.service.image_suffix }}:${{ github.run_number }}

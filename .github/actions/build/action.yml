@@ -11,6 +11,9 @@ inputs:
   docker-image-tags:
     required: true
     description: List of tags
+  gh_token:
+    required: true
+    description: "Github token or PAT with package:write permissions." 
 
 runs:
   using: composite
@@ -23,7 +26,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.gh_token }}
 
     - name: Build and Push Backend Image
       uses: docker/build-push-action@v4
