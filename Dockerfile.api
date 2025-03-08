@@ -23,6 +23,8 @@ FROM base AS builder
 
 COPY --from=deps /app/deps ./node_modules
 
+RUN ls -al
+
 # COPY workspace configs
 RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
@@ -36,7 +38,7 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     npx prisma generate \
     # Disable nx cloud & Build backend app
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
-    && cp -R /app/dist/wallet-api /app/dist \
+    && cp -R /app/dist /app/dist \
     && cp -R prisma /app/prisma
 
 RUN ls -al
