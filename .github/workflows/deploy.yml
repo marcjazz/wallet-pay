@@ -55,4 +55,4 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: ./deploy.sh ${{ matrix.service.name }}
+        run: . ./deploy.sh ${{ matrix.service.name }}
