@@ -10,58 +10,48 @@ permissions:
   packages: write # Allows publishing packages to GHCR
 
 jobs:
-  customer-web:
+  build:
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        service:
+          - {
+              name: customer-web,
+              dockerfile: Dockerfile.app,
+              image_suffix: _fe,
+            }
+          - { name: wallet-api, dockerfile: Dockerfile.api, image_suffix: _api }
 
     steps:
-      - name: List Repository Files
-        run: ls -la # Your repo files are already here!
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Checkout customer-web
-        uses: ./.github/actions/checkout
-
-      - name: Build and Push Frontend Image
-        uses: docker/build-push-action@v4
+      - name: Build & Publish ${{ matrix.service.name }}
+        uses: ./.github/actions/build
         with:
-          context: .
-          file: Dockerfile.app
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}_fe:latest
-            ghcr.io/${{ github.repository }}_fe:${{ github.run_number }}
+          dockerfile: ${{ matrix.service.dockerfile }}
+          publish: true
+          docker-image-tags: |
+            ghcr.io/${{ github.repository }}${{ matrix.service.image_suffix }}:latest
+            ghcr.io/${{ github.repository }}${{ matrix.service.image_suffix }}:${{ github.run_number }}
 
-      - name: Deploy on server
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: build
+    strategy:
+      matrix:
+        service:
+          - name: customer-web
+          - name: wallet-api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy ${{ matrix.service.name }}
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: . ./deploy.sh
-
-  wallet-api:
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: List Repository Files
-        run: ls -la # Your repo files are already here!
-
-      - name: Checkout wallet-api
-        uses: ./.github/actions/checkout
-
-      - name: Build and Push Backend Image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: Dockerfile.api
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}_api:latest
-            ghcr.io/${{ github.repository }}_api:${{ github.run_number }}
-
-      - name: Deploy on server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: . ./deploy.sh
+        run: ./deploy.sh ${{ matrix.service.name }}
