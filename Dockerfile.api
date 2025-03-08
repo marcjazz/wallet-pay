@@ -17,9 +17,6 @@ FROM deps AS builder
 
 COPY --from=deps /app/deps ./node_modules
 
-# disable nx cloud
-ENV NX_CLOUD=0
-
 # COPY workspace configs
 RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
@@ -29,8 +26,9 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     --mount=type=bind,src=./apps/wallet-api,target=/app/apps/wallet-api \ 
     --mount=type=cache,target=/app/node_modules \ 
     --mount=type=cache,target=/app/dist \ 
+    cp -R /app/prisma ./prisma \
     # Generate prisma client
-    npx prisma generate \
+    && npx prisma generate \
     # Disable nx cloud & Build backend app
     && NX_CLOUD=0 npx nx run wallet-api:build:production
 
