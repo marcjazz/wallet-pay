@@ -1,11 +1,17 @@
 # syntax=docker.io/docker/dockerfile:1
-FROM node:23-alpine AS deps
+FROM node:23-alpine AS base
+
+
+LABEL maintainer="Marco Kuidja <kuidjamarco@gmail.com>"
+LABEL org.opencontainers.image.description="NestJs backend for the XafPay Wallet"
 
 # #set the working directory
 WORKDIR /app
 
-COPY package*.json ./
+RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
+    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json
 
+FROM base AS deps
 # clean install dependecies
 RUN --mount=type=cache,target=/app/node_modules \ 
     --mount=type=bind,src=package.json,target=/app/package.json \ 
@@ -13,7 +19,7 @@ RUN --mount=type=cache,target=/app/node_modules \
     npm ci \
     && cp -R /app/node_modules /app/deps
 
-FROM deps AS builder
+FROM base AS builder
 
 COPY --from=deps /app/deps ./node_modules
 
@@ -29,11 +35,13 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     # Generate prisma client
     npx prisma generate \
     # Disable nx cloud & Build backend app
-    && NX_CLOUD=0 npx nx run wallet-api:build:production
+    && NX_CLOUD=0 npx nx run wallet-api:build:production \
+    && cp -R /app/dist/wallet-api /app/dist \
+    && cp -R prisma /app/prisma
 
 RUN ls -al
 
-FROM deps AS runner
+FROM base AS runner
 
 ENV NODE_ENV=production
 ENV PORT=5000
@@ -43,7 +51,7 @@ RUN addgroup -S -g 1001 nodejs && adduser -S nestjs -G nodejs -u 1001
 
 COPY --chown=nestjs:nodejs ./prisma ./prisma
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nestjs:nodejs ./dist/apps/wallet-api ./
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./
 
 USER nestjs
 
