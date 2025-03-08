@@ -33,12 +33,12 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     --mount=type=bind,src=./prisma,target=/app/prisma \ 
     --mount=type=bind,src=./apps/wallet-api,target=/app/apps/wallet-api \ 
     --mount=type=cache,target=/app/node_modules \ 
-    --mount=type=cache,target=/app/dist \
+    --mount=type=cache,target=/app/dist/apps/wallet-api \
     # Generate prisma client
     npx prisma generate \
     # Disable nx cloud & Build backend app
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
-    && cp -R /app/dist /app/dist \
+    && cp -R /app/dist/apps/wallet-api /app/dist \
     && cp -R prisma /app/prisma
 
 RUN ls -al
