@@ -17,6 +17,9 @@ FROM deps AS builder
 
 COPY --from=deps /app/deps ./node_modules
 
+# disable nx cloud
+ENV NX_CLOUD=1
+
 # COPY workspace configs
 RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
