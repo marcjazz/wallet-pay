@@ -25,8 +25,8 @@ ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
   chmod 600 .env
   echo "Environment variables updated!"
 
-  # Start the containers in detached mode
-  docker compose up -d --build
+  # Start and wait for containers to be in running mode
+  docker compose up --wait --build
 EOF
 
 # Capture the exit status of the SSH command

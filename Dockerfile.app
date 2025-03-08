@@ -33,7 +33,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build project
-RUN npx nx run customer-web:build:production
+RUN NX_CLOUD=1 npx nx run customer-web:build:production
 
 # Production image, copy all the files and run next
 FROM base AS runner
