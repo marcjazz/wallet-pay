@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start:prod": "prisma migrate deploy && node /app/dist/main.js",
     "migrate": "prisma migrate dev",
     "migrate:test": "npx dotenv -e .env.test -- prisma migrate dev",
     "migrate-reset": "npx dotenv -e .env.test -- npx prisma migrate reset --force"
