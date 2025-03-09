@@ -43,11 +43,7 @@ export class CurrenciesService {
     return currencies.map((currency) => new CurrencyEntity(currency));
   }
 
-  @Cron(
-    process.env.NODE_ENV === 'production'
-      ? CronExpression.EVERY_MINUTE
-      : CronExpression.EVERY_2_HOURS
-  )
+  @Cron(CronExpression.EVERY_6_HOURS)
   async syncCurrencies() {
     this.logger.log('Fetching currencies from fastforex.com...');
     try {
