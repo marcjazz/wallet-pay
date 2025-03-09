@@ -12,7 +12,7 @@ ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p /ho
 
 # Copy compose.yml to the server
 echo "Copying compose.yml to the server..."
-scp -i key.pem -o StrictHostKeyChecking=no compose.yml Dockerfile.* $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/compose.yml
+scp -i key.pem -o StrictHostKeyChecking=no compose.yml Dockerfile.* $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
 
 # SSH into the server and execute docker-compose commands
 echo "Starting deployment on the server..."
