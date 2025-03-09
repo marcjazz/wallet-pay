@@ -20,7 +20,8 @@ FROM deps AS builder
 COPY tsconfig.base.json nx.json ./prisma ./apps/wallet-api ./
 
 # Generate prisma client and build backend app
-RUN npx prisma generate \
+RUN --mount=type=cache,target=/app/node_modules \
+    npx prisma generate \
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
     && cp -R /app/dist/apps/wallet-api ./final-dist \
     # Install only wallet-api production dependencies
