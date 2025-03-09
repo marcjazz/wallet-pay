@@ -1,0 +1,43 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    image: ghcr.io/xafpay/wallet_api:latest
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - '5000:5000'
+
+  postgres:
+    image: postgres:alpine
+    container_name: xafpay_api_db
+    env_file:
+      - .env
+    volumes:
+      - xafpay_api_pgdata:/var/lib/postgresql/data # Persistent storage for PostgreSQL
+    ports:
+      - '5432:5432'
+
+  redis:
+    image: redis:7-alpine
+    # container_name: xafpay_api_cache
+    ports:
+      - '6379:6379'
+
+  app:
+    build:
+      dockerfile: Dockerfile.app
+      context: .
+    restart: unless-stopped
+    image: ghcr.io/xafpay/wallet_fe:latest
+    ports:
+      - '3000:3000'
+
+volumes:
+  xafpay_api_pgdata:
+    driver: local

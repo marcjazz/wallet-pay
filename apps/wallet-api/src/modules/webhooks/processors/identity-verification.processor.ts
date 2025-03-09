@@ -21,7 +21,7 @@ export class IdentityVerificationProcessor {
     job: Job<CybridSubscriptionEventObjectDto>
   ) {
     const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
-
+    this.logger.log(job.data)
     this.logger.log(
       `Processing (event: ${eventType}, Guid: ${guid}, objectGuid: ${objectGuid}) from cybrid...`
     );

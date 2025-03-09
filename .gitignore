@@ -46,8 +46,5 @@ Thumbs.db
 # Next.js
 .next
 
-# package locks
-/package-lock.json
-
 #keys
 *.pem

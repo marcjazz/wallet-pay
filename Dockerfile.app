@@ -1,16 +1,24 @@
-FROM node:18.19.1-alpine3.19 AS builder
+FROM node:20-alpine AS base
 
-# #set the working directory
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+# RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# # install app dependencies
-COPY package.json ./
+COPY package*.json ./
 
-# #clean install dependecies
-RUN npm install --force
-# RUN npm install --omit=dev
+# Install dependencies
+RUN npm ci --verbose
+
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 
 # COPY workspace configs
+COPY package*.json ./
 COPY ./tsconfig.base.json ./
 COPY ./nx.json ./
 
@@ -18,22 +26,40 @@ COPY ./nx.json ./
 COPY /libs/theme ./libs/theme
 COPY ./apps/customer-web ./apps/customer-web
 
-# # build Landing app
-RUN npx nx run customer-web:build:production
+ENV NODE_ENV=production
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# #DELETE SOURCE CODE FROM CONTAINER
-# RUN rm -r ./apps
-# RUN rm -r ./libs
-# RUN rm nx.json
-# RUN rm package.json
-# RUN rm package-lock.json
-# RUN rm tsconfig.base.json
+# Build project
+RUN NX_CLOUD=1 npx nx run customer-web:build:production
 
-# # expose port 3000 to outer environment
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+# Uncomment the following line in case you want to disable telemetry during runtime.
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/apps/customer-web/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/.next/static ./.next/static
+
+USER nextjs
+
 EXPOSE 3000
 
-# # run app
-WORKDIR /app/dist/apps/customer-web
-# RUN npm run build
+ENV PORT=3000
 
-CMD ["npm", "start"]
+# server.js is created by next build from the standalone output
+# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
+ENV HOSTNAME="0.0.0.0"
+CMD ["node", "server.js"]
