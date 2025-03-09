@@ -12,8 +12,8 @@ ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p /ho
 
 # Create .env file
 echo "$ENV_FILE" >.env
-echo "$REGISTRY_PASSWORD" >>.env
-echo "$REGISTRY_USERNAME" >>.env
+echo "REGISTRY_PASSWORD=$REGISTRY_PASSWORD" >>.env
+echo "REGISTRY_USERNAME=$REGISTRY_USERNAME" >>.env
 chmod 600 .env
 echo "Environment variables updated!"
 
