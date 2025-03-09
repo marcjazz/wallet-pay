@@ -8,7 +8,7 @@ chmod 600 key.pem
 
 # Copy docker-compose.yml to the server
 echo "Copying docker-compose.yml to the server..."
-scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
+scp -i key.pem -o StrictHostKeyChecking=no compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
 
 # SSH into the server and execute docker-compose commands
 echo "Starting deployment on the server..."
