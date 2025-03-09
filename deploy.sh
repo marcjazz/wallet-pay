@@ -8,12 +8,12 @@ chmod 600 key.pem
 
 # Copy docker-compose.yml to the server
 echo "Copying docker-compose.yml to the server..."
-scp -i key.pem -o StrictHostKeyChecking=no compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
+scp -i key.pem -o StrictHostKeyChecking=no compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/compose.yml
 
 # SSH into the server and execute docker-compose commands
 echo "Starting deployment on the server..."
 ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
-  # Change to the target directory where docker-compose.yml is located
+  # Change to the target directory where compose.yml is located
   mkdir -p /home/xafpay/wallet
   cd /home/xafpay/wallet
   

@@ -39,20 +39,15 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     needs: build
-    strategy:
-      matrix:
-        service:
-          - name: customer-web
-          - name: wallet-api
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Deploy ${{ matrix.service.name }}
+      - name: Deploy Web & Api 
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: . ./deploy.sh ${{ matrix.service.name }}
+        run: . ./deploy.sh
