@@ -38,6 +38,7 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     needs: build
+    if: github.ref == 'refs/heads/master'
     permissions:
       contents: read # Allows reading repository content
       packages: read # Allows pull packages from GHCR
