@@ -1,43 +1,30 @@
 # syntax=docker.io/docker/dockerfile:1
 FROM node:23-alpine AS base
 
-
 LABEL maintainer="Marco Kuidja <kuidjamarco@gmail.com>"
 LABEL org.opencontainers.image.description="NestJs backend for the XafPay Wallet"
 
-# #set the working directory
+FROM base AS deps
+
+# Set the working directory
 WORKDIR /app
 
-RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
-    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json
+# Install dependencies
+RUN --mount=type=bind,src=package.json,target=/app/package.json \
+    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \
+    --mount=type=cache,target=/app/node_modules \
+    npm ci
 
-FROM base AS deps
-# clean install dependecies
-RUN --mount=type=cache,target=/app/node_modules \ 
-    --mount=type=bind,src=package.json,target=/app/package.json \ 
-    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
-    npm ci \
-    && cp -R /app/node_modules /app/deps
+FROM deps AS builder 
+# Copy workspace configs and source files
+COPY tsconfig.base.json nx.json ./prisma ./apps/wallet-api ./
 
-FROM base AS builder
-
-COPY --from=deps /app/deps ./node_modules
-
-# COPY workspace configs
-RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
-    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
-    --mount=type=bind,src=tsconfig.base.json,target=/app/tsconfig.base.json \ 
-    --mount=type=bind,src=nx.json,target=/app/nx.json \ 
-    --mount=type=bind,src=./prisma,target=/app/prisma \ 
-    --mount=type=bind,src=./apps/wallet-api,target=/app/apps/wallet-api \ 
-    --mount=type=cache,target=/app/node_modules \ 
-    --mount=type=cache,target=/app/dist \
-    # Generate prisma client
-    npx prisma generate \
-    # Disable nx cloud & Build backend app
+# Generate prisma client and build backend app
+RUN npx prisma generate \
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
     && cp -R /app/dist/apps/wallet-api ./final-dist \
-    && cp -R /app/prisma ./final-prisma
+    # Install only wallet-api production dependencies
+    && npm ci --omit=dev --prefix dist/apps/wallet-api/
 
 FROM base AS runner
 
@@ -47,14 +34,15 @@ ENV PORT=5000
 # Use a non-root user for security
 RUN addgroup -S -g 1001 nodejs && adduser -S nestjs -G nodejs -u 1001
 
-COPY --from=builder --chown=nestjs:nodejs /app/final-prisma ./prisma
+# Copy necessary files from builder stage
+COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/final-dist ./
 
 USER nestjs
 
-# # expose port 5000 to outer environment
+# Expose port 5000 to outer environment
 EXPOSE 5000
 
-# run app
+# Run app
 CMD npx prisma migrate deploy && node /app/main.js
