@@ -10,9 +10,16 @@ chmod 600 key.pem
 echo "Ensuring the target directory exists..."
 ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p /home/xafpay/wallet"
 
+# Create .env file
+echo "$ENV_FILE" >.env
+echo "$REGISTRY_PASSWORD" >>.env
+echo "$REGISTRY_USERNAME" >>.env
+chmod 600 .env
+echo "Environment variables updated!"
+
 # Copy compose.yml to the server
 echo "Copying compose.yml to the server..."
-scp -i key.pem -o StrictHostKeyChecking=no compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
+scp -i key.pem -o StrictHostKeyChecking=no compose.yml .env $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
 
 # SSH into the server and execute docker-compose commands
 echo "Starting deployment on the server..."
@@ -21,6 +28,7 @@ ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
   cd /home/xafpay/wallet
 
   # Login to the container registry
+  echo $REGISTRY_PASSWORD $REGISTRY_USERNAME
   echo "$REGISTRY_PASSWORD" | docker login ghcr.io -u "$REGISTRY_USERNAME" --password-stdin
   if [ \$? -ne 0 ]; then
     echo "GitHub container registry login failed!"
@@ -32,9 +40,7 @@ ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
   docker compose pull
 
   # Source the .env file to export variables
-  echo "$ENV_FILE" > .env
-  chmod 600 .env
-  echo "Environment variables updated!"
+  source .env
 
   # Start and wait for containers to be in running mode
   docker compose up --wait
