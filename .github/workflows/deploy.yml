@@ -5,13 +5,12 @@ on:
     branches:
       - '**'
 
-permissions:
-  contents: read # Allows reading repository content
-  packages: write # Allows publishing packages to GHCR
-
 jobs:
   build:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read # Allows reading repository content
+      packages: write # Allows publishing packages to GHCR
     strategy:
       matrix:
         service:
@@ -39,15 +38,20 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     needs: build
+    permissions:
+      contents: read # Allows reading repository content
+      packages: read # Allows pull packages from GHCR
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Deploy Web & Api 
+      - name: Deploy Web & Api
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           ENV_FILE: ${{ secrets.ENV_FILE }}
+          REGISTRY_USERNAME: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: . ./deploy.sh

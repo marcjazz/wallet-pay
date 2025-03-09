@@ -12,13 +12,21 @@ ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p /ho
 
 # Copy compose.yml to the server
 echo "Copying compose.yml to the server..."
-scp -i key.pem -o StrictHostKeyChecking=no compose.yml Dockerfile.* $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
+scp -i key.pem -o StrictHostKeyChecking=no compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
 
 # SSH into the server and execute docker-compose commands
 echo "Starting deployment on the server..."
 ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
   # Change to the target directory where compose.yml is located
   cd /home/xafpay/wallet
+
+  # Login to the container registry
+  echo "$REGISTRY_PASSWORD" | docker login ghcr.io -u "$REGISTRY_USERNAME" --password-stdin
+  if [ \$? -ne 0 ]; then
+    echo "GitHub container registry login failed!"
+    exit 1
+  fi
+  echo "Successfully logged in to the container registry."
 
   # Pull the latest Docker images
   docker compose pull

@@ -1,5 +1,5 @@
 services:
-  xafpay_api:
+  api:
     build:
       context: .
       dockerfile: Dockerfile.api
