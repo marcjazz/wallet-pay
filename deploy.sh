@@ -26,9 +26,11 @@ echo "Starting deployment on the server..."
 ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
   # Change to the target directory where compose.yml is located
   cd /home/xafpay/wallet
+  
+  # Source the .env file to export variables
+  source .env
 
   # Login to the container registry
-  echo $REGISTRY_PASSWORD $REGISTRY_USERNAME
   echo "$REGISTRY_PASSWORD" | docker login ghcr.io -u "$REGISTRY_USERNAME" --password-stdin
   if [ \$? -ne 0 ]; then
     echo "GitHub container registry login failed!"
@@ -38,9 +40,6 @@ ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
 
   # Pull the latest Docker images
   docker compose pull
-
-  # Source the .env file to export variables
-  source .env
 
   # Start and wait for containers to be in running mode
   docker compose up --wait
