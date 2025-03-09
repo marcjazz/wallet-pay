@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Write the SSH private key to a file
-echo "$SSH_PRIVATE_KEY" > key.pem
+echo "$SSH_PRIVATE_KEY" >key.pem
 
 # Set correct permissions for the SSH key file
 chmod 600 key.pem
@@ -10,9 +10,9 @@ chmod 600 key.pem
 echo "Ensuring the target directory exists..."
 ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p /home/xafpay/wallet"
 
-# Copy docker-compose.yml to the server
-echo "Copying docker-compose.yml to the server..."
-scp -i key.pem -o StrictHostKeyChecking=no compose.yml $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/compose.yml
+# Copy compose.yml to the server
+echo "Copying compose.yml to the server..."
+scp -i key.pem -o StrictHostKeyChecking=no compose.yml Dockerfile.* $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/compose.yml
 
 # SSH into the server and execute docker-compose commands
 echo "Starting deployment on the server..."
@@ -29,7 +29,7 @@ ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
   echo "Environment variables updated!"
 
   # Start and wait for containers to be in running mode
-  docker compose up --wait --build
+  docker compose up --wait
 EOF
 
 # Capture the exit status of the SSH command

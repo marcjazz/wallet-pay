@@ -2,7 +2,7 @@ services:
   xafpay_api:
     build:
       context: .
-      dockerfile: ./Dockerfile.api
+      dockerfile: Dockerfile.api
     restart: unless-stopped
     image: ghcr.io/xafpay/wallet_api:latest
     env_file:
@@ -31,7 +31,7 @@ services:
 
   app:
     build:
-      dockerfile: ./Dockerfile.app
+      dockerfile: Dockerfile.app
       context: .
     restart: unless-stopped
     image: ghcr.io/xafpay/wallet_fe:latest
