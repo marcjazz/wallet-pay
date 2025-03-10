@@ -20,9 +20,10 @@ FROM base AS builder
 # Copy workspace configs and source files
 COPY tsconfig.base.json nx.json ./
 COPY prisma ./prisma
+COPY package*.json ./
 COPY apps/wallet-api ./apps/wallet-api
 
-COPY --from=deps /app/deps /app/node_modules
+COPY --from=deps /app/deps ./node_modules
 
 # Generate prisma client and build backend app
 RUN npx prisma generate \
