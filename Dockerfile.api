@@ -22,6 +22,7 @@ COPY tsconfig.base.json nx.json ./
 COPY prisma ./prisma
 COPY apps/wallet-api ./apps/wallet-api
 
+COPY --from=deps /app/deps /app/node_modules
 
 # Generate prisma client and build backend app
 RUN npx prisma generate \
