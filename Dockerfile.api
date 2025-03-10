@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.description="NestJs backend for the XafPay Wallet
 
 # Installing openssl for prisma
 RUN apk update \
-    && apk install openssl libssl-dev
+    && apk add --no-cache openssl
 
 # #set the working directory
 WORKDIR /app
