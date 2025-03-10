@@ -4,11 +4,9 @@ FROM node:23-alpine AS base
 LABEL maintainer="Marco Kuidja <kuidjamarco@gmail.com>"
 LABEL org.opencontainers.image.description="NestJs backend for the XafPay Wallet"
 
-# Installing openssl for prisma
-RUN apk update \
-    && apk add --no-cache openssl
+FROM base AS deps
 
-# #set the working directory
+# Set the working directory
 WORKDIR /app
 
 # Install dependencies
@@ -17,12 +15,9 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     --mount=type=cache,target=/app/node_modules \
     npm ci
 
-FROM base AS deps
-# clean install dependecies
-RUN --mount=type=cache,target=/app/node_modules \ 
-    --mount=type=bind,src=package.json,target=/app/package.json \ 
-    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
-    npm ci
+FROM base AS builder 
+# Copy workspace configs and source files
+COPY tsconfig.base.json nx.json ./prisma ./apps/wallet-api ./
 
 # Generate prisma client and build backend app
 RUN --mount=type=cache,target=/app/node_modules \
