@@ -13,23 +13,22 @@ WORKDIR /app
 RUN --mount=type=bind,src=package.json,target=/app/package.json \
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \
     --mount=type=cache,target=/app/node_modules \
-    npm ci \
-    && cp -R /app/node_modules /app/deps
+    npm ci
 
 FROM base AS builder 
 # Copy workspace configs and source files
 COPY tsconfig.base.json nx.json ./prisma ./apps/wallet-api ./
 
-COPY --from=deps /app/deps ./node_modules
+COPY --from=deps /app/node_modules ./node_modules
 
 # Generate prisma client and build backend app
 RUN npx prisma generate \
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
-    && cp -R /app/dist/apps/wallet-api ./final-dist
-
-# Install only wallet-api production dependencies
-RUN  npm ci --omit=dev --prefix dist/apps/wallet-api/ \
+    && cp -R /app/dist/apps/wallet-api ./final-dist \
+    # Install only wallet-api production dependencies
+    && npm ci --omit=dev --prefix dist/apps/wallet-api/ \
     && cp -R /app/dist/apps/wallet-api/node_modules /app/final-dist/node_modules
+
 
 FROM base AS runner
 
