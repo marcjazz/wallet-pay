@@ -27,7 +27,7 @@ RUN npx prisma generate \
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
     && cp -R /app/dist/apps/wallet-api ./final-dist \
     # Install only wallet-api production dependencies
-    && npm ci --omit=dev --prefix dist/apps/wallet-api/ \
+    # && npm ci --omit=dev --prefix dist/apps/wallet-api/ \
     && cp -R /app/dist/apps/wallet-api/node_modules /app/final-dist/node_modules
 
 
