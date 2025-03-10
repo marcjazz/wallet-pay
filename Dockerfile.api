@@ -20,8 +20,7 @@ FROM base AS deps
 RUN --mount=type=cache,target=/app/node_modules \ 
     --mount=type=bind,src=package.json,target=/app/package.json \ 
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
-    npm ci \
-    && cp -R /app/node_modules /app/deps
+    npm ci
 
 FROM base AS builder
 

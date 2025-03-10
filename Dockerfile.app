@@ -33,7 +33,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build project
-RUN NX_CLOUD=1 npx nx run customer-web:build:production
+RUN NX_CLOUD=0 npx nx run customer-web:build:production
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -62,4 +62,4 @@ RUN ls -al
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
+CMD ["node", "apps/customer-web/server.js"]
