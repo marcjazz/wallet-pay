@@ -5,6 +5,10 @@ FROM node:23-alpine AS base
 LABEL maintainer="Marco Kuidja <kuidjamarco@gmail.com>"
 LABEL org.opencontainers.image.description="NestJs backend for the XafPay Wallet"
 
+# Installing openssl for prisma
+RUN sudo apt-get update \
+    && sudo apt-get install openssl libssl-dev
+
 # #set the working directory
 WORKDIR /app
 
