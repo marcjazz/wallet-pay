@@ -13,13 +13,14 @@ WORKDIR /app
 RUN --mount=type=bind,src=package.json,target=/app/package.json \
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \
     --mount=type=cache,target=/app/node_modules \
-    npm ci
+    npm ci \
+    && cp /app/node_modules /app/deps
 
 FROM base AS builder 
 # Copy workspace configs and source files
 COPY tsconfig.base.json nx.json ./prisma ./apps/wallet-api ./
 
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/deps ./node_modules
 
 # Generate prisma client and build backend app
 RUN npx prisma generate \
@@ -27,7 +28,8 @@ RUN npx prisma generate \
     && cp -R /app/dist/apps/wallet-api ./final-dist
 
 # Install only wallet-api production dependencies
-RUN  npm ci --omit=dev --prefix dist/apps/wallet-api/
+RUN  npm ci --omit=dev --prefix dist/apps/wallet-api/ \
+    && cp -R /app/dist/apps/wallet-api/node_modules /app/final-dist/node_modules
 
 FROM base AS runner
 
@@ -39,7 +41,6 @@ RUN addgroup -S -g 1001 nodejs && adduser -S nestjs -G nodejs -u 1001
 
 # Copy necessary files from builder stage
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/final-dist ./
 
 USER nestjs
