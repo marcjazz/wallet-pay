@@ -7,7 +7,7 @@ until npx prisma migrate deploy; do
 done
 
 # Apply seed again databse
-npx prisma seed db
+npx prisma db seed
 
 # Start the application
 node /app/main.js
