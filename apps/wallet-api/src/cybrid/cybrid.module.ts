@@ -47,6 +47,6 @@ import { CybridService } from './cybrid.service';
 export class CybridModule {
   constructor() {
     // providing ajax feature on server for cybrid dependency
-    global.XMLHttpRequest = require('xhr2');
+    // global.XMLHttpRequest = require('xhr2');
   }
 }
