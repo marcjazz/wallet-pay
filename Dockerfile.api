@@ -51,8 +51,12 @@ ENV PORT=5000
 RUN addgroup -S -g 1001 nodejs && adduser -S nestjs -G nodejs -u 1001
 
 COPY entrypoint.sh ./entrypoint.sh
+
 COPY --from=builder --chown=nestjs:nodejs /app/final_dist ./
 
+RUN chmod +x entrypoint.sh
+
+# switch to non-root user
 USER nestjs
 
 # # expose port 5000 to outer environment
