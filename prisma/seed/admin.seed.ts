@@ -5,6 +5,7 @@ import {
   SupportedLocalCurrency,
 } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcrypt';
+import { logger } from './logger';
 const prisma = new PrismaClient();
 
 export type CreateAdminAccount = {
@@ -18,8 +19,10 @@ export async function createInitialAdminAcount({
   password,
   account_number,
 }: CreateAdminAccount) {
+  logger.info('Creating initial admin account...');
   const salt = Number(process.env.SALT_ROUNDS);
   if (isNaN(salt)) {
+    logger.error('Invalid SALT_ROUNDS value');
     throw new Error('Invalid SALT_ROUNDS value');
   }
 
@@ -49,14 +52,19 @@ export async function createInitialAdminAcount({
     where: { email },
   });
 
+  logger.success('Successfully created initial admin account.');
+
   // create platform roles
+  logger.info('Creating platform roles...');
   await seedRoles(admin.person_id);
+  logger.success('Successfully created platform roles.');
 
   const personHasRole = await prisma.personHasRole.findFirst({
     where: { Person: { email }, Role: { title: 'admin' } },
   });
 
-  if (personHasRole) {
+  if (!personHasRole) {
+    logger.info('Assinging first admin roles...');
     // asign admin role to person admin
     await prisma.personHasRole.create({
       data: {

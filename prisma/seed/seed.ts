@@ -1,12 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import { parseArgs } from 'node:util';
 import { CreateAdminAccount, createInitialAdminAcount } from './admin.seed';
+import { logger } from './logger';
 
 const prisma = new PrismaClient();
 async function main() {
-  const {
-    values: { environment },
-  } = parseArgs({ options: { environment: { type: 'string' } } });
+  logger.debug('Seeding initialization started...');
+
+  const environment = process.env.NODE_ENV;
+  logger.log(`Running in ${environment} environment...`);
 
   switch (environment) {
     case 'production': {
@@ -38,6 +40,7 @@ async function main() {
 
 main()
   .then(async () => {
+    logger.success('Seeding initialization completed.');
     await prisma.$disconnect();
   })
   .catch(async (e) => {
