@@ -34,7 +34,10 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     # Disable nx cloud & Build backend app
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
     && cp -R /app/dist/apps/wallet-api ./final_dist \
+    # Prune node_modules to project specific deps
     && npm ci --omit=dev --prefix /app/dist/apps/wallet-api \
+    # Regenerate prisma client
+    && npx prisma generate \    
     && cp -R /app/dist/apps/wallet-api/node_modules ./final_dist/node_modules \
     && cp -R /app/prisma ./final-prisma
 
@@ -55,4 +58,4 @@ USER nestjs
 EXPOSE 5000
 
 # run app
-CMD npx prisma migrate deploy && node /app/main.js
+CMD npx prisma migrate deploy && npx prisma generate && node /app/main.js
