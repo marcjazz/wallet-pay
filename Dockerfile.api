@@ -63,4 +63,4 @@ USER nestjs
 EXPOSE 5000
 
 # run app
-CMD [".", "./entrypoint.sh"]
+CMD ["./entrypoint.sh"]
