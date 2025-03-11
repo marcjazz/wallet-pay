@@ -15,9 +15,8 @@ import { Response } from 'express';
 import { SkipAuth } from '../../app/auth/auth.decorator';
 import { constants } from '../../constants';
 import { PrismaService } from '../../prisma/prisma.service';
-import type { PawapayPayoutEntity } from '../../types/pawapay';
 import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto';
-import { PawapayCallbacksGuard } from './guards/pawapay-callbacks.guard';
+import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
 
 @SkipAuth()
 @ApiTags('Webhooks')
@@ -31,7 +30,7 @@ export class WebhooksController {
 
   @HttpCode(HttpStatus.OK)
   @Post('cybrid-subscriptions')
-  // @UseGuards(CybridSubscriptionsGuard)
+  @UseGuards(CybridSubscriptionsGuard)
   @ApiOperation({ summary: 'Cybrid subscription events handler. ' })
   async handleSubscriptionEvents(
     @Res() resp: Response,
@@ -62,18 +61,5 @@ export class WebhooksController {
     }
 
     resp.status(HttpStatus.OK).send('OK');
-  }
-
-  @Post('payout-callback')
-  @UseGuards(PawapayCallbacksGuard)
-  async handlePawapayCallbacks(
-    @Res() res: Response,
-    @Body() payout: PawapayPayoutEntity
-  ) {
-    this.webhooksQueue.add(constants.PAWAPAY_PAYOUT_EVENTS, payout, {
-      attempts: 3,
-      backoff: 5000,
-    });
-    res.status(HttpStatus.OK).send('OK');
   }
 }

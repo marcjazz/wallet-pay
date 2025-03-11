@@ -58,4 +58,4 @@ USER nestjs
 EXPOSE 5000
 
 # run app
-CMD npx prisma migrate deploy && npx prisma generate && node /app/main.js
+CMD npx prisma migrate deploy && node /app/main.js
