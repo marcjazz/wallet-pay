@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { parseArgs } from 'node:util';
-import { CreateAdminAccount, createInitialAdminAcount } from './admin.seed';
-import { logger } from './logger';
+import { createInitialAdminAcount } from './admin.seed.js';
+import { logger } from './logger.js';
 
 const prisma = new PrismaClient();
 async function main() {
@@ -12,7 +11,7 @@ async function main() {
 
   switch (environment) {
     case 'production': {
-      const admin: CreateAdminAccount = {
+      const admin = {
         email: String(process.env.ADMIN_EMAIL),
         password: String(process.env.ADMIN_PASSWORD),
         account_number: String(process.env.ADMIN_XAF_ACCOUNT_NUMBER),
@@ -21,7 +20,7 @@ async function main() {
       return createInitialAdminAcount(admin);
     }
     case 'development':
-      const admin: CreateAdminAccount = {
+      const admin = {
         email: String(process.env.ADMIN_EMAIL ?? 'xafpay-admin@gmail.com'),
         password: String(process.env.ADMIN_PASSWORD ?? 'Strong237!'),
         account_number: String(

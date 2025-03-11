@@ -8,7 +8,7 @@ const colors = {
 };
 
 export const logger = {
-  _log(level: keyof typeof colors, message: string): void {
+  _log(level, message) {
     const color = colors[level] || colors.reset;
     console.log(
       `${color}[Logger]\x1b[0m ${color}${parseInt(
@@ -17,27 +17,27 @@ export const logger = {
     );
   },
 
-  log(message: string): void {
+  log(message) {
     logger._log('reset', message);
   },
 
-  info(message: string): void {
+  info(message) {
     logger._log('blue', message);
   },
 
-  warn(message: string): void {
+  warn(message) {
     logger._log('yellow', message);
   },
 
-  error(message: string): void {
+  error(message) {
     logger._log('red', message);
   },
 
-  success(message: string): void {
+  success(message) {
     logger._log('green', message);
   },
 
-  debug(message: string): void {
+  debug(message) {
     logger._log('purple', message);
   },
 };

@@ -1,24 +1,17 @@
 import {
   PersonGender,
-  Prisma,
   PrismaClient,
-  SupportedLocalCurrency,
+  SupportedLocalCurrency
 } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcrypt';
-import { logger } from './logger';
+import { logger } from './logger.js';
 const prisma = new PrismaClient();
-
-export type CreateAdminAccount = {
-  email: string;
-  password: string;
-  account_number: string;
-};
 
 export async function createInitialAdminAcount({
   email,
   password,
   account_number,
-}: CreateAdminAccount) {
+}) {
   logger.info('Creating initial admin account...');
   const salt = Number(process.env.SALT_ROUNDS);
   if (isNaN(salt)) {
@@ -28,7 +21,7 @@ export async function createInitialAdminAcount({
 
   const hashPassword = hashSync(password, genSaltSync(salt));
 
-  const payload: Prisma.PersonCreateInput = {
+  const payload = {
     email,
     birthdate: new Date(),
     first_name: 'XafPay',
@@ -75,7 +68,7 @@ export async function createInitialAdminAcount({
   }
 }
 
-async function seedRoles(adminId: string) {
+async function seedRoles(adminId) {
   await prisma.role.createMany({
     skipDuplicates: true,
     data: [
