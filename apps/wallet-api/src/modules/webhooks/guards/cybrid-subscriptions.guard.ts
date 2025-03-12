@@ -29,17 +29,23 @@ export class CybridSubscriptionsGuard implements CanActivate {
       'CYBRID_WEBHOOK_SIGNING_KEY'
     );
 
-    if (!CYBRID_WEBHOOK_SIGNING_KEY || !request.rawBody) {
+    const requestRawBody = request.rawBody;
+    this.logger.debug(`Request raw body: ${requestRawBody}`);
+
+    if (!CYBRID_WEBHOOK_SIGNING_KEY || !requestRawBody) {
       this.logger.error(
-        `Missing signing key ${CYBRID_WEBHOOK_SIGNING_KEY} or invalid request raw body ${request.rawBody}`
+        `Missing signing key or invalid request raw body: ${requestRawBody}`
       );
       return false;
     }
 
     const requestSignature = request.get(SIGNATURE_HEADER);
     const expectedSignature = createHmac(ALGORITHM, CYBRID_WEBHOOK_SIGNING_KEY)
-      .update(request.rawBody)
+      .update(requestRawBody)
       .digest('hex');
+
+    this.logger.debug('Request signature: ' + requestSignature);
+    this.logger.debug('Expected signature: ' + expectedSignature);
 
     const isRequestValid = requestSignature === expectedSignature;
 
