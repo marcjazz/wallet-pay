@@ -12,8 +12,8 @@ async function main() {
   switch (environment) {
     case 'production': {
       const admin = {
-        email: String(process.env.ADMIN_EMAIL),
-        password: String(process.env.ADMIN_PASSWORD),
+        email: String(process.env.APP_EMAIL),
+        password: String(process.env.APP_EMAIL_PASS),
         account_number: String(process.env.ADMIN_XAF_ACCOUNT_NUMBER),
       };
 
@@ -21,8 +21,8 @@ async function main() {
     }
     case 'development':
       const admin = {
-        email: String(process.env.ADMIN_EMAIL ?? 'xafpay-admin@gmail.com'),
-        password: String(process.env.ADMIN_PASSWORD ?? 'Strong237!'),
+        email: String(process.env.APP_EMAIL ?? 'xafpay-admin@gmail.com'),
+        password: String(process.env.APP_EMAIL_PASS ?? 'Strong237!'),
         account_number: String(
           process.env.ADMIN_XAF_ACCOUNT_NUMBER ?? 'XAF-122 123 123'
         ),
