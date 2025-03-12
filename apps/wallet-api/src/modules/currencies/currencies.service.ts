@@ -50,7 +50,7 @@ export class CurrenciesService {
       const admin = await this.prismaService.personHasRole.findFirst({
         where: {
           Person: {
-            email: this.configService.get('ADMIN_EMAIL', 'admin@xafpay.com'),
+            email: this.configService.get('APP_EMAIL', 'xafpay@gmail.com'),
           },
         },
       });

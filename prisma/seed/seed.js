@@ -21,7 +21,7 @@ async function main() {
     }
     case 'development':
       const admin = {
-        email: String(process.env.APP_EMAIL ?? 'xafpay-admin@gmail.com'),
+        email: String(process.env.APP_EMAIL ?? 'xafpay@gmail.com'),
         password: String(process.env.APP_EMAIL_PASS ?? 'Strong237!'),
         account_number: String(
           process.env.ADMIN_XAF_ACCOUNT_NUMBER ?? 'XAF-122 123 123'
