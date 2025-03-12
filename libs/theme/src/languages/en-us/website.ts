@@ -224,4 +224,5 @@ export const website = {
   WEST: 'West',
   SOUTH: 'South',
   SOUTH_WEST: 'South West',
+  waitAminute: "Wait a minute...",
 };

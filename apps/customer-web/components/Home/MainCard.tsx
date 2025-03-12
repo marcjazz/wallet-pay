@@ -222,27 +222,12 @@ export default function MainCard() {
               <Button
                 color="warning"
                 fullWidth
-                onClick={() =>
-                  verifyAccount(
-                    { account_type: AccountType.FIAT },
-                    {
-                      onSuccess: (data) => {
-                        console.log(data);
-                        if (data.persona_hosted_link) {
-                          window.open(
-                            data.persona_hosted_link,
-                            'Personna KYC',
-                            'popup'
-                          );
-                        }
-                        refetchAccounts();
-                      },
-                      // TODO: USE alert in case of error. will be replaced with proper notifications later
-                      onError: (error) => alert(error.message),
-                    }
-                  )
+                onClick={handleAccountVerification}
+                disabled={
+                  isVerifyingAccount ||
+                  activeAccount.verification_status ===
+                    VerificationStatus.STORING
                 }
-                disabled={isVerifyingAccount}
                 endIcon={
                   isVerifyingAccount && (
                     <CircularProgress size={20} thickness={23} />
@@ -250,14 +235,12 @@ export default function MainCard() {
                 }
               >
                 {formatMessage({
-                  id:
-                    activeAccount.verification_status &&
-                    ![
-                      VerificationStatus.FAILED,
-                      VerificationStatus.EXPIRED,
-                    ].includes(activeAccount.verification_status)
-                      ? activeAccount.verification_status
-                      : 'verifyNow',
+                  id: !activeAccount.verification_status
+                    ? 'verifyNow'
+                    : activeAccount.verification_status ===
+                      VerificationStatus.STORING
+                    ? 'waitAminute'
+                    : activeAccount.verification_status,
                 })}
               </Button>
             ))}
@@ -265,4 +248,25 @@ export default function MainCard() {
       </Box>
     </>
   );
+
+  function handleAccountVerification(): void {
+    return verifyAccount(
+      { account_type: AccountType.FIAT },
+      {
+        onSuccess: (data) => {
+          console.log(data);
+          if (data.state === VerificationStatus.STORING) {
+            setTimeout(() => {
+              handleAccountVerification();
+            }, 5000);
+          } else if (data.persona_hosted_link) {
+            window.open(data.persona_hosted_link, 'Personna KYC', 'popup');
+          }
+          refetchAccounts();
+        },
+        // TODO: USE alert in case of error. will be replaced with proper notifications later
+        onError: (error) => alert(error.message),
+      }
+    );
+  }
 }
