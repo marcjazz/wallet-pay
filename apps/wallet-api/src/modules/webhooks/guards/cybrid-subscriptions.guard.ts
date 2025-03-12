@@ -71,11 +71,7 @@ export class CybridSubscriptionsGuard implements CanActivate {
       return (
         !errors.length &&
         eventObject.organization_guid ===
-          this.configService.get('CYBRID_ORGANIZATION_GUID') &&
-        eventObject.environment ===
-          (this.configService.get('NODE_ENV') !== 'production'
-            ? 'sandbox'
-            : 'production')
+          this.configService.get('CYBRID_ORGANIZATION_GUID')
       );
     } catch (error) {
       this.logger.error(`Invalid subscription event object: ${error.message}`);
