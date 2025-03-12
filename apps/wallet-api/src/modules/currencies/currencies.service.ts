@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Prisma } from '@prisma/client';
+import { Prisma, SupportedCurrency } from '@prisma/client';
 import { roundNumber } from '../../helpers/utils';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CurrencyEntity, ForexCurrencyEntity } from './currency.dto';
@@ -34,13 +34,20 @@ export class CurrenciesService {
       where: { is_active },
     });
 
+    const mapCurrency = (currency: SupportedCurrency) =>
+      new CurrencyEntity(currency);
+
     // Refetching currencies if needed
     if (currencies.length === 0) {
       await this.syncCurrencies();
-      return this.findAll(is_active);
+      const currencies = await this.prismaService.supportedCurrency.findMany({
+        where: { is_active },
+      });
+
+      return currencies.map(mapCurrency);
     }
 
-    return currencies.map((currency) => new CurrencyEntity(currency));
+    return currencies.map(mapCurrency);
   }
 
   @Cron(CronExpression.EVERY_6_HOURS)
