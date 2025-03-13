@@ -80,6 +80,7 @@ export class ApiClient {
       return tokenResp;
     } catch (error) {
       this.authToken = undefined; // Clear tokens on failure
+      location.href = '/login';
       throw error;
     } finally {
       this.isRefreshing = false;
