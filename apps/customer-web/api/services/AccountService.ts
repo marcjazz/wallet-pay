@@ -55,12 +55,35 @@ export class AccountService {
   /**
    * Initialize a Plaid connection workflow.
    * @param payload Workflow initialization details.
-   * @returns Workflow creation confirmation (empty object).
+   * @returns Workflow guid.
    */
   async createWorkflow(payload: CreateWorkflowDto): Promise<WorkflowEntity> {
-    return this.apiClient.post<WorkflowEntity>(
-      '/api/v1/accounts/init-plaid-connect',
-      payload
+    const { workflow_guid } = await this.apiClient.post<{
+      workflow_guid: string;
+    }>('/api/v1/accounts/plaid-connect/init', payload);
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const workflow = await this.getWorkflow(workflow_guid);
+      if (workflow.state === 'completed') {
+        return workflow;
+      } else if (workflow.state === 'failed') {
+        throw new Error('Plaid connection');
+      } else {
+        // Wait for 1 second before checking again.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+  }
+
+  /**
+   * Get initiliazed Plaid connection workflow.
+   * @param workflowGuid Workflow guid details.
+   * @returns Workflow entity.
+   */
+  async getWorkflow(workflowGuid: string): Promise<WorkflowEntity> {
+    return this.apiClient.get<WorkflowEntity>(
+      `/api/v1/accounts/plaid-connect/${workflowGuid}`
     );
   }
 

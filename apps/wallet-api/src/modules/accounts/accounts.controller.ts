@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   ParseEnumPipe,
   Post,
   Query,
@@ -116,8 +117,10 @@ export class AccountsController {
     });
   }
 
-  @Post('init-plaid-connect')
-  @ApiCreatedResponse({ type: WorkflowEntity })
+  @Post('plaid-connect/init')
+  @ApiCreatedResponse({
+    schema: { properties: { workflow_guid: { type: 'string' } } },
+  })
   @ApiOperation({
     summary: "Connect to customer's external bank account by starting a flow.",
   })
@@ -130,9 +133,21 @@ export class AccountsController {
       createWorkflowDto.redirect_uri
     );
 
+    return { workflow_guid: workflowGuid };
+  }
+
+  @Get('plaid-connect/:workflow_guid')
+  @ApiOkResponse({ type: WorkflowEntity })
+  @ApiOperation({
+    summary: 'Get the workflow details by workflow GUID.',
+  })
+  async getWorkflow(
+    @Req() req: Request,
+    @Param('workflow_guid') workflowGuid: string
+  ) {
     const workflow = await this.accountsService.getWorkflow(
       req.user?.person_id as string,
-      workflowGuid as string
+      workflowGuid
     );
 
     return new WorkflowEntity(workflow);
