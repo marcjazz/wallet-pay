@@ -29,7 +29,7 @@
     "@prisma/client": "^6.4.1",
     "@tchakoumi/handy-components": "^0.0.1",
     "@wallet/source": "file:",
-    "axios": "^1.7.7",
+    "axios": "^1.8.3",
     "bcrypt": "^5.1.1",
     "bull": "^4.16.2",
     "cache-manager": "^5.7.6",
