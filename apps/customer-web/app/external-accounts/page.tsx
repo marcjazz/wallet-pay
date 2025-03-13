@@ -74,11 +74,11 @@ export default function ExternalAccounts() {
       )}
       {isConnectingPlaid && plaidLinkToken && (
         <Plaid
-          setIsSubmitting={setIsConnectingPlaid}
           plaidPublicToken={plaidLinkToken}
           handleSuccess={() => {
-            setPlaidLinkToken(undefined);
             refetchExternalAccounts();
+            setIsConnectingPlaid(false);
+            setPlaidLinkToken(undefined);
           }}
         />
       )}
