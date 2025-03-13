@@ -1,43 +1,63 @@
-FROM node:20-alpine3.17 AS builder
+# syntax=docker.io/docker/dockerfile:1
+FROM node:23-alpine AS base
+
+
+LABEL maintainer="Marco Kuidja <kuidjamarco@gmail.com>"
+LABEL org.opencontainers.image.description="NestJs backend for the XafPay Wallet"
+
+# Installing openssl for prisma
+RUN apk update \
+    && apk add --no-cache openssl
 
 # #set the working directory
 WORKDIR /app
 
-# # install app dependencies
-COPY package*.json ./
+RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
+    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json
 
-# #clean install dependecies
-RUN npm install --force
+FROM base AS deps
+# clean install dependecies
+RUN --mount=type=cache,target=/app/node_modules \ 
+    --mount=type=bind,src=package.json,target=/app/package.json \ 
+    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
+    npm ci
+
+FROM base AS builder
+
+COPY --from=deps /app/deps ./node_modules
 
 # COPY workspace configs
-COPY ./tsconfig.base.json ./
-COPY ./nx.json ./
+RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
+    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
+    --mount=type=bind,src=tsconfig.base.json,target=/app/tsconfig.base.json \ 
+    --mount=type=bind,src=nx.json,target=/app/nx.json \ 
+    --mount=type=bind,src=./prisma,target=/app/prisma \ 
+    --mount=type=bind,src=./apps/wallet-api,target=/app/apps/wallet-api \ 
+    --mount=type=cache,target=/app/node_modules \ 
+    --mount=type=cache,target=/app/dist \
+    # Generate prisma client
+    npx prisma generate \
+    # Disable nx cloud & Build backend app
+    && NX_CLOUD=0 npx nx run wallet-api:build:production \
+    && cp -R /app/dist/apps/wallet-api ./final-dist \
+    && cp -R /app/prisma ./final-prisma
 
-# COPY REQUIRED LIBS AND CONCERNED APP
-COPY ./apps/wallet-api ./apps/wallet-api
-COPY ./apps/wallet-api/src/prisma ./prisma
+FROM base AS runner
 
-#migrate prisma models
-RUN npx prisma generate
+ENV NODE_ENV=production
+ENV PORT=5000
 
-# #build backend app
-RUN npx nx run wallet-api:build:production
+# Use a non-root user for security
+RUN addgroup -S -g 1001 nodejs && adduser -S nestjs -G nodejs -u 1001
 
-# #provide schema for build usage
-RUN rm -r ./apps/wallet-api/src/prisma/db
-COPY ./apps/wallet-api/src/prisma ./dist/apps/wallet-api
+COPY --from=builder --chown=nestjs:nodejs /app/final-prisma ./prisma
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/final-dist ./
 
-# #DELETE SOURCE CODE FROM CONTAINER
-# RUN rm -r ./apps
-RUN rm nx.json
-# RUN rm package.json
-RUN rm package-lock.json
-RUN rm tsconfig.base.json
-RUN rm -r ./prisma
+USER nestjs
 
 # # expose port 5000 to outer environment
 EXPOSE 5000
 
 # run app
-WORKDIR /app/dist/apps/wallet-api
-CMD ["node", "main.js"]
+CMD npx prisma migrate deploy && node /app/main.js
