@@ -30,24 +30,12 @@ export enum CurrencyEnum {
   CAD = 'CAD',
 }
 
-// TODO: LOOK AT DELETING THIS INTERFACE and change instances to CybridAccountEntity from api types
-export interface Account {
-  cybrid_account_id: string;
-  currency: CurrencyEnum;
-  account_balance: number;
-  xaf_conversion_rate: number;
-  account_number: string;
-}
-
 export default function MainCard() {
   const { formatNumber, formatMessage } = useIntl();
   const { push } = useRouter();
 
-  const {
-    data: accounts,
-    isLoading: isActiveAccountLoading,
-    refetch: refetchAccounts,
-  } = useCybridAccounts();
+  const { data: accounts, isLoading: isActiveAccountLoading } =
+    useCybridAccounts();
 
   useEffect(() => {
     if (accounts && accounts.length > 0) {
@@ -237,10 +225,7 @@ export default function MainCard() {
                 {formatMessage({
                   id: !activeAccount.verification_status
                     ? 'verifyNow'
-                    : activeAccount.verification_status ===
-                      VerificationStatus.STORING
-                    ? 'waitAminute'
-                    : activeAccount.verification_status,
+                    : 'waitAminute',
                 })}
               </Button>
             ))}
@@ -254,15 +239,24 @@ export default function MainCard() {
       { account_type: AccountType.FIAT },
       {
         onSuccess: (data) => {
-          console.log(data);
-          if (data.state === VerificationStatus.STORING) {
+          if (data.state !== VerificationStatus.COMPLETED) {
+            setActiveAccount((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    verification_status: data.state,
+                  }
+                : undefined
+            );
             setTimeout(() => {
               handleAccountVerification();
             }, 5000);
           } else if (data.persona_hosted_link) {
-            window.open(data.persona_hosted_link, 'Personna KYC', 'popup');
+            const url = encodeURI(
+              `${data.persona_hosted_link}?redirect_uri=${window.location.href}`
+            );
+            window.open(url, '_self');
           }
-          refetchAccounts();
         },
         // TODO: USE alert in case of error. will be replaced with proper notifications later
         onError: (error) => alert(error.message),
