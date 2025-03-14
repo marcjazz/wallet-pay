@@ -78,7 +78,14 @@ export class RecieversService {
     // Validate receiver's account name
     const { family_name, given_name } =
       await this.momoService.getAccountHolderBasicInfo(phoneNumber);
-    if (!fullname.includes(family_name) || !fullname.includes(given_name)) {
+    const regex = new RegExp(
+      `(?=.*\\b${family_name}\\b)(?=.*\\b${given_name}\\b)`,
+      'i'
+    );
+    if (
+      process.env.NODE_ENV === 'production' &&
+      fullname.search(regex) === -1
+    ) {
       throw new UnprocessableEntityException(
         `Receiver's fullname doesn't match MoMo Account holder basic info`
       );
