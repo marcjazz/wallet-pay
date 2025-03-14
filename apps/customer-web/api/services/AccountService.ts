@@ -46,9 +46,38 @@ export class AccountService {
   async verifyAccount(
     payload: VerifyCybridAccountDto
   ): Promise<IdentityVerificationEntity> {
-    return this.apiClient.post<IdentityVerificationEntity>(
-      '/api/v1/accounts/verify',
-      payload
+    const { identity_verification_guid } =
+      await this.apiClient.post<IdentityVerificationEntity>(
+        '/api/v1/accounts/identity-verification/verify',
+        payload
+      );
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const identityVerification = await this.getIdentityVerification(
+        identity_verification_guid
+      );
+      if (identityVerification.state === 'WAITING') {
+        return identityVerification;
+      } else if (identityVerification.state === 'FAILED') {
+        throw new Error('Identity verification failed');
+      } else {
+        // Wait for 1 second before checking again.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+  }
+
+  /**
+   * Verify a Cybrid account or an external bank account.
+   * @param payload Account verification details.
+   * @returns Identity verification entity.
+   */
+  async getIdentityVerification(
+    identityVerificationGuid: string
+  ): Promise<IdentityVerificationEntity> {
+    return this.apiClient.get<IdentityVerificationEntity>(
+      `/api/v1/accounts/identity-verification/${identityVerificationGuid}`
     );
   }
 

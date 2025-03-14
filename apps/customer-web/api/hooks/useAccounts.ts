@@ -36,7 +36,9 @@ export const useCybridAccounts = () => {
 /**
  * Hook for fetching all external bank accounts.
  */
-export const useExternalAccounts = (verificationStatus?:VerificationStatus) => {
+export const useExternalAccounts = (
+  verificationStatus?: VerificationStatus
+) => {
   const tt = useQuery<ExternalBankAccountEntity[], Error>({
     queryKey: ['externalAccounts'],
     queryFn: () => accountsService.findAllExternals(verificationStatus),
@@ -58,6 +60,20 @@ export const useVerifyAccount = () => {
       mutationFn: (payload) => accountsService.verifyAccount(payload),
     }
   );
+};
+
+/**
+ * Hook for fetching  identity verification.
+ */
+export const useGetIdentityVerification = (
+  identityVerificationGuid: string
+) => {
+  return useQuery<IdentityVerificationEntity, Error>({
+    queryKey: ['getIdentityVerification', identityVerificationGuid],
+    queryFn: () =>
+      accountsService.getIdentityVerification(identityVerificationGuid),
+    enabled: !!identityVerificationGuid,
+  });
 };
 
 /**
