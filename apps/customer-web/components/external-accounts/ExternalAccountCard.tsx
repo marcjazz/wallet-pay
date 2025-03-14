@@ -7,9 +7,7 @@ import {
   RefreshCcw,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import {
-  useVerifyAccount
-} from '../../api/hooks/useAccounts';
+import { useVerifyAccount } from '../../api/hooks/useAccounts';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
@@ -51,13 +49,13 @@ export const kycChipVariants: Record<
 
 interface ExternalAccountCardProps {
   externalAccount: ExternalBankAccountEntity;
-  setSelectedExternalAccount: React.Dispatch<
-    React.SetStateAction<ExternalBankAccountEntity | undefined>
-  >;
+  handleSelect: () => void;
+  refetchExternalAccounts: () => void;
 }
 export default function ExternalAccountCard({
   externalAccount,
-  setSelectedExternalAccount,
+  handleSelect,
+  refetchExternalAccounts,
 }: ExternalAccountCardProps) {
   const { formatMessage } = useIntl();
   const theme = useTheme();
@@ -72,22 +70,21 @@ export default function ExternalAccountCard({
         external_bank_account_id: cybrid_external_account_id,
       },
       {
-        onSuccess: (data) => {
-          setSelectedExternalAccount({
-            ...externalAccount,
-            identity_verification_guid: data.identity_verification_guid,
-          });
-          poolIdentityVerification(
-            data.identity_verification_guid,
-            setSelectedExternalAccount,
-            5000
-          );
-        },
+        onSuccess: () => refetchExternalAccounts(),
         // TODO: USE alert in case of error. will be replaced with proper notifications later
         onError: (error) => alert(error.message),
       }
     );
   };
+
+  // Pool identity verification status
+  if (externalAccount.identity_verification_guid) {
+    poolIdentityVerification(
+      externalAccount.identity_verification_guid,
+      refetchExternalAccounts,
+      5000
+    );
+  }
 
   return (
     <Box
@@ -167,7 +164,7 @@ export default function ExternalAccountCard({
         variant="text"
         sx={{ padding: 0, typography: 'p2r' }}
         endIcon={<ChevronRight size={20} />}
-        onClick={() => setSelectedExternalAccount(externalAccount)}
+        onClick={handleSelect}
       >
         {formatMessage({ id: 'details' })}
       </Button>

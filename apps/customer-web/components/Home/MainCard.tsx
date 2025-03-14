@@ -87,17 +87,24 @@ export default function MainCard() {
                 }
               : undefined
           );
-          poolIdentityVerification(
-            data.identity_verification_guid,
-            setActiveAccount,
-            5000
-          );
         },
         // TODO: USE alert in case of error. will be replaced with proper notifications later
         onError: (error) => alert(error.message),
       }
     );
   };
+
+  // Pool identity verification status
+  if (activeAccount?.identity_verification_guid) {
+    poolIdentityVerification(
+      activeAccount.identity_verification_guid,
+      (status) =>
+        setActiveAccount(
+          (prev) => prev && { ...prev, verification_status: status }
+        ),
+      5000
+    );
+  }
 
   return (
     <>
@@ -261,9 +268,9 @@ export default function MainCard() {
   );
 }
 
-export function poolIdentityVerification<T>(
+export function poolIdentityVerification(
   identityVerificationGuid: string,
-  changeDispatcher: React.Dispatch<React.SetStateAction<T>>,
+  changeDispatcher: (status: VerificationStatus) => void,
   delay: number
 ) {
   const pool = setInterval(() => {
@@ -280,12 +287,8 @@ export function poolIdentityVerification<T>(
         window.open(url, '_self');
       }
 
-      changeDispatcher((prev) => ({
-        ...prev,
-        verification_status: data.state,
-      }));
+      changeDispatcher(data.state);
     }
-
     // fetch again
     getIdentityVerification();
   }, delay);

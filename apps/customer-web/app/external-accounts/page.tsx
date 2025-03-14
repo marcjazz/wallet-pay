@@ -62,10 +62,6 @@ export default function ExternalAccounts() {
     setIsAddNewExternalAccountBottomSheetOpen,
   ] = useState(false);
 
-  useEffect(() => {
-    refetchExternalAccounts();
-  }, [refetchExternalAccounts, selectedExternalAccount]);
-
   return (
     <>
       {!!selectedExternalAccount && (
@@ -163,7 +159,10 @@ export default function ExternalAccounts() {
                 <ExternalAccountCard
                   key={externalAccount.cybrid_external_account_id}
                   externalAccount={externalAccount}
-                  setSelectedExternalAccount={setSelectedExternalAccount}
+                  handleSelect={() =>
+                    setSelectedExternalAccount(externalAccount)
+                  }
+                  refetchExternalAccounts={refetchExternalAccounts}
                 />
               ))}
             </Scrollbars>
