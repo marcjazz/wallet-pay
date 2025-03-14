@@ -9,7 +9,7 @@
   },
   "private": true,
   "dependencies": {
-    "@cybrid/cybrid-api-bank-typescript": "^0.119.45",
+    "@cybrid/cybrid-api-bank-typescript": "^0.123.295",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@mui/material": "^5.16.7",
@@ -22,8 +22,8 @@
     "@nestjs/core": "^10.4.15",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
-    "@nestjs/schedule": "^4.1.1",
     "@nestjs/platform-express": "^10.4.15",
+    "@nestjs/schedule": "^4.1.1",
     "@nestjs/swagger": "^7.4.2",
     "@nx/next": "18.3.5",
     "@prisma/client": "^6.4.1",

@@ -1,5 +1,6 @@
 import {
   PostQuoteBankModelProductTypeEnum,
+  PostQuoteBankModelSideEnum,
   PostTradeBankModelTradeTypeEnum,
   PostTransferBankModelTransferTypeEnum,
   PostTransferParticipantBankModelTypeEnum,
@@ -81,10 +82,10 @@ export class TransactionsService {
       customerGuid,
       {
         asset: currency,
-        side: 'deposit',
         bank_guid: bankGuid,
         customer_guid: customerGuid,
         receive_amount: payload.amount,
+        side: PostQuoteBankModelSideEnum.Deposit,
         product_type: PostQuoteBankModelProductTypeEnum.Funding,
       }
     );
@@ -479,7 +480,7 @@ export class TransactionsService {
       deliver_amount: fiatAmount,
       customer_guid: customerGuid,
       symbol: 'USDC_SOL-USD',
-      side: 'buy',
+      side: PostQuoteBankModelSideEnum.Buy,
     });
 
     const tradeTransaction = await this.cybridService.initiateTrade(
