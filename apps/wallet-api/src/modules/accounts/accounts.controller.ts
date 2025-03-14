@@ -65,7 +65,7 @@ export class AccountsController {
     return accounts.map((account) => new CybridExternalAccountEntity(account));
   }
 
-  @Post('verify')
+  @Post('identity-verification/verify')
   @ApiCreatedResponse({ type: IdentityVerificationEntity })
   @ApiOperation({
     summary: 'Initialize verification process on a account/external account',
@@ -108,12 +108,43 @@ export class AccountsController {
         identityVerfication.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
       customer_guid: identityVerfication.customer_guid as string,
       identity_verification_guid: identityVerfication.guid as string,
-      persona_inquiry_id: identityVerfication.persona_inquiry_id ?? null,
-      persona_hosted_link: identityVerfication.persona_inquiry_id
-        ? `https://withpersona.com/verify?inquiry-id=${identityVerfication.persona_inquiry_id}`
-        : null,
+      persona_inquiry_id: null,
+      persona_hosted_link: null,
       external_bank_account_id:
         identityVerfication.external_bank_account_guid ?? null,
+    });
+  }
+
+  @Get('identity-verification/:identity_verification_guid')
+  @ApiOkResponse({ type: IdentityVerificationEntity })
+  @ApiOperation({
+    summary: 'Get the verification details of a customer.',
+  })
+  async getVerification(
+    @Req() req: Request,
+    @Param('identity_verification_guid') identityVerificationGuid: string
+  ) {
+    const identityVerification =
+      await this.accountsService.getIndentityVerification(
+        req.user?.person_id as string,
+        identityVerificationGuid
+      );
+
+    const verificationStatus =
+      identityVerification.outcome == 'failed'
+        ? 'FAILED'
+        : (identityVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus);
+
+    return new IdentityVerificationEntity({
+      state: verificationStatus,
+      customer_guid: identityVerification.customer_guid as string,
+      identity_verification_guid: identityVerification.guid as string,
+      persona_inquiry_id: identityVerification.persona_inquiry_id ?? null,
+      persona_hosted_link: identityVerification.persona_inquiry_id
+        ? `https://withpersona.com/verify?inquiry-id=${identityVerification.persona_inquiry_id}`
+        : null,
+      external_bank_account_id:
+        identityVerification.external_bank_account_guid ?? null,
     });
   }
 
