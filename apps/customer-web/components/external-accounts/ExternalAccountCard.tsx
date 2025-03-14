@@ -8,11 +8,13 @@ import {
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 
-import { useVerifyAccount } from '../../api/hooks/useAccounts';
+import {
+  useGetIdentityVerification,
+  useVerifyAccount,
+} from '../../api/hooks/useAccounts';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
-import { usePoolIdentityVerification } from '../../api/hooks/useIndentityVerification';
 
 export const kycChipVariants: Record<
   VerificationStatus,
@@ -63,29 +65,37 @@ export default function ExternalAccountCard({
 
   const { mutate: handleVerifyAccount, isPending: isVerifyingAccount } =
     useVerifyAccount();
+  const { data: identityVerification } = useGetIdentityVerification(
+    externalAccount.cybrid_external_account_guid
+  );
 
   const verifyAccount = (cybrid_external_account_id: string) => {
-    handleVerifyAccount(
-      {
-        account_type: AccountType.EXTERNAL,
-        external_bank_account_id: cybrid_external_account_id,
-      },
-      {
-        onSuccess: () => refetchExternalAccounts(),
-        // TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
-      }
-    );
+    if (
+      externalAccount.verification_status === null ||
+      ['FAILED', 'EXPIRED'].includes(
+        externalAccount.verification_status as string
+      )
+    ) {
+      handleVerifyAccount(
+        {
+          account_type: AccountType.EXTERNAL,
+          external_bank_account_id: cybrid_external_account_id,
+        },
+        {
+          onSuccess: () => {
+            refetchExternalAccounts();
+          },
+          // TODO: USE alert in case of error. will be replaced with proper notifications later
+          onError: (error) => alert(error.message),
+        }
+      );
+    } else if (identityVerification?.persona_hosted_link) {
+      const url = encodeURI(
+        `${identityVerification.persona_hosted_link}?redirect_uri=${window.location.href}`
+      );
+      window.open(url, '_self');
+    }
   };
-
-  // Pool identity verification status
-  usePoolIdentityVerification(
-    externalAccount.identity_verification_guid ?? '',
-    (status) =>
-      status !== externalAccount.verification_status &&
-      refetchExternalAccounts(),
-    5000
-  );
 
   return (
     <Box
@@ -109,15 +119,9 @@ export default function ExternalAccountCard({
         >
           <Typography>{externalAccount.name}</Typography>
           <Chip
-            onClick={() => {
-              if (
-                externalAccount.verification_status === null ||
-                ['FAILED', 'EXPIRED'].includes(
-                  externalAccount.verification_status as string
-                )
-              )
-                verifyAccount(externalAccount.cybrid_external_account_id);
-            }}
+            onClick={() =>
+              verifyAccount(externalAccount.cybrid_external_account_id)
+            }
             label={formatMessage({
               id:
                 externalAccount.verification_status ||
@@ -165,7 +169,7 @@ export default function ExternalAccountCard({
         variant="text"
         sx={{ padding: 0, typography: 'p2r' }}
         endIcon={<ChevronRight size={20} />}
-        onClick={handleSelect}
+        onClick={() => handleSelect()}
       >
         {formatMessage({ id: 'details' })}
       </Button>

@@ -15,9 +15,9 @@ import {
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 
-import { usePoolIdentityVerification } from '../../api/hooks/useIndentityVerification';
 import {
   useCybridAccounts,
+  useGetIdentityVerification,
   useVerifyAccount,
 } from '../../api/hooks/useAccounts';
 import { useCurrencies } from '../../api/hooks/useCurrency';
@@ -74,36 +74,40 @@ export default function MainCard() {
 
   const { mutate: verifyAccount, isPending: isVerifyingAccount } =
     useVerifyAccount();
+  const { data: identityVerification,  } =
+    useGetIdentityVerification(activeAccount?.identity_verification_guid ?? '');
 
   const handleAccountVerification = () => {
-    verifyAccount(
-      { account_type: AccountType.FIAT },
-      {
-        onSuccess: (data) => {
-          setActiveAccount((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  identity_verification_guid: data.identity_verification_guid,
-                }
-              : undefined
-          );
-        },
-        // TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
-      }
-    );
+    if (
+      activeAccount?.verification_status === null ||
+      ['FAILED', 'EXPIRED'].includes(
+        activeAccount?.verification_status as string
+      )
+    ) {
+      verifyAccount(
+        { account_type: AccountType.FIAT },
+        {
+          onSuccess: (data) => {
+            setActiveAccount((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    identity_verification_guid: data.identity_verification_guid,
+                  }
+                : undefined
+            );
+          },
+          // TODO: USE alert in case of error. will be replaced with proper notifications later
+          onError: (error) => alert(error.message),
+        }
+      );
+    } else if (identityVerification?.persona_hosted_link) {
+      const url = encodeURI(
+        `${identityVerification.persona_hosted_link}?redirect_uri=${window.location.href}`
+      );
+      window.open(url, '_self');
+    }
   };
-
-  // Pool identity verification status
-  usePoolIdentityVerification(
-    activeAccount?.identity_verification_guid ?? '',
-    (status) =>
-      setActiveAccount(
-        (prev) => prev && { ...prev, verification_status: status }
-      ),
-    5000
-  );
 
   return (
     <>
