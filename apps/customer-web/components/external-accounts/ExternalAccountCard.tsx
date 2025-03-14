@@ -7,10 +7,13 @@ import {
   RefreshCcw,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { useVerifyAccount } from '../../api/hooks/useAccounts';
+import {
+  useVerifyAccount
+} from '../../api/hooks/useAccounts';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
+import { poolIdentityVerification } from '../Home/MainCard';
 
 export const kycChipVariants: Record<
   VerificationStatus,
@@ -48,13 +51,13 @@ export const kycChipVariants: Record<
 
 interface ExternalAccountCardProps {
   externalAccount: ExternalBankAccountEntity;
-  handleSelect: () => void;
-  refetchExternalAccounts: () => void;
+  setSelectedExternalAccount: React.Dispatch<
+    React.SetStateAction<ExternalBankAccountEntity | undefined>
+  >;
 }
 export default function ExternalAccountCard({
   externalAccount,
-  handleSelect,
-  refetchExternalAccounts,
+  setSelectedExternalAccount,
 }: ExternalAccountCardProps) {
   const { formatMessage } = useIntl();
   const theme = useTheme();
@@ -69,7 +72,17 @@ export default function ExternalAccountCard({
         external_bank_account_id: cybrid_external_account_id,
       },
       {
-        onSuccess: () => refetchExternalAccounts(),
+        onSuccess: (data) => {
+          setSelectedExternalAccount({
+            ...externalAccount,
+            identity_verification_guid: data.identity_verification_guid,
+          });
+          poolIdentityVerification(
+            data.identity_verification_guid,
+            setSelectedExternalAccount,
+            5000
+          );
+        },
         // TODO: USE alert in case of error. will be replaced with proper notifications later
         onError: (error) => alert(error.message),
       }
@@ -99,7 +112,12 @@ export default function ExternalAccountCard({
           <Typography>{externalAccount.name}</Typography>
           <Chip
             onClick={() => {
-              if (externalAccount.verification_status === null)
+              if (
+                externalAccount.verification_status === null ||
+                ['FAILED', 'EXPIRED'].includes(
+                  externalAccount.verification_status as string
+                )
+              )
                 verifyAccount(externalAccount.cybrid_external_account_id);
             }}
             label={formatMessage({
@@ -149,7 +167,7 @@ export default function ExternalAccountCard({
         variant="text"
         sx={{ padding: 0, typography: 'p2r' }}
         endIcon={<ChevronRight size={20} />}
-        onClick={handleSelect}
+        onClick={() => setSelectedExternalAccount(externalAccount)}
       >
         {formatMessage({ id: 'details' })}
       </Button>

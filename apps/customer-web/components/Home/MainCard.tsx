@@ -16,6 +16,7 @@ import {
 import { useIntl } from 'react-intl';
 import {
   useCybridAccounts,
+  useGetIdentityVerification,
   useVerifyAccount,
 } from '../../api/hooks/useAccounts';
 import { useCurrencies } from '../../api/hooks/useCurrency';
@@ -72,6 +73,31 @@ export default function MainCard() {
 
   const { mutate: verifyAccount, isPending: isVerifyingAccount } =
     useVerifyAccount();
+
+  const handleAccountVerification = () => {
+    verifyAccount(
+      { account_type: AccountType.FIAT },
+      {
+        onSuccess: (data) => {
+          setActiveAccount((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  identity_verification_guid: data.identity_verification_guid,
+                }
+              : undefined
+          );
+          poolIdentityVerification(
+            data.identity_verification_guid,
+            setActiveAccount,
+            5000
+          );
+        },
+        // TODO: USE alert in case of error. will be replaced with proper notifications later
+        onError: (error) => alert(error.message),
+      }
+    );
+  };
 
   return (
     <>
@@ -233,34 +259,34 @@ export default function MainCard() {
       </Box>
     </>
   );
+}
 
-  function handleAccountVerification(): void {
-    return verifyAccount(
-      { account_type: AccountType.FIAT },
-      {
-        onSuccess: (data) => {
-          if (data.state !== VerificationStatus.COMPLETED) {
-            setActiveAccount((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    verification_status: data.state,
-                  }
-                : undefined
-            );
-            setTimeout(() => {
-              handleAccountVerification();
-            }, 5000);
-          } else if (data.persona_hosted_link) {
-            const url = encodeURI(
-              `${data.persona_hosted_link}?redirect_uri=${window.location.href}`
-            );
-            window.open(url, '_self');
-          }
-        },
-        // TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
+export function poolIdentityVerification<T>(
+  identityVerificationGuid: string,
+  changeDispatcher: React.Dispatch<React.SetStateAction<T>>,
+  delay: number
+) {
+  const pool = setInterval(() => {
+    const { data, refetch: getIdentityVerification } =
+      useGetIdentityVerification(identityVerificationGuid);
+
+    if (data) {
+      if (['FAILED', 'COMPLETED'].includes(data?.state as string)) {
+        clearInterval(pool);
+      } else if (data?.persona_hosted_link) {
+        const url = encodeURI(
+          `${data.persona_hosted_link}?redirect_uri=${window.location.href}`
+        );
+        window.open(url, '_self');
       }
-    );
-  }
+
+      changeDispatcher((prev) => ({
+        ...prev,
+        verification_status: data.state,
+      }));
+    }
+
+    // fetch again
+    getIdentityVerification();
+  }, delay);
 }

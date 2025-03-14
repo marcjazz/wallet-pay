@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Scrollbars from 'rc-scrollbars';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, Plus } from 'react-feather';
 import { useIntl } from 'react-intl';
 import {
@@ -61,6 +61,10 @@ export default function ExternalAccounts() {
     isAddNewExternalAccountBottomSheetOpen,
     setIsAddNewExternalAccountBottomSheetOpen,
   ] = useState(false);
+
+  useEffect(() => {
+    refetchExternalAccounts();
+  }, [refetchExternalAccounts, selectedExternalAccount]);
 
   return (
     <>
@@ -157,12 +161,9 @@ export default function ExternalAccounts() {
             <Scrollbars universal autoHide>
               {externalAccounts.map((externalAccount) => (
                 <ExternalAccountCard
-                  refetchExternalAccounts={refetchExternalAccounts}
                   key={externalAccount.cybrid_external_account_id}
                   externalAccount={externalAccount}
-                  handleSelect={() =>
-                    setSelectedExternalAccount(externalAccount)
-                  }
+                  setSelectedExternalAccount={setSelectedExternalAccount}
                 />
               ))}
             </Scrollbars>
