@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Scrollbars from 'rc-scrollbars';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, Plus } from 'react-feather';
 import { useIntl } from 'react-intl';
 import {

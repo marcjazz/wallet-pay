@@ -7,11 +7,12 @@ import {
   RefreshCcw,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
+
 import { useVerifyAccount } from '../../api/hooks/useAccounts';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
-import { poolIdentityVerification } from '../Home/MainCard';
+import { usePoolIdentityVerification } from '../../api/hooks/useIndentityVerification';
 
 export const kycChipVariants: Record<
   VerificationStatus,
@@ -78,13 +79,13 @@ export default function ExternalAccountCard({
   };
 
   // Pool identity verification status
-  if (externalAccount.identity_verification_guid) {
-    poolIdentityVerification(
-      externalAccount.identity_verification_guid,
-      refetchExternalAccounts,
-      5000
-    );
-  }
+  usePoolIdentityVerification(
+    externalAccount.identity_verification_guid ?? '',
+    (status) =>
+      status !== externalAccount.verification_status &&
+      refetchExternalAccounts(),
+    5000
+  );
 
   return (
     <Box
