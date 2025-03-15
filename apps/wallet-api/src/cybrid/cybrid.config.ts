@@ -131,7 +131,7 @@ export class CybridConfig {
         );
       });
 
-    this.logger.log(`Successfully fetch customer level token: ${resp.data}`);
+    this.logger.log(`Successfully fetch customer level token!`);
     return resp.data.access_token;
   }
 
