@@ -66,7 +66,7 @@ export default function ExternalAccountCard({
   const { mutate: handleVerifyAccount, isPending: isVerifyingAccount } =
     useVerifyAccount();
   const { data: identityVerification } = useGetIdentityVerification(
-    externalAccount.cybrid_external_account_guid
+    externalAccount.identity_verification_guid ?? ''
   );
 
   const verifyAccount = (cybrid_external_account_id: string) => {
