@@ -1,19 +1,10 @@
 import { Module } from '@nestjs/common';
+import { CybridModule } from '../../cybrid/cybrid.module';
 import { ReceiversController } from './receivers.controller';
 import { RecieversService } from './receivers.service';
-import { CybridModule } from '../../cybrid/cybrid.module';
-import { MoMoModule } from '../../momo/momo.module';
-import { BullModule } from '@nestjs/bull';
-import { constants } from '../../constants';
 
 @Module({
-  imports: [
-    CybridModule,
-    MoMoModule,
-    BullModule.registerQueue({
-      name: constants.WEBHOOK_QUEUE,
-    }),
-  ],
+  imports: [CybridModule],
   controllers: [ReceiversController],
   providers: [RecieversService],
   exports: [RecieversService],

@@ -20,8 +20,11 @@ export class MomoService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {
     this.httpService.axiosRef.interceptors.request.use(async (config) => {
-      const accessToken = await this.getAccessToken();
-      config.headers.Authorization = `Bearer ${accessToken}`;
+      if (config.url?.includes('/token')) {
+        const accessToken = await this.getAccessToken();
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+
       return config;
     });
   }

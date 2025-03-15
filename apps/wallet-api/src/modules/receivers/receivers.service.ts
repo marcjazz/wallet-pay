@@ -13,12 +13,8 @@ import { $Enums } from '@prisma/client';
 import { SearchQueryDto } from '../../app/app.dto';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { validatePhoneNumber } from '../../helpers/utils';
-import { MomoService } from '../../momo/momo.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReceiverDto } from './receiver.dto';
-import { InjectQueue } from '@nestjs/bull';
-import { constants } from '../../constants';
-import { Queue } from 'bull';
 
 @Injectable()
 export class RecieversService {
@@ -27,9 +23,6 @@ export class RecieversService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
-    private readonly momoService: MomoService,
-    @InjectQueue(constants.WEBHOOK_QUEUE)
-    private serviceQueue: Queue
   ) {}
 
   async findAll(query: SearchQueryDto) {
@@ -81,20 +74,20 @@ export class RecieversService {
     }
 
     // Validate receiver's account name
-    const { family_name, given_name } =
-      await this.momoService.getAccountHolderBasicInfo(phoneNumber);
-    const regex = new RegExp(
-      `(?=.*\\b${family_name}\\b)(?=.*\\b${given_name}\\b)`,
-      'i'
-    );
-    if (
-      process.env.NODE_ENV === 'production' &&
-      fullname.search(regex) === -1
-    ) {
-      throw new UnprocessableEntityException(
-        `Receiver's fullname doesn't match MoMo Account holder basic info`
-      );
-    }
+    // const { family_name, given_name } =
+    //   await this.momoService.getAccountHolderBasicInfo(phoneNumber);
+    // const regex = new RegExp(
+    //   `(?=.*\\b${family_name}\\b)(?=.*\\b${given_name}\\b)`,
+    //   'i'
+    // );
+    // if (
+    //   process.env.NODE_ENV === 'production' &&
+    //   fullname.search(regex) === -1
+    // ) {
+    //   throw new UnprocessableEntityException(
+    //     `Receiver's fullname doesn't match MoMo Account holder basic info`
+    //   );
+    // }
 
     const counterparty = await this.cybridService.createCounterparty(
       customer.cybrid_customer_guid,
@@ -105,36 +98,29 @@ export class RecieversService {
       }
     );
 
-    this.serviceQueue.process(
-      `receiver-creation:${counterparty.guid}`,
-      async (_, done) => {
-        try {
-          this.logger.log(`Counterparty verification started...`);
-          const counterpartyVerification =
-            await this.cybridService.verifyIdentity(
-              customer.cybrid_customer_guid,
-              {
-                counterparty_guid: counterparty.guid,
-                type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
-                method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
-              }
-            );
-
-          done(null, counterpartyVerification);
-          this.logger.log(
-            `Counterparty verification completed with status ${counterpartyVerification.state}`
+    const timeout = setTimeout(async (_, done) => {
+      try {
+        this.logger.log(`Counterparty verification started...`);
+        const counterpartyVerification =
+          await this.cybridService.verifyIdentity(
+            customer.cybrid_customer_guid,
+            {
+              counterparty_guid: counterparty.guid,
+              type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
+              method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
+            }
           );
-        } catch (error) {
-          this.logger.error(error);
-          done(error);
-        }
-      }
-    );
 
-    this.serviceQueue.add(`receiver-creation:${counterparty.guid}`, {
-      attempts: 3,
-      backoff: 5000,
-    });
+        done(null, counterpartyVerification);
+        this.logger.log(
+          `Counterparty verification completed with status ${counterpartyVerification.state}`
+        );
+        clearInterval(timeout);
+      } catch (error) {
+        this.logger.error(error);
+        done(error);
+      }
+    }, 1000);
 
     return await this.prismaService.cybridCounterparty.create({
       data: {
