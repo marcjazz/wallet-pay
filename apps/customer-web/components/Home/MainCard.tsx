@@ -74,8 +74,9 @@ export default function MainCard() {
 
   const { mutate: verifyAccount, isPending: isVerifyingAccount } =
     useVerifyAccount();
-  const { data: identityVerification,  } =
-    useGetIdentityVerification(activeAccount?.identity_verification_guid ?? '');
+  const { data: identityVerification } = useGetIdentityVerification(
+    activeAccount?.identity_verification_guid ?? ''
+  );
 
   const handleAccountVerification = () => {
     if (
@@ -103,7 +104,7 @@ export default function MainCard() {
       );
     } else if (identityVerification?.persona_hosted_link) {
       const url = encodeURI(
-        `${identityVerification.persona_hosted_link}?redirect_uri=${window.location.href}`
+        `${identityVerification.persona_hosted_link}?redirect-uri=${window.location.href}`
       );
       window.open(url, '_self');
     }
