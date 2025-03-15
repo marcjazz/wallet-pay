@@ -104,7 +104,7 @@ export default function MainCard() {
       );
     } else if (identityVerification?.persona_hosted_link) {
       const url = encodeURI(
-        `${identityVerification.persona_hosted_link}?redirect-uri=${window.location.href}`
+        `${identityVerification.persona_hosted_link}&redirect-uri=${window.location.href}`
       );
       window.open(url, '_self');
     }
