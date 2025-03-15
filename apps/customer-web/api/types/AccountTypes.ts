@@ -149,6 +149,8 @@ export interface CreateExternalAccountDto {
   plaid_account_id: string;
   /** Masked account number returned by Plaid. */
   plaid_account_mask: string;
+  /** Account name returned by Plaid. */
+  plaid_account_name: string;
   /** Currency of the account. */
   currency: Currency;
 }

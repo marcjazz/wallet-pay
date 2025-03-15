@@ -18,13 +18,17 @@ export default function Plaid({
   const { mutate: createExternalAccount } = useCreateExternalAccount();
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(
-    (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
+    (
+      public_token: string,
+      { accounts: [account] }: PlaidLinkOnSuccessMetadata
+    ) => {
       createExternalAccount(
         {
+          plaid_account_name: account.name,
           plaid_public_token: public_token,
           currency: Currency.USD,
-          plaid_account_id: metadata.accounts[0].id,
-          plaid_account_mask: metadata.accounts[0].mask,
+          plaid_account_id: account.id,
+          plaid_account_mask: account.mask,
         },
         {
           onSuccess: () => handleSuccess(),

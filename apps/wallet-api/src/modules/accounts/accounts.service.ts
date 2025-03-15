@@ -198,6 +198,7 @@ export class AccountsService {
       plaid_account_mask,
       plaid_account_id,
       plaid_public_token,
+      plaid_account_name,
     }: CreateExternalAccountDto,
     personId: string
   ) {
@@ -215,7 +216,7 @@ export class AccountsService {
         plaid_account_id,
         plaid_public_token,
         plaid_account_mask,
-        name: `${currency} Funding Account`,
+        name: `${plaid_account_name} (${currency})`,
         customer_guid: customer.cybrid_customer_guid,
         account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
       }

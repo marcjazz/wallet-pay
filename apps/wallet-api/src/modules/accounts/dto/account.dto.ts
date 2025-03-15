@@ -104,6 +104,10 @@ export class WorkflowEntity implements WorkflowBankModel {
 export class CreateExternalAccountDto {
   @IsString()
   @ApiProperty()
+  plaid_account_name: string;
+
+  @IsString()
+  @ApiProperty()
   plaid_public_token: string;
 
   @IsString()
