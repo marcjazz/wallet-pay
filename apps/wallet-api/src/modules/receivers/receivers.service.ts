@@ -16,6 +16,9 @@ import { validatePhoneNumber } from '../../helpers/utils';
 import { MomoService } from '../../momo/momo.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReceiverDto } from './receiver.dto';
+import { InjectQueue } from '@nestjs/bull';
+import { constants } from '../../constants';
+import { Queue } from 'bull';
 
 @Injectable()
 export class RecieversService {
@@ -24,7 +27,9 @@ export class RecieversService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
-    private readonly momoService: MomoService
+    private readonly momoService: MomoService,
+    @InjectQueue(constants.WEBHOOK_QUEUE)
+    private serviceQueue: Queue
   ) {}
 
   async findAll(query: SearchQueryDto) {
@@ -100,37 +105,36 @@ export class RecieversService {
       }
     );
 
-    setTimeout(async () => {
-      try {
-        this.logger.log(`Counterparty verification started...`);
-        const counterpartyVerification =
-          await this.cybridService.verifyIdentity(
-            customer.cybrid_customer_guid,
-            {
-              counterparty_guid: counterparty.guid,
-              type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
-              method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
-            }
+    this.serviceQueue.process(
+      `receiver-creation:${counterparty.guid}`,
+      async (_, done) => {
+        try {
+          this.logger.log(`Counterparty verification started...`);
+          const counterpartyVerification =
+            await this.cybridService.verifyIdentity(
+              customer.cybrid_customer_guid,
+              {
+                counterparty_guid: counterparty.guid,
+                type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
+                method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
+              }
+            );
+
+          done(null, counterpartyVerification);
+          this.logger.log(
+            `Counterparty verification completed with status ${counterpartyVerification.state}`
           );
-
-        await this.prismaService.cybridCounterparty.update({
-          data: {
-            identity_verification_guid: counterpartyVerification.guid as string,
-            verification_status:
-              counterpartyVerification.outcome === 'failed'
-                ? $Enums.IdentityVerificationStatus.FAILED
-                : (counterpartyVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus),
-          },
-          where: { cybrid_counterparty_guid: counterparty.guid },
-        });
-
-        this.logger.log(
-          `Counterparty verification completed with status ${counterpartyVerification.state}`
-        );
-      } catch (error) {
-        this.logger.error(error);
+        } catch (error) {
+          this.logger.error(error);
+          done(error);
+        }
       }
-    }, 7000);
+    );
+
+    this.serviceQueue.add(`receiver-creation:${counterparty.guid}`, {
+      attempts: 3,
+      backoff: 5000,
+    });
 
     return await this.prismaService.cybridCounterparty.create({
       data: {
