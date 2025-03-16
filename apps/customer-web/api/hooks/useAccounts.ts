@@ -40,7 +40,7 @@ export const useExternalAccounts = (
   verificationStatus?: VerificationStatus
 ) => {
   const tt = useQuery<ExternalBankAccountEntity[], Error>({
-    queryKey: ['externalAccounts'],
+    queryKey: ['externalAccounts', verificationStatus],
     queryFn: () => accountsService.findAllExternals(verificationStatus),
     initialData: [],
   });

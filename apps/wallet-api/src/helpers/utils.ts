@@ -1,3 +1,6 @@
+import { type IdentityVerificationBankModel } from '@cybrid/cybrid-api-bank-typescript';
+import { type IdentityVerificationStatus } from '@prisma/client';
+
 export function roundNumber(val: number): number {
   return Math.round((val + Number.EPSILON) * 100) / 100;
 }
@@ -18,4 +21,22 @@ export function validatePhoneNumber(phoneNumber: string) {
   if (mtnRegexp.test(testCase)) return 0;
   else if (orangeRegexp.test(testCase)) return 1;
   return -1;
+}
+
+/**
+ * Transform cybrid verification status to internal verification status
+ * @param identityVerification
+ * @returns
+ */
+export function verificationStatusFrom({
+  state,
+  outcome,
+}: IdentityVerificationBankModel): IdentityVerificationStatus {
+  return state === 'completed' && outcome === 'failed'
+    ? 'FAILED'
+    : state === 'completed' && outcome === 'passed'
+    ? 'PASSED'
+    : !state
+    ? 'STORING'
+    : (state.toLocaleUpperCase() as IdentityVerificationStatus);
 }

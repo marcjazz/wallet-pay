@@ -89,7 +89,10 @@ export default function ExternalAccountCard({
           onError: (error) => alert(error.message),
         }
       );
-    } else if (identityVerification?.persona_hosted_link) {
+    } else if (
+      identityVerification?.state === VerificationStatus.WAITING &&
+      identityVerification?.persona_hosted_link
+    ) {
       const url = encodeURI(
         `${identityVerification.persona_hosted_link}&redirect-uri=${window.location.href}`
       );

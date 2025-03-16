@@ -1,9 +1,9 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
-import { IdentityVerificationStatus } from '@prisma/client';
 import { Job } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
+import { verificationStatusFrom } from '../../../helpers/utils';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
@@ -81,14 +81,7 @@ export class IdentityVerificationProcessor {
         objectGuid
       );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, status] = eventType.split('.');
-    const verificationStatus =
-      status === 'completed' && identityVerfication.outcome == 'failed'
-        ? IdentityVerificationStatus.FAILED
-        : status === 'completed' && identityVerfication.outcome == 'passed'
-        ? IdentityVerificationStatus.PASSED
-        : (status.toLocaleUpperCase() as IdentityVerificationStatus);
+    const verificationStatus = verificationStatusFrom(identityVerfication);
 
     if (counterparty) {
       await this.prismaService.cybridCounterparty.updateMany({

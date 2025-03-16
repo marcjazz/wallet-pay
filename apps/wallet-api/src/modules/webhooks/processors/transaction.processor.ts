@@ -278,7 +278,7 @@ export class TransactionProcessor {
     //  Do nothing if transaction status was already set to a final state
     if (transaction.status === 'COMPLETED' || transaction.status === 'FAILED') {
       this.logger.log(
-        `(event: ${eventType}, Guid: ${guid}) from cybrid was ignored because transaction was already is final state`
+        `(event: ${eventType}, Guid: ${guid}) from cybrid was ignored because transaction was already in final state`
       );
       return;
     }

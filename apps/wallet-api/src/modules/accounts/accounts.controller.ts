@@ -29,6 +29,7 @@ import {
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from './dto/account.dto';
+import { verificationStatusFrom } from '../../helpers/utils';
 
 @ApiBearerAuth()
 @ApiTags('Accounts')
@@ -92,26 +93,27 @@ export class AccountsController {
       );
     }
 
-    let identityVerfication;
+    let identityVerification;
     if (payload.external_bank_account_id) {
-      identityVerfication =
+      identityVerification =
         await this.accountsService.verifyCybridExternalAccount(
           payload.external_bank_account_id
         );
     } else
-      identityVerfication = await this.accountsService.verifyCybridCustomer(
+      identityVerification = await this.accountsService.verifyCybridCustomer(
         req.user?.person_id as string
       );
 
+    const verificationStatus = verificationStatusFrom(identityVerification);
+
     return new IdentityVerificationEntity({
-      state:
-        identityVerfication.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
-      customer_guid: identityVerfication.customer_guid as string,
-      identity_verification_guid: identityVerfication.guid as string,
+      state: verificationStatus,
+      customer_guid: identityVerification.customer_guid as string,
+      identity_verification_guid: identityVerification.guid as string,
       persona_inquiry_id: null,
       persona_hosted_link: null,
       external_bank_account_id:
-        identityVerfication.external_bank_account_guid ?? null,
+        identityVerification.external_bank_account_guid ?? null,
     });
   }
 
@@ -130,10 +132,7 @@ export class AccountsController {
         identityVerificationGuid
       );
 
-    const verificationStatus =
-      identityVerification.outcome == 'failed'
-        ? 'FAILED'
-        : (identityVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus);
+    const verificationStatus = verificationStatusFrom(identityVerification);
 
     return new IdentityVerificationEntity({
       state: verificationStatus,
