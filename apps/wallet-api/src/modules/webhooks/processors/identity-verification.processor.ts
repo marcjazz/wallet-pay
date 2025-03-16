@@ -84,16 +84,17 @@ export class IdentityVerificationProcessor {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, status] = eventType.split('.');
     const verificationStatus =
-      identityVerfication.outcome == 'failed'
+      status === 'completed' && identityVerfication.outcome == 'failed'
         ? IdentityVerificationStatus.FAILED
+        : status === 'completed' && identityVerfication.outcome == 'passed'
+        ? IdentityVerificationStatus.PASSED
         : (status.toLocaleUpperCase() as IdentityVerificationStatus);
 
     if (counterparty) {
       await this.prismaService.cybridCounterparty.updateMany({
         data: {
           verification_status: verificationStatus,
-          status:
-            verificationStatus === 'COMPLETED' ? 'VERIFIED' : 'UNVERIFIED',
+          status: verificationStatus === 'PASSED' ? 'VERIFIED' : 'UNVERIFIED',
         },
         where: {
           identity_verification_guid: objectGuid,
@@ -104,8 +105,7 @@ export class IdentityVerificationProcessor {
       await this.prismaService.cybridExternalAccount.update({
         data: {
           verification_status: verificationStatus,
-          status:
-            verificationStatus === 'COMPLETED' ? 'COMPLETED' : 'UNVERIFIED',
+          status: verificationStatus === 'PASSED' ? 'VERIFIED' : 'UNVERIFIED',
         },
         where: {
           identity_verification_guid: objectGuid,
@@ -117,8 +117,7 @@ export class IdentityVerificationProcessor {
       await this.prismaService.cybridCustomer.update({
         data: {
           verification_status: verificationStatus,
-          status:
-            verificationStatus === 'COMPLETED' ? 'VERIFIED' : 'UNVERIFIED',
+          status: verificationStatus === 'PASSED' ? 'VERIFIED' : 'UNVERIFIED',
         },
         where: {
           cybrid_customer_guid: customerGuid,

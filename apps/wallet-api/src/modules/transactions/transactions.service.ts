@@ -469,7 +469,7 @@ export class TransactionsService {
       throw new NotFoundException(`Receiver not found!`);
     }
 
-    if (cybridCounterparty.verification_status !== 'COMPLETED') {
+    if (cybridCounterparty.verification_status !== 'PASSED') {
       throw new UnauthorizedException(`Potential faulty receiver detected!`);
     }
 

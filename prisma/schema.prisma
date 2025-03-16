@@ -135,6 +135,8 @@ model CybridSubscriptionEvent {
   event_guid        String @unique
   event_type        String
   organization_guid String
+
+  @@map("cybrid_subscription_events")
 }
 
 model LocalCustomer {
@@ -453,7 +455,6 @@ enum CybridTransactionType {
   INSTANT_FUNDING @map("instant_funding")
   WITHDRAWAL      @map("withdrawal")
   ACCOUNT         @map("account")
-  XAF             @map("xaf")
 
   @@map("cybrid_transaction_type")
 }
@@ -470,7 +471,7 @@ enum CybridCustomerStatus {
 
 enum CybridExternalAccountStatus {
   STORING          @map("storing")
-  COMPLETED        @map("completed")
+  VERIFIED         @map("verified")
   UNVERIFIED       @map("unverified")
   FAILED           @map("failed")
   REFRESH_REQUIRED @map("refresh_required")
@@ -486,7 +487,7 @@ enum IdentityVerificationStatus {
   PENDING   @map("pending")
   REVIEWING @map("reviewing")
   EXPIRED   @map("expired")
-  COMPLETED @map("completed")
+  PASSED    @map("passed")
   FAILED    @map("failed")
 
   @@map("identity_verification_status")

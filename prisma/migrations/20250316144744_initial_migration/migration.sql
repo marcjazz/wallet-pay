@@ -5,7 +5,7 @@ CREATE TYPE "supported_local_currency" AS ENUM ('XAF', 'NIARA');
 CREATE TYPE "cybrid_supported_country" AS ENUM ('usa', 'canada');
 
 -- CreateEnum
-CREATE TYPE "cybrid_supported_currency" AS ENUM ('usd', 'cad');
+CREATE TYPE "cybrid_supported_currency" AS ENUM ('usd', 'cad', 'usdc_sol');
 
 -- CreateEnum
 CREATE TYPE "local_customer_verification_status" AS ENUM ('unverified', 'pending', 'verified');
@@ -20,19 +20,22 @@ CREATE TYPE "preferred_language" AS ENUM ('en-US', 'fr');
 CREATE TYPE "PersonGender" AS ENUM ('male', 'female', 'other');
 
 -- CreateEnum
-CREATE TYPE "cybrid_transaction_type" AS ENUM ('remittance', 'convert', 'funding', 'withdrawal', 'account', 'xaf');
+CREATE TYPE "cybrid_transaction_type" AS ENUM ('remittance', 'convert', 'funding', 'instant_funding', 'withdrawal', 'account');
 
 -- CreateEnum
 CREATE TYPE "cybrid_account_status" AS ENUM ('storing', 'unverified', 'verified', 'rejected', 'frozen');
 
 -- CreateEnum
-CREATE TYPE "cybrid_external_acccount_status" AS ENUM ('storing', 'completed', 'unverified', 'failed', 'refresh_required', 'deleting', 'deleted');
+CREATE TYPE "cybrid_external_acccount_status" AS ENUM ('storing', 'verified', 'unverified', 'failed', 'refresh_required', 'deleting', 'deleted');
 
 -- CreateEnum
-CREATE TYPE "identity_verification_status" AS ENUM ('storing', 'waiting', 'pending', 'reviewing', 'expired', 'completed');
+CREATE TYPE "identity_verification_status" AS ENUM ('storing', 'waiting', 'pending', 'reviewing', 'expired', 'passed', 'failed');
 
 -- CreateEnum
 CREATE TYPE "cybrid_transfer_status" AS ENUM ('storing', 'reviewing', 'pending', 'completed', 'failed');
+
+-- CreateEnum
+CREATE TYPE "cybrid_counterparty_status" AS ENUM ('storing', 'unverified', 'verified', 'rejected');
 
 -- CreateTable
 CREATE TABLE "bank_payout_info" (
@@ -87,6 +90,8 @@ CREATE TABLE "cybrid_external_accounts" (
     "name" TEXT NOT NULL,
     "balance" DOUBLE PRECISION NOT NULL,
     "mask" VARCHAR(4),
+    "currency" "cybrid_supported_currency" NOT NULL,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
     "status" "cybrid_external_acccount_status" NOT NULL,
     "identity_verification_guid" VARCHAR(45),
     "verification_status" "identity_verification_status",
@@ -100,26 +105,32 @@ CREATE TABLE "cybrid_transactions" (
     "cybrid_transaction_id" VARCHAR(36) NOT NULL,
     "cybrid_transaction_guid" VARCHAR(45) NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
+    "currency" "cybrid_supported_currency" NOT NULL DEFAULT 'usd',
+    "initial_currency_amount" DOUBLE PRECISION NOT NULL,
     "initial_currency" "cybrid_supported_currency" NOT NULL,
-    "converstion_rate" DOUBLE PRECISION,
+    "conversion_rate" DOUBLE PRECISION,
     "fees" DOUBLE PRECISION NOT NULL,
     "transaction_id" VARCHAR(45) NOT NULL,
     "transaction_type" "cybrid_transaction_type" NOT NULL,
     "status" "cybrid_transfer_status" NOT NULL,
     "initiated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "settled_at" TIMESTAMP,
+    "cybrid_transfer_settlement_guid" VARCHAR(45),
+    "pawapay_payout_id" VARCHAR(36) NOT NULL,
+    "payout_at" TIMESTAMP,
+    "cybrid_account_id" TEXT,
+    "initiated_by" TEXT NOT NULL,
     "local_customer_id" TEXT,
     "receiver_payout_info_id" TEXT,
     "receiver_bank_payout_info_id" TEXT,
-    "cybrid_account_id" TEXT,
+    "cybrid_crypto_account_id" TEXT,
     "cybrid_external_account_id" TEXT,
-    "initiated_by" TEXT NOT NULL,
 
     CONSTRAINT "cybrid_transactions_pkey" PRIMARY KEY ("cybrid_transaction_id")
 );
 
 -- CreateTable
-CREATE TABLE "CybridSubscriptionEvent" (
+CREATE TABLE "cybrid_subscription_events" (
     "event_guid" TEXT NOT NULL,
     "event_type" TEXT NOT NULL,
     "organization_guid" TEXT NOT NULL
@@ -242,7 +253,11 @@ CREATE TABLE "receiver_payout_info" (
     "fullname" VARCHAR(45) NOT NULL,
     "phone_number" VARCHAR(45) NOT NULL,
     "national_id_number" VARCHAR(45),
+    "address" VARCHAR(90) NOT NULL,
     "cybrid_counterparty_guid" VARCHAR(45) NOT NULL,
+    "status" "cybrid_counterparty_status" NOT NULL,
+    "identity_verification_guid" VARCHAR(45),
+    "verification_status" "identity_verification_status",
     "person_id" TEXT NOT NULL,
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -277,7 +292,7 @@ CREATE TABLE "stripe_transactions" (
     "stripe_transaction_id" VARCHAR(36) NOT NULL,
     "amount_sent" DOUBLE PRECISION NOT NULL,
     "fees" DOUBLE PRECISION NOT NULL,
-    "converstion_rate" DOUBLE PRECISION NOT NULL,
+    "conversion_rate" DOUBLE PRECISION NOT NULL,
     "transaction_id" VARCHAR(45) NOT NULL,
     "stripe_transaction_guid" VARCHAR(45) NOT NULL,
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -362,7 +377,7 @@ CREATE INDEX "fk_CybridTransaction_LocalCustomer1_idx" ON "cybrid_transactions"(
 CREATE INDEX "fk_CybridTransaction_PayoutInfo1_idx" ON "cybrid_transactions"("receiver_payout_info_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CybridSubscriptionEvent_event_guid_key" ON "CybridSubscriptionEvent"("event_guid");
+CREATE UNIQUE INDEX "cybrid_subscription_events_event_guid_key" ON "cybrid_subscription_events"("event_guid");
 
 -- CreateIndex
 CREATE INDEX "fk_LocalCustomer_Person1_idx" ON "local_customers"("person_id");
@@ -408,6 +423,9 @@ CREATE INDEX "fk_PersonHasRoleAudit_PersonHasRole1_idx" ON "person_has_role_audi
 
 -- CreateIndex
 CREATE INDEX "fk_PersonHasRoleAudit_PersonHasRole2_idx" ON "person_has_role_audits"("audited_by");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "receiver_payout_info_cybrid_counterparty_guid_key" ON "receiver_payout_info"("cybrid_counterparty_guid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "receiver_payout_info_person_id_fullname_phone_number_key" ON "receiver_payout_info"("person_id", "fullname", "phone_number");
@@ -467,6 +485,12 @@ ALTER TABLE "cybrid_customers" ADD CONSTRAINT "fk_Customer_Person1" FOREIGN KEY 
 ALTER TABLE "cybrid_external_accounts" ADD CONSTRAINT "fk_ExternalAccount_CybridCustomer1" FOREIGN KEY ("cybrid_customer_id") REFERENCES "cybrid_customers"("cybrid_customer_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
+ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_CybridAccount1" FOREIGN KEY ("cybrid_account_id") REFERENCES "cybrid_accounts"("cybrid_account_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_CybridCustomer1" FOREIGN KEY ("initiated_by") REFERENCES "cybrid_customers"("cybrid_customer_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
 ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_LocalCustomer1" FOREIGN KEY ("local_customer_id") REFERENCES "local_customers"("local_customer_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
@@ -476,13 +500,10 @@ ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_PayoutInf
 ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_BankInfo1" FOREIGN KEY ("receiver_bank_payout_info_id") REFERENCES "bank_payout_info"("receiver_bank_payout_info_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_CybridAccount2" FOREIGN KEY ("cybrid_account_id") REFERENCES "cybrid_accounts"("cybrid_account_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_CybridAccount2" FOREIGN KEY ("cybrid_crypto_account_id") REFERENCES "cybrid_accounts"("cybrid_account_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_CybridExternalAccount1" FOREIGN KEY ("cybrid_external_account_id") REFERENCES "cybrid_external_accounts"("cybrid_external_account_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "cybrid_transactions" ADD CONSTRAINT "fk_CybridTransaction_CybridAccount1" FOREIGN KEY ("initiated_by") REFERENCES "cybrid_accounts"("cybrid_account_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "local_customers" ADD CONSTRAINT "fk_LocalCustomer_Person1" FOREIGN KEY ("person_id") REFERENCES "persons"("person_id") ON DELETE CASCADE ON UPDATE NO ACTION;
