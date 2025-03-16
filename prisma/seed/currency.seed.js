@@ -1,7 +1,4 @@
-import {
-  CybridSupportedCurrency,
-  PrismaClient
-} from '@prisma/client';
+import { CybridSupportedCurrency, PrismaClient } from '@prisma/client';
 import { logger } from './logger.js';
 const prisma = new PrismaClient();
 
@@ -16,7 +13,7 @@ export async function insertDefaultCurrencyRates(adminId) {
     throw new Error('Unauthorized admin!');
   }
 
-  prisma.supportedCurrency.createMany({
+  await prisma.supportedCurrency.createMany({
     data: [
       {
         created_by: adminId,
@@ -31,4 +28,6 @@ export async function insertDefaultCurrencyRates(adminId) {
     ],
     skipDuplicates: true,
   });
+
+  logger.success('Successfully added default currency rates!');
 }
