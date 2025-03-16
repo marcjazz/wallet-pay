@@ -268,9 +268,10 @@ export class TransactionsService {
         } = cybridAccount;
 
         customerAccount = {
-          balance,
           currency,
           fiatAccountGuid,
+          // converting stored balance back to cents
+          balance: balance * 100,
           customerGuid: customer.cybrid_customer_guid,
           cryptoAccountGuid: customer.CybridAccounts[0].cybrid_account_guid,
         };
@@ -311,8 +312,9 @@ export class TransactionsService {
           cybrid_external_account_guid,
         } = externalAccount;
         customerAccount = {
-          balance,
           currency,
+          // converting stored balance back to cents
+          balance: balance * 100,
           fiatAccountGuid: cybrid_account_guid,
           customerGuid: cybrid_customer_guid,
           externalAccountGuid: cybrid_external_account_guid,

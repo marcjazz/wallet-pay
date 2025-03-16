@@ -31,7 +31,10 @@ export class AccountsService {
           },
         },
       },
-      where: { CybridCustomer: { person_id: personId } },
+      where: {
+        currency: { notIn: ['USDC_SOL'] },
+        CybridCustomer: { person_id: personId },
+      },
     });
     return cybridAccounts;
   }
