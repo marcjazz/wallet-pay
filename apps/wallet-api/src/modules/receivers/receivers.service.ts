@@ -22,7 +22,7 @@ export class RecieversService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly cybridService: CybridService,
+    private readonly cybridService: CybridService
   ) {}
 
   async findAll(query: SearchQueryDto) {
@@ -98,7 +98,7 @@ export class RecieversService {
       }
     );
 
-    const timeout = setTimeout(async (_, done) => {
+    const timeout = setTimeout(async () => {
       try {
         this.logger.log(`Counterparty verification started...`);
         const counterpartyVerification =
@@ -111,14 +111,23 @@ export class RecieversService {
             }
           );
 
-        done(null, counterpartyVerification);
+        await this.prismaService.cybridCounterparty.update({
+          data: {
+            identity_verification_guid: counterpartyVerification.guid as string,
+            verification_status:
+              counterpartyVerification.outcome === 'failed'
+                ? $Enums.IdentityVerificationStatus.FAILED
+                : (counterpartyVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus),
+          },
+          where: { cybrid_counterparty_guid: counterparty.guid },
+        });
+
         this.logger.log(
           `Counterparty verification completed with status ${counterpartyVerification.state}`
         );
         clearInterval(timeout);
       } catch (error) {
         this.logger.error(error);
-        done(error);
       }
     }, 1000);
 
