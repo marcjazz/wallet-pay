@@ -1,7 +1,7 @@
 import {
   PersonGender,
   PrismaClient,
-  SupportedLocalCurrency
+  SupportedLocalCurrency,
 } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcrypt';
 import { logger } from './logger.js';
@@ -52,20 +52,22 @@ export async function createInitialAdminAcount({
   await seedRoles(admin.person_id);
   logger.success('Successfully created platform roles.');
 
-  const personHasRole = await prisma.personHasRole.findFirst({
+  let personHasRole = await prisma.personHasRole.findFirst({
     where: { Person: { email }, Role: { title: 'admin' } },
   });
 
   if (!personHasRole) {
     logger.info('Assinging first admin roles...');
     // asign admin role to person admin
-    await prisma.personHasRole.create({
+    personHasRole = await prisma.personHasRole.create({
       data: {
         Role: { connect: { title: 'admin' } },
         Person: { connect: { email: admin.email } },
       },
     });
   }
+
+  return personHasRole.person_has_role_id;
 }
 
 async function seedRoles(adminId) {

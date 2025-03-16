@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { createInitialAdminAcount } from './admin.seed.js';
 import { logger } from './logger.js';
+import { insertDefaultCurrencyRates } from './currency.seed.js';
 
 const prisma = new PrismaClient();
 async function main() {
@@ -17,7 +18,8 @@ async function main() {
         account_number: String(process.env.ADMIN_XAF_ACCOUNT_NUMBER),
       };
 
-      return createInitialAdminAcount(admin);
+      const adminId = await createInitialAdminAcount(admin);
+      return insertDefaultCurrencyRates(adminId);
     }
     case 'development':
       const admin = {
