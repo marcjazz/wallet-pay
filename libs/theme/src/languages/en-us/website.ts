@@ -225,4 +225,5 @@ export const website = {
   SOUTH: 'South',
   SOUTH_WEST: 'South West',
   waitAminute: "Wait a minute...",
+  completeNow: "Complete KYC now"
 };

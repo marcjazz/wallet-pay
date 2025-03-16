@@ -24,7 +24,7 @@ export const kycChipVariants: Record<
     color: 'error',
     icon: <AlertTriangle size={12} color="white" />,
   },
-  COMPLETED: {
+  PASSED: {
     color: 'primary',
     icon: <CheckCircle size={12} color="#157CFB" />,
   },
@@ -133,7 +133,7 @@ export default function ExternalAccountCard({
               bgcolor:
                 theme.palette[
                   externalAccount.verification_status ===
-                  VerificationStatus.COMPLETED
+                  VerificationStatus.PASSED
                     ? 'primary'
                     : externalAccount.verification_status === null
                     ? 'error'
@@ -141,7 +141,7 @@ export default function ExternalAccountCard({
                 ].light,
               color:
                 externalAccount.verification_status ===
-                VerificationStatus.COMPLETED
+                VerificationStatus.PASSED
                   ? theme.palette['primary'].main
                   : externalAccount.verification_status === null
                   ? 'white'
@@ -162,7 +162,6 @@ export default function ExternalAccountCard({
         <Typography variant="h3" color="#BABDBE">
           {`********${externalAccount.mask}`.replace(/(.{4})(?=.)/g, '$1 ')}
         </Typography>
-        {/* </Box> */}
       </Box>
 
       <Button

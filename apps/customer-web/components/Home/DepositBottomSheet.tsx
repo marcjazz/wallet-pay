@@ -36,7 +36,7 @@ export default function DepositBottomSheet({
   const { formatMessage } = useIntl();
 
   const { data: externalAccounts, isFetching: isLoadingExternalAccounts } =
-    useExternalAccounts(VerificationStatus.COMPLETED);
+    useExternalAccounts(VerificationStatus.PASSED);
 
   const validationSchema = Yup.object({
     amount: Yup.number()

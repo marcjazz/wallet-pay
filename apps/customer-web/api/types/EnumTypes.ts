@@ -76,7 +76,7 @@ export enum VerificationStatus {
   PENDING = 'PENDING',
   REVIEWING = 'REVIEWING',
   EXPIRED = 'EXPIRED',
-  COMPLETED = 'COMPLETED',
+  PASSED = 'PASSED',
   FAILED = 'FAILED',
 }
 
@@ -85,7 +85,7 @@ export enum VerificationStatus {
  */
 export enum ExternalAccountStatus {
   STORING = 'STORING',
-  COMPLETED = 'COMPLETED',
+  VERIFIED = 'VERIFIED',
   UNVERIFIED = 'UNVERIFIED',
   FAILED = 'FAILED',
   REFRESH_REQUIRED = 'REFRESH_REQUIRED',

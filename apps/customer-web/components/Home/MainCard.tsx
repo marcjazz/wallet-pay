@@ -209,7 +209,7 @@ export default function MainCard() {
           )}
           {activeAccount &&
             (activeAccount.verification_status ===
-            VerificationStatus.COMPLETED ? (
+            VerificationStatus.PASSED ? (
               <Box
                 sx={{
                   backgroundColor: '#157CFB',
@@ -262,6 +262,9 @@ export default function MainCard() {
                 {formatMessage({
                   id: !activeAccount.verification_status
                     ? 'verifyNow'
+                    : activeAccount.verification_status ===
+                      VerificationStatus.WAITING
+                    ? 'completeNow'
                     : 'waitAminute',
                 })}
               </Button>
