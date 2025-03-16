@@ -103,7 +103,7 @@ export class ApiClient {
   }
 
   async patch<T>(url: string, data?: unknown): Promise<T> {
-    const res = await this.client.post<T>(url, data);
+    const res = await this.client.patch<T>(url, data);
     return res.data;
   }
 
