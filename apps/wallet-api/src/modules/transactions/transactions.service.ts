@@ -330,6 +330,12 @@ export class TransactionsService {
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
 
+    const usedCurrency =
+      await this.prismaService.supportedCurrency.findFirstOrThrow({
+        select: { currency: true, xaf_rate: true },
+        where: { currency: currency.toLocaleUpperCase() },
+      });
+
     const bankGuid = this.configService.get<string>(
       'CYBRID_BANK_GUID'
     ) as string;
@@ -368,17 +374,12 @@ export class TransactionsService {
       }
     );
 
-    const usedCurrency = await this.prismaService.supportedCurrency.findFirst({
-      select: { currency: true, xaf_rate: true },
-      where: { currency },
-    });
-
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
           fees: 0,
           currency: 'USDC_SOL',
-          conversion_rate: usedCurrency?.xaf_rate,
+          conversion_rate: usedCurrency.xaf_rate,
           initial_currency: currency,
           // convert cents to dollars
           initial_currency_amount: initialCurrencyAmount / 100,
