@@ -22,7 +22,6 @@ import {
 } from '@prisma/client';
 import { CybridService, Participants } from '../../cybrid/cybrid.service';
 import { generateTransactionId } from '../../helpers/otp-generator';
-import { MailerService } from '../../mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CybridTransactionEntity,
@@ -49,7 +48,6 @@ export class TransactionsService {
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
     private readonly configService: ConfigService,
-    private readonly mailerService: MailerService
   ) {}
 
   async initiateInstantFunding(
@@ -339,7 +337,7 @@ export class TransactionsService {
       });
 
     const bankGuid = this.configService.get<string>(
-      'CYBRID_BANK_FIAT_ACCOUNT_GUID'
+      'CYBRID_BANK_GUID'
     ) as string;
     const bookTransferQuote = await this.cybridService.createQuote(
       customerGuid,

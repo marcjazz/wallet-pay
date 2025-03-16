@@ -11,7 +11,6 @@ import {
   TransactionReceipt,
 } from '../../../mailer/emails/transaction-email';
 import { MailerService } from '../../../mailer/mailer.service';
-import { MomoService } from '../../../momo/momo.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { InitiatePayoutPayload } from '../../../types/momo';
 import { PawapayPayoutEntity } from '../../../types/pawapay';
@@ -26,7 +25,6 @@ export class TransactionProcessor {
     private readonly cybridService: CybridService,
     private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
-    private readonly momoService: MomoService,
     @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhooksQueue: Queue
   ) {}
 
