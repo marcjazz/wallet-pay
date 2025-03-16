@@ -110,6 +110,18 @@ export default function MainCard() {
     }
   };
 
+  useEffect(() => {
+    if (
+      identityVerification?.state === VerificationStatus.WAITING &&
+      identityVerification?.persona_hosted_link
+    ) {
+      const url = encodeURI(
+        `${identityVerification.persona_hosted_link}&redirect-uri=${window.location.href}`
+      );
+      window.open(url, '_self');
+    }
+  }, [identityVerification]);
+
   return (
     <>
       <DepositBottomSheet
@@ -208,8 +220,7 @@ export default function MainCard() {
             }XAF`}</Typography>
           )}
           {activeAccount &&
-            (activeAccount.verification_status ===
-            VerificationStatus.PASSED ? (
+            (activeAccount.verification_status === VerificationStatus.PASSED ? (
               <Box
                 sx={{
                   backgroundColor: '#157CFB',
