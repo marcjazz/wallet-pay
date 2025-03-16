@@ -339,7 +339,7 @@ export class TransactionsService {
       });
 
     const bankGuid = this.configService.get<string>(
-      'CYBRID_BANK_GUID'
+      'CYBRID_BANK_FIAT_ACCOUNT_GUID'
     ) as string;
     const bookTransferQuote = await this.cybridService.createQuote(
       customerGuid,
