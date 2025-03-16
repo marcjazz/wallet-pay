@@ -353,18 +353,12 @@ export class TransactionProcessor {
     this.webhooksQueue.process(
       jobName,
       async ({ data: jobData }: Job<InitiatePayoutPayload>, done) => {
-        this.logger.log(`Processing (event: ${jobName}) from server...`);
+        this.logger.log(
+          `Processing (event: ${jobName}, PayoutRef: ${initiatePayoutPayload.payoutId}, txnGui: ${transactionGuid}) from server...`
+        );
         try {
-          const payoutRefId = await this.momoService.initiateCashTransfer(
-            jobData
-          );
-
-          await this.prismaService.cybridTransaction.update({
-            data: { pawapay_payout_id: payoutRefId },
-            // Book transfers are settled by crypto transfers
-            where: { cybrid_transaction_guid: transactionGuid },
-          });
-          done(null, payoutRefId);
+          //TODO: Initiate transaction with Payout partner here
+          done(null, jobData);
 
           this.logger.log(
             `Successfully processed (event: ${jobName}) from server.`
