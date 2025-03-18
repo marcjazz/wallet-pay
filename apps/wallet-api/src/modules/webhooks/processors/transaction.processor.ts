@@ -275,7 +275,7 @@ export class TransactionProcessor {
       customerGuid,
       accountGuid
     );
-
+    this.logger.debug('Account: ' + customerAccount);
     prismaPromises.push(
       this.prismaService.cybridAccount.update({
         // Convert cents to USD
