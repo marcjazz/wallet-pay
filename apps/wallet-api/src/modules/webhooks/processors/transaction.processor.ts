@@ -54,63 +54,52 @@ export class TransactionProcessor {
 
     const updateOperations: PrismaPromise<unknown>[] = [];
 
-    if (transfer.transfer_type === 'crypto') {
-      if (transactionStatus === 'COMPLETED') {
-        updateOperations.push(
-          this.prismaService.cybridTransaction.updateMany({
-            data: { settled_at: new Date() },
-            where: { cybrid_transfer_settlement_guid: transactionGuid },
-          })
-        );
-      }
-    } else if (transfer.transfer_type === 'book') {
-      let payoutId: string | undefined;
-      if (transactionStatus === 'COMPLETED') {
-        const receiptUrl = `/remittance/${cybridTransaction.cybrid_transaction_id}`;
-        // Sending remittance settlement email
-        const { person, cybridCounterparty } = await this.sendReceiptEmail(
-          cybridTransaction.cybrid_transaction_guid,
-          receiptUrl
-        );
-
-        const amountReceived =
-          cybridTransaction.initial_currency_amount *
-          (cybridTransaction.conversion_rate as number);
-        const phoneNumber = cybridCounterparty?.phone_number;
-        const initiatePayoutPayload: InitiatePayoutPayload = {
-          amount: amountReceived,
-          customerEmail: person.email,
-          payoutId: cybridTransaction.pawapay_payout_id,
-          transactionId: cybridTransaction.transaction_id,
-          receipientPhonenumber: phoneNumber?.includes('237')
-            ? phoneNumber
-            : `237${phoneNumber}`,
-          callbackUrl: `${process.env.API_BASE_URL}/webhooks/payout-callback`,
-        };
-
-        await this.initiatePayout(initiatePayoutPayload, transactionGuid);
-      }
-
-      updateOperations.push(
-        this.prismaService.cybridTransaction.update({
-          data: { status: transactionStatus, pawapay_payout_id: payoutId }, // Book transfers are settled by crypto transfers
-          where: { cybrid_transaction_guid: transactionGuid },
-        })
-      );
-    } else if (transfer.transfer_type === 'instant_funding') {
-      updateOperations.push(
-        this.prismaService.cybridTransaction.update({
-          data:
-            transactionStatus === 'COMPLETED'
-              ? { settled_at: new Date(), status: transactionStatus }
-              : { status: transactionStatus },
-          where: { cybrid_transaction_guid: transactionGuid },
-        })
-      );
-    } else
+    const supportedTransfeTypes = ['crypto', 'book', 'instant_funding'];
+    if (!supportedTransfeTypes.includes(transfer.transfer_type ?? '')) {
       throw new NotImplementedException(
         `${transfer.transfer_type} not supported yet!`
       );
+    }
+
+    if (
+      transfer.transfer_type === 'book' &&
+      cybridTransaction.transaction_type === 'REMITTANCE' &&
+      transactionStatus === 'COMPLETED'
+    ) {
+      const receiptUrl = `/remittance/${cybridTransaction.cybrid_transaction_id}`;
+      // Sending remittance settlement email
+      const { person, cybridCounterparty } = await this.sendReceiptEmail(
+        cybridTransaction.cybrid_transaction_guid,
+        receiptUrl
+      );
+
+      const amountReceived =
+        cybridTransaction.initial_currency_amount *
+        (cybridTransaction.conversion_rate as number);
+      const phoneNumber = cybridCounterparty?.phone_number;
+      const initiatePayoutPayload: InitiatePayoutPayload = {
+        amount: amountReceived,
+        customerEmail: person.email,
+        payoutId: cybridTransaction.pawapay_payout_id,
+        transactionId: cybridTransaction.transaction_id,
+        receipientPhonenumber: phoneNumber?.includes('237')
+          ? phoneNumber
+          : `237${phoneNumber}`,
+        callbackUrl: `${process.env.API_BASE_URL}/webhooks/payout-callback`,
+      };
+
+      await this.initiatePayout(initiatePayoutPayload, transactionGuid);
+    } else if (
+      transfer.transfer_type === 'crypto' &&
+      transactionStatus === 'COMPLETED'
+    ) {
+      updateOperations.push(
+        this.prismaService.cybridTransaction.updateMany({
+          data: { settled_at: new Date(), status: transactionStatus },
+          where: { cybrid_transfer_settlement_guid: transactionGuid },
+        })
+      );
+    }
 
     if (transfer.destination_account?.guid) {
       await this.buildAccountUpdateOperations(
@@ -129,7 +118,16 @@ export class TransactionProcessor {
     }
 
     // execute prisma transaction against database
-    await this.prismaService.$transaction(updateOperations);
+    await this.prismaService.$transaction([
+      ...updateOperations,
+      this.prismaService.cybridTransaction.update({
+        data:
+          transactionStatus === 'COMPLETED'
+            ? { settled_at: new Date(), status: transactionStatus }
+            : { status: transactionStatus },
+        where: { cybrid_transaction_guid: transactionGuid },
+      }),
+    ]);
 
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
@@ -275,7 +273,7 @@ export class TransactionProcessor {
       customerGuid,
       accountGuid
     );
-    this.logger.debug('Account: ' + customerAccount);
+    this.logger.debug(customerAccount);
     prismaPromises.push(
       this.prismaService.cybridAccount.update({
         // Convert cents to USD
