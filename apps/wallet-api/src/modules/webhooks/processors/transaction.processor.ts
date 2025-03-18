@@ -52,22 +52,7 @@ export class TransactionProcessor {
       transactionGuid
     );
 
-    this.logger.debug('Transfer: ', transfer);
-
     const prismaPromises: PrismaPromise<unknown>[] = [];
-    if (transfer.external_bank_account_guid) {
-      prismaPromises.push(
-        this.prismaService.cybridExternalAccount.update({
-          // Convert cents to USD
-          data: {
-            balance: (transfer.amount as number) / 100,
-          },
-          where: {
-            cybrid_external_account_guid: transfer.external_bank_account_guid,
-          },
-        })
-      );
-    }
 
     if (transfer.transfer_type === 'crypto') {
       if (transactionStatus === 'COMPLETED') {
@@ -136,8 +121,6 @@ export class TransactionProcessor {
       customerGuid,
       accountGuid
     );
-
-    this.logger.debug('Customer Account: ', customerAccount);
 
     prismaPromises.push(
       this.prismaService.cybridAccount.update({

@@ -10,7 +10,7 @@ import {
   IsString,
   IsStrongPassword,
   IsUrl,
-  validateSync
+  validateSync,
 } from 'class-validator';
 
 enum Environment {
@@ -97,24 +97,6 @@ class EnvironmentVariables {
 
   @IsString()
   RATE_API_KEY: string;
-
-  // @IsUrl()
-  // PAWAPAY_API_BASE_URL: string;
-
-  // @IsJWT()
-  // PAWAPAY_API_BEARER_TOKEN: string;
-
-  // @IsString()
-  // PRIVATE_KEY_ID: string;
-
-  @IsString()
-  MOMO_API_BASE_URL: string;
-
-  @IsString()
-  MOMO_REMITTANCE_API_USER: string;
-
-  @IsString()
-  MOMO_REMITTANCE_API_KEY: string;
 }
 
 export function validate(config: Record<string, unknown>) {

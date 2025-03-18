@@ -110,7 +110,7 @@ export class TransactionsService {
           fees: 0,
           currency,
           initial_currency: currency,
-          amount: fundingTransfer.amount as number,
+          amount: (fundingTransfer.amount as number) / 100,
           initial_currency_amount: payload.amount / 100,
           transaction_id: generateTransactionId(),
           cybrid_transaction_guid: fundingTransfer.guid as string,
