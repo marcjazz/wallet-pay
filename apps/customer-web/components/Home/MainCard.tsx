@@ -36,8 +36,11 @@ export default function MainCard() {
   const { formatNumber, formatMessage } = useIntl();
   const { push } = useRouter();
 
-  const { data: accounts, isLoading: isActiveAccountLoading } =
-    useCybridAccounts();
+  const {
+    data: accounts,
+    isLoading: isActiveAccountLoading,
+    refetch: refetchAccounts,
+  } = useCybridAccounts();
 
   useEffect(() => {
     if (accounts && accounts.length > 0) {
@@ -126,7 +129,10 @@ export default function MainCard() {
     <>
       <DepositBottomSheet
         isOpen={isDepositBottomSheetOpen}
-        closeBottomSheet={() => setIsDepositBottomSheetOpen(false)}
+        closeBottomSheet={() => {
+          refetchAccounts();
+          setIsDepositBottomSheetOpen(false);
+        }}
       />
       <AccountMenu
         closeMenu={() => setIsAccountMenuOpen(false)}

@@ -44,9 +44,6 @@ export class CybridSubscriptionsGuard implements CanActivate {
       .update(requestRawBody)
       .digest('hex');
 
-    this.logger.debug('Request signature: ' + requestSignature);
-    this.logger.debug('Expected signature: ' + expectedSignature);
-
     const isRequestValid = requestSignature === expectedSignature;
 
     if (isRequestValid) {

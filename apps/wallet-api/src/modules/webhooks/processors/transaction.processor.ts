@@ -40,6 +40,8 @@ export class TransactionProcessor {
       return;
     }
 
+    this.logger.debug(parsedObject);
+
     const {
       customerGuid,
       transactionGuid,
@@ -60,6 +62,7 @@ export class TransactionProcessor {
         `${transfer.transfer_type} not supported yet!`
       );
     }
+    this.logger.debug(supportedTransfeTypes);
 
     if (
       transfer.transfer_type === 'book' &&
@@ -108,6 +111,8 @@ export class TransactionProcessor {
         updateOperations
       );
     }
+
+    this.logger.debug(transfer);
 
     if (transfer.source_account?.guid) {
       await this.buildAccountUpdateOperations(
