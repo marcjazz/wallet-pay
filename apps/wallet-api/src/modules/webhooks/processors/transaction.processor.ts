@@ -117,6 +117,8 @@ export class TransactionProcessor {
       );
     }
 
+    this.logger.debug(updateOperations);
+
     // execute prisma transaction against database
     await this.prismaService.$transaction([
       ...updateOperations,
@@ -173,7 +175,8 @@ export class TransactionProcessor {
         prismaPromises
       );
     }
-    this.logger.debug(prismaPromises)
+
+    this.logger.debug(prismaPromises);
     await this.prismaService.$transaction([
       ...prismaPromises,
       this.prismaService.cybridTransaction.update({
