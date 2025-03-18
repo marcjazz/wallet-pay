@@ -52,11 +52,11 @@ export class TransactionProcessor {
       transactionGuid
     );
 
-    const prismaPromises: PrismaPromise<unknown>[] = [];
+    const updateOperations: PrismaPromise<unknown>[] = [];
 
     if (transfer.transfer_type === 'crypto') {
       if (transactionStatus === 'COMPLETED') {
-        prismaPromises.push(
+        updateOperations.push(
           this.prismaService.cybridTransaction.updateMany({
             data: { settled_at: new Date() },
             where: { cybrid_transfer_settlement_guid: transactionGuid },
@@ -91,14 +91,14 @@ export class TransactionProcessor {
         await this.initiatePayout(initiatePayoutPayload, transactionGuid);
       }
 
-      prismaPromises.push(
+      updateOperations.push(
         this.prismaService.cybridTransaction.update({
           data: { status: transactionStatus, pawapay_payout_id: payoutId }, // Book transfers are settled by crypto transfers
           where: { cybrid_transaction_guid: transactionGuid },
         })
       );
     } else if (transfer.transfer_type === 'instant_funding') {
-      prismaPromises.push(
+      updateOperations.push(
         this.prismaService.cybridTransaction.update({
           data:
             transactionStatus === 'COMPLETED'
@@ -112,26 +112,24 @@ export class TransactionProcessor {
         `${transfer.transfer_type} not supported yet!`
       );
 
-    const accountGuid = (
-      transfer.external_bank_account_guid
-        ? transfer.destination_account?.guid
-        : transfer.source_account?.guid
-    ) as string;
-    const customerAccount = await this.cybridService.getAccount(
-      customerGuid,
-      accountGuid
-    );
+    if (transfer.destination_account?.guid) {
+      await this.buildAccountUpdateOperations(
+        customerGuid,
+        transfer.destination_account?.guid,
+        updateOperations
+      );
+    }
 
-    prismaPromises.push(
-      this.prismaService.cybridAccount.update({
-        // Convert cents to USD
-        data: { balance: (customerAccount.platform_available as number) / 100 },
-        where: { cybrid_account_guid: accountGuid },
-      })
-    );
+    if (transfer.source_account?.guid) {
+      await this.buildAccountUpdateOperations(
+        customerGuid,
+        transfer.source_account?.guid,
+        updateOperations
+      );
+    }
 
     // execute prisma transaction against database
-    await this.prismaService.$transaction(prismaPromises);
+    await this.prismaService.$transaction(updateOperations);
 
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
@@ -163,10 +161,19 @@ export class TransactionProcessor {
 
     const prismaPromises: PrismaPromise<unknown>[] = [];
     if (cryptoAccount) {
-      await updateAccountBalance(cryptoAccount.cybrid_account_guid);
+      await this.buildAccountUpdateOperations(
+        customerGuid,
+        cryptoAccount.cybrid_account_guid,
+        prismaPromises
+      );
     }
+
     if (fiatAccount) {
-      await updateAccountBalance(fiatAccount.cybrid_account_guid);
+      await this.buildAccountUpdateOperations(
+        customerGuid,
+        fiatAccount.cybrid_account_guid,
+        prismaPromises
+      );
     }
 
     await this.prismaService.$transaction([
@@ -183,19 +190,6 @@ export class TransactionProcessor {
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
     );
-
-    async function updateAccountBalance(cryptoAccountGuid: string) {
-      const cybridCryptoAccount = await this.cybridService.getAccount(
-        customerGuid,
-        cryptoAccountGuid
-      );
-      prismaPromises.push(
-        this.prismaService.cybridAccount.update({
-          data: { balance: cybridCryptoAccount.platform_available },
-          where: { cybrid_account_guid: cryptoAccountGuid },
-        })
-      );
-    }
   }
 
   @Process(constants.PAWAPAY_PAYOUT_EVENTS)
@@ -270,6 +264,29 @@ export class TransactionProcessor {
       transactionStatus,
       customerGuid: transaction.InitiatedBy.cybrid_customer_guid,
     };
+  }
+
+  private async buildAccountUpdateOperations(
+    customerGuid: string,
+    accountGuid: string,
+    prismaPromises: Array<PrismaPromise<unknown>>
+  ) {
+    const customerAccount = await this.cybridService.getAccount(
+      customerGuid,
+      accountGuid
+    );
+
+    prismaPromises.push(
+      this.prismaService.cybridAccount.update({
+        // Convert cents to USD
+        data: {
+          balance:
+            (customerAccount.platform_available as number) /
+            (customerAccount.asset === 'USDC_SOL' ? 1e6 : 100),
+        },
+        where: { cybrid_account_guid: accountGuid },
+      })
+    );
   }
 
   private async sendReceiptEmail(
