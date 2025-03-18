@@ -138,17 +138,20 @@ export class TransactionProcessor {
 
     this.logger.debug(updateOperations);
 
+    if (transfer.transfer_type !== 'crypto') {
+      updateOperations.push(
+        this.prismaService.cybridTransaction.update({
+          data:
+            transactionStatus === 'COMPLETED'
+              ? { settled_at: new Date(), status: transactionStatus }
+              : { status: transactionStatus },
+          where: { cybrid_transaction_guid: transactionGuid },
+        })
+      );
+    }
+
     // execute prisma transaction against database
-    await this.prismaService.$transaction([
-      ...updateOperations,
-      this.prismaService.cybridTransaction.update({
-        data:
-          transactionStatus === 'COMPLETED'
-            ? { settled_at: new Date(), status: transactionStatus }
-            : { status: transactionStatus },
-        where: { cybrid_transaction_guid: transactionGuid },
-      }),
-    ]);
+    await this.prismaService.$transaction(updateOperations);
 
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
