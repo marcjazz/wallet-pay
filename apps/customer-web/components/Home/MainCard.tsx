@@ -14,8 +14,10 @@ import {
   Plus as PlusIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
+
 import {
   useCybridAccounts,
+  useGetIdentityVerification,
   useVerifyAccount,
 } from '../../api/hooks/useAccounts';
 import { useCurrencies } from '../../api/hooks/useCurrency';
@@ -28,15 +30,6 @@ import DepositBottomSheet from './DepositBottomSheet';
 export enum CurrencyEnum {
   USD = 'USD',
   CAD = 'CAD',
-}
-
-// TODO: LOOK AT DELETING THIS INTERFACE and change instances to CybridAccountEntity from api types
-export interface Account {
-  cybrid_account_id: string;
-  currency: CurrencyEnum;
-  account_balance: number;
-  xaf_conversion_rate: number;
-  account_number: string;
 }
 
 export default function MainCard() {
@@ -84,12 +77,62 @@ export default function MainCard() {
 
   const { mutate: verifyAccount, isPending: isVerifyingAccount } =
     useVerifyAccount();
+  const { data: identityVerification } = useGetIdentityVerification(
+    activeAccount?.identity_verification_guid ?? ''
+  );
+
+  const handleAccountVerification = () => {
+    if (
+      activeAccount?.verification_status === null ||
+      ['FAILED', 'EXPIRED'].includes(
+        activeAccount?.verification_status as string
+      )
+    ) {
+      verifyAccount(
+        { account_type: AccountType.FIAT },
+        {
+          onSuccess: (data) => {
+            setActiveAccount((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    identity_verification_guid: data.identity_verification_guid,
+                  }
+                : undefined
+            );
+          },
+          // TODO: USE alert in case of error. will be replaced with proper notifications later
+          onError: (error) => alert(error.message),
+        }
+      );
+    } else if (identityVerification?.persona_hosted_link) {
+      const url = encodeURI(
+        `${identityVerification.persona_hosted_link}&redirect-uri=${window.location.href}`
+      );
+      window.open(url, '_self');
+    }
+  };
+
+  useEffect(() => {
+    if (
+      identityVerification?.state === VerificationStatus.WAITING &&
+      identityVerification?.persona_hosted_link
+    ) {
+      const url = encodeURI(
+        `${identityVerification.persona_hosted_link}&redirect-uri=${window.location.href}`
+      );
+      window.open(url, '_self');
+    }
+  }, [identityVerification]);
 
   return (
     <>
       <DepositBottomSheet
         isOpen={isDepositBottomSheetOpen}
-        closeBottomSheet={() => setIsDepositBottomSheetOpen(false)}
+        closeBottomSheet={() => {
+          refetchAccounts();
+          setIsDepositBottomSheetOpen(false);
+        }}
       />
       <AccountMenu
         closeMenu={() => setIsAccountMenuOpen(false)}
@@ -183,8 +226,7 @@ export default function MainCard() {
             }XAF`}</Typography>
           )}
           {activeAccount &&
-            (activeAccount.verification_status ===
-            VerificationStatus.COMPLETED ? (
+            (activeAccount.verification_status === VerificationStatus.PASSED ? (
               <Box
                 sx={{
                   backgroundColor: '#157CFB',
@@ -222,27 +264,12 @@ export default function MainCard() {
               <Button
                 color="warning"
                 fullWidth
-                onClick={() =>
-                  verifyAccount(
-                    { account_type: AccountType.FIAT },
-                    {
-                      onSuccess: (data) => {
-                        console.log(data);
-                        if (data.persona_hosted_link) {
-                          window.open(
-                            data.persona_hosted_link,
-                            'Personna KYC',
-                            'popup'
-                          );
-                        }
-                        refetchAccounts();
-                      },
-                      // TODO: USE alert in case of error. will be replaced with proper notifications later
-                      onError: (error) => alert(error.message),
-                    }
-                  )
+                onClick={handleAccountVerification}
+                disabled={
+                  isVerifyingAccount ||
+                  activeAccount.verification_status ===
+                    VerificationStatus.STORING
                 }
-                disabled={isVerifyingAccount}
                 endIcon={
                   isVerifyingAccount && (
                     <CircularProgress size={20} thickness={23} />
@@ -250,17 +277,12 @@ export default function MainCard() {
                 }
               >
                 {formatMessage({
-                  id:
-                    activeAccount.verification_status &&
-                    ![
-                      VerificationStatus.FAILED,
-                      VerificationStatus.EXPIRED,
-                    ].includes(activeAccount.verification_status)
-                      ? activeAccount.verification_status ===
-                        VerificationStatus.STORING
-                        ? 'Preparing...'
-                        : 'startNow'
-                      : 'verifyNow',
+                  id: !activeAccount.verification_status
+                    ? 'verifyNow'
+                    : activeAccount.verification_status ===
+                      VerificationStatus.WAITING
+                    ? 'completeNow'
+                    : 'waitAminute',
                 })}
               </Button>
             ))}

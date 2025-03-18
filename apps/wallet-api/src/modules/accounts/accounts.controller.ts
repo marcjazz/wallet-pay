@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   ParseEnumPipe,
   Post,
   Query,
@@ -28,6 +29,7 @@ import {
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from './dto/account.dto';
+import { verificationStatusFrom } from '../../helpers/utils';
 
 @ApiBearerAuth()
 @ApiTags('Accounts')
@@ -64,7 +66,7 @@ export class AccountsController {
     return accounts.map((account) => new CybridExternalAccountEntity(account));
   }
 
-  @Post('verify')
+  @Post('identity-verification/verify')
   @ApiCreatedResponse({ type: IdentityVerificationEntity })
   @ApiOperation({
     summary: 'Initialize verification process on a account/external account',
@@ -91,33 +93,64 @@ export class AccountsController {
       );
     }
 
-    let identityVerfication;
+    let identityVerification;
     if (payload.external_bank_account_id) {
-      identityVerfication =
+      identityVerification =
         await this.accountsService.verifyCybridExternalAccount(
           payload.external_bank_account_id
         );
     } else
-      identityVerfication = await this.accountsService.verifyCybridCustomer(
+      identityVerification = await this.accountsService.verifyCybridCustomer(
         req.user?.person_id as string
       );
 
+    const verificationStatus = verificationStatusFrom(identityVerification);
+
     return new IdentityVerificationEntity({
-      state:
-        identityVerfication.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
-      customer_guid: identityVerfication.customer_guid as string,
-      identity_verification_guid: identityVerfication.guid as string,
-      persona_inquiry_id: identityVerfication.persona_inquiry_id ?? null,
-      persona_hosted_link: identityVerfication.persona_inquiry_id
-        ? `https://withpersona.com/verify?inquiry-id=${identityVerfication.persona_inquiry_id}`
-        : null,
+      state: verificationStatus,
+      customer_guid: identityVerification.customer_guid as string,
+      identity_verification_guid: identityVerification.guid as string,
+      persona_inquiry_id: null,
+      persona_hosted_link: null,
       external_bank_account_id:
-        identityVerfication.external_bank_account_guid ?? null,
+        identityVerification.external_bank_account_guid ?? null,
     });
   }
 
-  @Post('init-plaid-connect')
-  @ApiCreatedResponse({ type: WorkflowEntity })
+  @Get('identity-verification/:identity_verification_guid')
+  @ApiOkResponse({ type: IdentityVerificationEntity })
+  @ApiOperation({
+    summary: 'Get the verification details of a customer.',
+  })
+  async getVerification(
+    @Req() req: Request,
+    @Param('identity_verification_guid') identityVerificationGuid: string
+  ) {
+    const identityVerification =
+      await this.accountsService.getIndentityVerification(
+        req.user?.person_id as string,
+        identityVerificationGuid
+      );
+
+    const verificationStatus = verificationStatusFrom(identityVerification);
+
+    return new IdentityVerificationEntity({
+      state: verificationStatus,
+      customer_guid: identityVerification.customer_guid as string,
+      identity_verification_guid: identityVerification.guid as string,
+      persona_inquiry_id: identityVerification.persona_inquiry_id ?? null,
+      persona_hosted_link: identityVerification.persona_inquiry_id
+        ? `https://withpersona.com/verify?inquiry-id=${identityVerification.persona_inquiry_id}`
+        : null,
+      external_bank_account_id:
+        identityVerification.external_bank_account_guid ?? null,
+    });
+  }
+
+  @Post('plaid-connect/init')
+  @ApiCreatedResponse({
+    schema: { properties: { workflow_guid: { type: 'string' } } },
+  })
   @ApiOperation({
     summary: "Connect to customer's external bank account by starting a flow.",
   })
@@ -130,9 +163,21 @@ export class AccountsController {
       createWorkflowDto.redirect_uri
     );
 
+    return { workflow_guid: workflowGuid };
+  }
+
+  @Get('plaid-connect/:workflow_guid')
+  @ApiOkResponse({ type: WorkflowEntity })
+  @ApiOperation({
+    summary: 'Get the workflow details by workflow GUID.',
+  })
+  async getWorkflow(
+    @Req() req: Request,
+    @Param('workflow_guid') workflowGuid: string
+  ) {
     const workflow = await this.accountsService.getWorkflow(
       req.user?.person_id as string,
-      workflowGuid as string
+      workflowGuid
     );
 
     return new WorkflowEntity(workflow);

@@ -19,7 +19,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
-      message: exception.xhr ? exception.response?.error_message : exception.message,
+      message: exception.xhr
+        ? exception.response?.error_message
+        : exception.message,
       path: request.url,
     });
   }

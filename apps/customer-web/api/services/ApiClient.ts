@@ -80,6 +80,7 @@ export class ApiClient {
       return tokenResp;
     } catch (error) {
       this.authToken = undefined; // Clear tokens on failure
+      location.href = '/login';
       throw error;
     } finally {
       this.isRefreshing = false;
@@ -102,7 +103,7 @@ export class ApiClient {
   }
 
   async patch<T>(url: string, data?: unknown): Promise<T> {
-    const res = await this.client.post<T>(url, data);
+    const res = await this.client.patch<T>(url, data);
     return res.data;
   }
 

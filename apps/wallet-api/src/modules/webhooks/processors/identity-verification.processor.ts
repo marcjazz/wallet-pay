@@ -1,9 +1,9 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
-import { IdentityVerificationStatus } from '@prisma/client';
 import { Job } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
+import { verificationStatusFrom } from '../../../helpers/utils';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
@@ -21,7 +21,6 @@ export class IdentityVerificationProcessor {
     job: Job<CybridSubscriptionEventObjectDto>
   ) {
     const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
-    this.logger.log(job.data)
     this.logger.log(
       `Processing (event: ${eventType}, Guid: ${guid}, objectGuid: ${objectGuid}) from cybrid...`
     );
@@ -82,19 +81,13 @@ export class IdentityVerificationProcessor {
         objectGuid
       );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, status] = eventType.split('.');
-    const verificationStatus =
-      identityVerfication.outcome == 'failed'
-        ? IdentityVerificationStatus.FAILED
-        : (status.toLocaleUpperCase() as IdentityVerificationStatus);
+    const verificationStatus = verificationStatusFrom(identityVerfication);
 
     if (counterparty) {
       await this.prismaService.cybridCounterparty.updateMany({
         data: {
           verification_status: verificationStatus,
-          status:
-            verificationStatus === 'COMPLETED' ? 'VERIFIED' : 'UNVERIFIED',
+          status: verificationStatus === 'PASSED' ? 'VERIFIED' : 'UNVERIFIED',
         },
         where: {
           identity_verification_guid: objectGuid,
@@ -105,8 +98,7 @@ export class IdentityVerificationProcessor {
       await this.prismaService.cybridExternalAccount.update({
         data: {
           verification_status: verificationStatus,
-          status:
-            verificationStatus === 'COMPLETED' ? 'COMPLETED' : 'UNVERIFIED',
+          status: verificationStatus === 'PASSED' ? 'VERIFIED' : 'UNVERIFIED',
         },
         where: {
           identity_verification_guid: objectGuid,
@@ -118,8 +110,7 @@ export class IdentityVerificationProcessor {
       await this.prismaService.cybridCustomer.update({
         data: {
           verification_status: verificationStatus,
-          status:
-            verificationStatus === 'COMPLETED' ? 'VERIFIED' : 'UNVERIFIED',
+          status: verificationStatus === 'PASSED' ? 'VERIFIED' : 'UNVERIFIED',
         },
         where: {
           cybrid_customer_guid: customerGuid,

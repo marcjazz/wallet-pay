@@ -9,36 +9,35 @@ import { useCreateExternalAccount } from '../../api/hooks/useAccounts';
 import { Currency } from '../../api/types';
 
 export default function Plaid({
-  setIsSubmitting,
   plaidPublicToken,
   handleSuccess,
 }: {
   plaidPublicToken: string;
-  setIsSubmitting: (val: boolean) => void;
   handleSuccess: () => void;
 }) {
   const { mutate: createExternalAccount } = useCreateExternalAccount();
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(
-    (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
-      console.log(metadata.accounts[0].id, { public_token, metadata });
-      setIsSubmitting(false);
-      handleSuccess();
+    (
+      public_token: string,
+      { accounts: [account] }: PlaidLinkOnSuccessMetadata
+    ) => {
       createExternalAccount(
         {
+          plaid_account_name: account.name,
           plaid_public_token: public_token,
           currency: Currency.USD,
-          plaid_account_id: metadata.accounts[0].id,
-          plaid_account_mask: metadata.accounts[0].mask,
+          plaid_account_id: account.id,
+          plaid_account_mask: account.mask,
         },
         {
-          onSuccess: () => console.log('Hello world'),
+          onSuccess: () => handleSuccess(),
           // TODO: USE alert in case of error. will be replaced with proper notifications later
           onError: (error) => alert(error.message),
         }
       );
     },
-    [createExternalAccount, handleSuccess, setIsSubmitting]
+    [createExternalAccount, handleSuccess]
   );
 
   // The usePlaidLink hook manages Plaid Link creation

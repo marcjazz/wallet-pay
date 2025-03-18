@@ -12,9 +12,7 @@ import {
 import { $Enums, IdentityVerificationStatus } from '@prisma/client';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  CreateExternalAccountDto
-} from './dto/account.dto';
+import { CreateExternalAccountDto } from './dto/account.dto';
 
 @Injectable()
 export class AccountsService {
@@ -33,7 +31,10 @@ export class AccountsService {
           },
         },
       },
-      where: { CybridCustomer: { person_id: personId } },
+      where: {
+        currency: { notIn: ['USDC_SOL'] },
+        CybridCustomer: { person_id: personId },
+      },
     });
     return cybridAccounts;
   }
@@ -48,42 +49,38 @@ export class AccountsService {
     }
 
     if (
-      customer.identity_verification_guid == null ||
-      customer.verification_status === 'FAILED' ||
-      customer.verification_status === 'EXPIRED'
+      customer.identity_verification_guid &&
+      !['EXPIRED', 'FAILED'].includes(customer.verification_status as string)
     ) {
-      const identityVerification = await this.cybridService.verifyIdentity(
-        customer.cybrid_customer_guid,
-        {
-          type: PostIdentityVerificationBankModelTypeEnum.Kyc,
-          method: PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
-          customer_guid: customer.cybrid_customer_guid,
-        }
+      throw new ConflictException(
+        'Customer has a valid ongoing identity verification!'
       );
-      customer = {
-        ...customer,
-        identity_verification_guid: identityVerification.guid as string,
-      };
-
-      await this.prismaService.cybridCustomer.update({
-        include: { CybridExternalAccounts: true },
-        data: {
-          identity_verification_guid: identityVerification.guid,
-          verification_status:
-            identityVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
-        },
-        where: { cybrid_customer_id: customer.cybrid_customer_id },
-      });
     }
 
-    if (customer.verification_status === 'COMPLETED') {
-      throw new ConflictException('Customer is successfully verified already!');
-    }
-
-    return this.cybridService.getIdentityVerification(
+    const identityVerification = await this.cybridService.verifyIdentity(
       customer.cybrid_customer_guid,
-      customer.identity_verification_guid as string
+      {
+        type: PostIdentityVerificationBankModelTypeEnum.Kyc,
+        method: PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
+        customer_guid: customer.cybrid_customer_guid,
+      }
     );
+    customer = {
+      ...customer,
+      identity_verification_guid: identityVerification.guid as string,
+    };
+
+    await this.prismaService.cybridCustomer.update({
+      include: { CybridExternalAccounts: true },
+      data: {
+        identity_verification_guid: identityVerification.guid,
+        verification_status:
+          identityVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
+      },
+      where: { cybrid_customer_id: customer.cybrid_customer_id },
+    });
+
+    return identityVerification;
   }
 
   async verifyCybridExternalAccount(externalBankAccountId: string) {
@@ -95,6 +92,17 @@ export class AccountsService {
 
     if (!cybridExternalAccount) {
       throw new NotFoundException('External account not found!');
+    }
+
+    if (
+      cybridExternalAccount.identity_verification_guid &&
+      !['EXPIRED', 'FAILED'].includes(
+        cybridExternalAccount.verification_status as string
+      )
+    ) {
+      throw new ConflictException(
+        'Customer external account has a valid ongoing identity verification!'
+      );
     }
 
     const identityVerificationPayload: PostIdentityVerificationBankModel = {
@@ -126,9 +134,23 @@ export class AccountsService {
       where: { cybrid_external_account_id: externalBankAccountId },
     });
 
+    return identityVerification;
+  }
+
+  async getIndentityVerification(
+    personId: string,
+    identityVerificationGuid: string
+  ) {
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { person_id: personId },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found!');
+    }
+
     return this.cybridService.getIdentityVerification(
       customer.cybrid_customer_guid,
-      customer.identity_verification_guid as string
+      identityVerificationGuid
     );
   }
 
@@ -179,6 +201,7 @@ export class AccountsService {
       plaid_account_mask,
       plaid_account_id,
       plaid_public_token,
+      plaid_account_name,
     }: CreateExternalAccountDto,
     personId: string
   ) {
@@ -196,7 +219,7 @@ export class AccountsService {
         plaid_account_id,
         plaid_public_token,
         plaid_account_mask,
-        name: `${currency} Funding Account`,
+        name: `${plaid_account_name} (${currency})`,
         customer_guid: customer.cybrid_customer_guid,
         account_kind: PostExternalBankAccountBankModelAccountKindEnum.Plaid,
       }

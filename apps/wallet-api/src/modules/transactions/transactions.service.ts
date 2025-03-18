@@ -1,5 +1,6 @@
 import {
   PostQuoteBankModelProductTypeEnum,
+  PostQuoteBankModelSideEnum,
   PostTradeBankModelTradeTypeEnum,
   PostTransferBankModelTransferTypeEnum,
   PostTransferParticipantBankModelTypeEnum,
@@ -21,14 +22,6 @@ import {
 } from '@prisma/client';
 import { CybridService, Participants } from '../../cybrid/cybrid.service';
 import { generateTransactionId } from '../../helpers/otp-generator';
-import { validatePhoneNumber } from '../../helpers/utils';
-import { generatePayoutReceiptEmail } from '../../mailer/emails/payout-email';
-import {
-  generateTransactionReceiptEmail,
-  TransactionReceipt,
-} from '../../mailer/emails/transaction-email';
-import { MailerService } from '../../mailer/mailer.service';
-import { MomoService } from '../../momo/momo.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CybridTransactionEntity,
@@ -37,8 +30,10 @@ import {
   QueryTransactionDto,
   ReceiverPayoutInfoDto,
 } from './transaction.dto';
+import { constants } from '../../constants';
 
-type CustomerAccountGuids = {
+type CustomerAccountInfo = {
+  balance: number;
   customerGuid: string;
   fiatAccountGuid: string;
   cryptoAccountGuid?: string;
@@ -53,9 +48,7 @@ export class TransactionsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
-    private readonly configService: ConfigService,
-    private readonly mailerService: MailerService,
-    private readonly momoService: MomoService
+    private readonly configService: ConfigService
   ) {}
 
   async initiateInstantFunding(
@@ -64,7 +57,7 @@ export class TransactionsService {
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.InstantFunding;
 
-    const sourceAccountGuids = await this.getSourceAccountGuids(
+    const sourceAccountGuids = await this.getSourceAccountInfo(
       personId,
       payload.cybrid_source_account_id,
       transferType
@@ -76,15 +69,23 @@ export class TransactionsService {
 
     const { currency, customerGuid, fiatAccountGuid, externalAccountGuid } =
       sourceAccountGuids;
+
+    // Retrieving supported currency rate
+    const usedCurrency =
+      await this.prismaService.supportedCurrency.findFirstOrThrow({
+        select: { currency: true, xaf_rate: true },
+        where: { currency: currency.toLocaleUpperCase() },
+      });
+
     const bankGuid = this.configService.get('CYBRID_BANK_GUID');
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
       {
         asset: currency,
-        side: 'deposit',
         bank_guid: bankGuid,
         customer_guid: customerGuid,
         receive_amount: payload.amount,
+        side: PostQuoteBankModelSideEnum.Deposit,
         product_type: PostQuoteBankModelProductTypeEnum.Funding,
       }
     );
@@ -118,8 +119,9 @@ export class TransactionsService {
           fees: 0,
           currency,
           initial_currency: currency,
-          amount: fundingTransfer.amount as number,
-          initial_currency_amount: payload.amount,
+          conversion_rate: usedCurrency.xaf_rate,
+          amount: (fundingTransfer.amount as number) / 100,
+          initial_currency_amount: payload.amount / 100,
           transaction_id: generateTransactionId(),
           cybrid_transaction_guid: fundingTransfer.guid as string,
           transaction_type:
@@ -153,32 +155,25 @@ export class TransactionsService {
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
 
-    const sourceAccountGuids = await this.getSourceAccountGuids(
+    const sourceAccountInfo = await this.getSourceAccountInfo(
       personId,
       payload.cybrid_source_account_id,
       transferType
     );
 
-    if (!sourceAccountGuids) {
+    if (!sourceAccountInfo) {
       throw new NotFoundException('Source bank account not found!');
+    }
+
+    if (sourceAccountInfo.balance < payload.amount) {
+      throw new UnprocessableEntityException('Infussicient account balance');
     }
 
     const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
 
-    // Validate Receiver MoMo account status
-    const isReceiverMoMoAccountActive =
-      await this.momoService.validateAccountHolderStatus(
-        cybridCounterparty.phone_number
-      );
-    if (!isReceiverMoMoAccountActive) {
-      throw new UnprocessableEntityException(
-        `Receiver MoMo account is not active`
-      );
-    }
-
     // trade USD for USDC_SOL
     const [fiatTrade] = await this.trateFiatForCrypto(
-      sourceAccountGuids,
+      sourceAccountInfo,
       payload.amount
     );
 
@@ -186,7 +181,7 @@ export class TransactionsService {
     const cybridTransaction = await this.executeBookTransfer(
       fiatTrade.receive_amount as number,
       payload.amount,
-      sourceAccountGuids,
+      sourceAccountInfo,
       cybridCounterparty.cybrid_counterparty_guid
     );
 
@@ -243,69 +238,16 @@ export class TransactionsService {
     );
   }
 
-  private async sendReceiptEmail(
-    transactionGuid: string,
-    receiptUrl: string,
-    payoutAt?: Date,
-    amountReceived?: number
-  ) {
-    const {
-      InitiatedBy: { Person: person },
-      ReceiverPayoutInfo: cybridCounterparty,
-      ...cybridTransaction
-    } = await this.prismaService.cybridTransaction.findUniqueOrThrow({
-      include: {
-        ReceiverPayoutInfo: true,
-        InitiatedBy: { select: { Person: true } },
-      },
-      where: { cybrid_transaction_guid: transactionGuid },
-    });
-
-    const transactionId = cybridTransaction.transaction_id;
-    const initiatedAt = new Date(cybridTransaction.initiated_at);
-    const recipientPhoneNumber = cybridCounterparty?.phone_number;
-    const mobileMoneyPartner = recipientPhoneNumber
-      ? validatePhoneNumber(recipientPhoneNumber) === 0
-        ? 'Mobile Money'
-        : 'Orange Money'
-      : 'N/A';
-
-    const receiptData: TransactionReceipt = {
-      transactionId,
-      initiatedAt: initiatedAt.toString(),
-      customerName: `${person.first_name} ${person.last_name}`,
-      receiptUrl: `${receiptUrl}/${cybridTransaction.cybrid_transaction_id}`,
-      recipientName: cybridCounterparty?.fullname ?? 'N/A',
-      recipientPhoneNumber: `${recipientPhoneNumber} (${mobileMoneyPartner} Cameroon)`,
-      amountSent: `${cybridTransaction.initial_currency_amount} ${cybridTransaction.initial_currency}`,
-    };
-
-    await this.mailerService.sendMessage({
-      to: person.email,
-      subject: payoutAt
-        ? `Payout Receipt (${transactionId})`
-        : `Transaction Receipt (${transactionId})`,
-      html: amountReceived
-        ? generatePayoutReceiptEmail({
-            ...receiptData,
-            amountReceived: `${amountReceived} XAF`,
-            payoutAt: cybridTransaction.payout_at?.toString() ?? `N/A`,
-          })
-        : generateTransactionReceiptEmail(receiptData),
-    });
-
-    return { person, cybridCounterparty };
-  }
-
-  private async getSourceAccountGuids(
+  private async getSourceAccountInfo(
     personId: string,
     sourceAccountId: string,
     purpose: 'book' | 'instant_funding'
   ) {
-    let customerAccount: CustomerAccountGuids | null = null;
+    let customerAccount: CustomerAccountInfo | null = null;
     if (purpose === 'book') {
       const cybridAccount = await this.prismaService.cybridAccount.findFirst({
         select: {
+          balance: true,
           currency: true,
           cybrid_account_guid: true,
           CybridCustomer: {
@@ -327,6 +269,7 @@ export class TransactionsService {
 
       if (cybridAccount) {
         const {
+          balance,
           currency,
           CybridCustomer: customer,
           cybrid_account_guid: fiatAccountGuid,
@@ -335,6 +278,8 @@ export class TransactionsService {
         customerAccount = {
           currency,
           fiatAccountGuid,
+          // converting stored balance back to cents
+          balance: balance * 100,
           customerGuid: customer.cybrid_customer_guid,
           cryptoAccountGuid: customer.CybridAccounts[0].cybrid_account_guid,
         };
@@ -344,6 +289,7 @@ export class TransactionsService {
         await this.prismaService.cybridExternalAccount.findFirst({
           select: {
             currency: true,
+            balance: true,
             cybrid_external_account_guid: true,
             CybridCustomer: {
               select: {
@@ -370,10 +316,13 @@ export class TransactionsService {
             CybridAccounts: [{ cybrid_account_guid }],
           },
           currency,
+          balance,
           cybrid_external_account_guid,
         } = externalAccount;
         customerAccount = {
           currency,
+          // converting stored balance back to cents
+          balance: balance * 100,
           fiatAccountGuid: cybrid_account_guid,
           customerGuid: cybrid_customer_guid,
           externalAccountGuid: cybrid_external_account_guid,
@@ -386,10 +335,16 @@ export class TransactionsService {
   private async executeBookTransfer(
     amount: number,
     initialCurrencyAmount: number,
-    { currency, customerGuid, cryptoAccountGuid }: CustomerAccountGuids,
+    { currency, customerGuid, cryptoAccountGuid }: CustomerAccountInfo,
     counterpartyGuid: string
   ) {
     const transferType = PostTransferBankModelTransferTypeEnum.Book;
+
+    const usedCurrency =
+      await this.prismaService.supportedCurrency.findFirstOrThrow({
+        select: { currency: true, xaf_rate: true },
+        where: { currency: currency.toLocaleUpperCase() },
+      });
 
     const bankGuid = this.configService.get<string>(
       'CYBRID_BANK_GUID'
@@ -429,17 +384,12 @@ export class TransactionsService {
       }
     );
 
-    const usedCurrency = await this.prismaService.supportedCurrency.findFirst({
-      select: { currency: true, xaf_rate: true },
-      where: { currency },
-    });
-
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
           fees: 0,
           currency: 'USDC_SOL',
-          conversion_rate: usedCurrency?.xaf_rate,
+          conversion_rate: usedCurrency.xaf_rate,
           initial_currency: currency,
           // convert cents to dollars
           initial_currency_amount: initialCurrencyAmount / 100,
@@ -470,7 +420,7 @@ export class TransactionsService {
       customerGuid,
       fiatAccountGuid,
       cryptoAccountGuid,
-    }: CustomerAccountGuids,
+    }: CustomerAccountInfo,
     fiatAmount: number
   ): Promise<[TradeBankModel, CybridTransaction]> {
     const tradeQuote = await this.cybridService.createQuote(customerGuid, {
@@ -478,8 +428,8 @@ export class TransactionsService {
       product_type: PostQuoteBankModelProductTypeEnum.Trading,
       deliver_amount: fiatAmount,
       customer_guid: customerGuid,
-      symbol: 'USDC_SOL-USD',
-      side: 'buy',
+      symbol: constants.SUPPORTED_TRADE_SYMBOL,
+      side: PostQuoteBankModelSideEnum.Buy,
     });
 
     const tradeTransaction = await this.cybridService.initiateTrade(
@@ -530,7 +480,7 @@ export class TransactionsService {
       throw new NotFoundException(`Receiver not found!`);
     }
 
-    if (cybridCounterparty.verification_status !== 'COMPLETED') {
+    if (cybridCounterparty.verification_status !== 'PASSED') {
       throw new UnauthorizedException(`Potential faulty receiver detected!`);
     }
 

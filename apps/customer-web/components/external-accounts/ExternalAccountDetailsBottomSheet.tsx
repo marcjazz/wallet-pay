@@ -116,7 +116,7 @@ export default function ExternalAccountDetailsBottomSheet({
               bgcolor:
                 theme.palette[
                   externalAccount.verification_status ===
-                  VerificationStatus.COMPLETED
+                  VerificationStatus.PASSED
                     ? 'primary'
                     : externalAccount.verification_status === null
                     ? 'error'
@@ -124,7 +124,7 @@ export default function ExternalAccountDetailsBottomSheet({
                 ].light,
               color:
                 externalAccount.verification_status ===
-                VerificationStatus.COMPLETED
+                VerificationStatus.PASSED
                   ? theme.palette['primary'].main
                   : externalAccount.verification_status === null
                   ? 'white'

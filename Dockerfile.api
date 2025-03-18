@@ -5,28 +5,22 @@ FROM node:23-alpine AS base
 LABEL maintainer="Marco Kuidja <kuidjamarco@gmail.com>"
 LABEL org.opencontainers.image.description="NestJs backend for the XafPay Wallet"
 
-# Installing openssl for prisma
-RUN apk update \
-    && apk add --no-cache openssl
-
 # #set the working directory
 WORKDIR /app
-
-RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
-    --mount=type=bind,src=package-lock.json,target=/app/package-lock.json
 
 FROM base AS deps
 # clean install dependecies
 RUN --mount=type=cache,target=/app/node_modules \ 
     --mount=type=bind,src=package.json,target=/app/package.json \ 
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
-    npm ci
+    npm ci \
+    && cp -R /app/node_modules /app/deps
 
 FROM base AS builder
 
 COPY --from=deps /app/deps ./node_modules
 
-# COPY workspace configs
+# Build nestjs project
 RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
     --mount=type=bind,src=package-lock.json,target=/app/package-lock.json \ 
     --mount=type=bind,src=tsconfig.base.json,target=/app/tsconfig.base.json \ 
@@ -39,8 +33,14 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     npx prisma generate \
     # Disable nx cloud & Build backend app
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
-    && cp -R /app/dist/apps/wallet-api ./final-dist \
-    && cp -R /app/prisma ./final-prisma
+    && cp -R /app/dist/apps/wallet-api ./final_dist \
+    # Prune node_modules to project specific deps
+    && npm ci --omit=dev --prefix /app/dist/apps/wallet-api \
+    && cp -R /app/dist/apps/wallet-api/node_modules /app/final_dist/node_modules \
+    && cp -R /app/prisma /app/final_dist/prisma \
+    # Regenerating prisma client
+    && cd /app/final_dist \
+    && npx prisma generate
 
 FROM base AS runner
 
@@ -50,14 +50,17 @@ ENV PORT=5000
 # Use a non-root user for security
 RUN addgroup -S -g 1001 nodejs && adduser -S nestjs -G nodejs -u 1001
 
-COPY --from=builder --chown=nestjs:nodejs /app/final-prisma ./prisma
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nestjs:nodejs /app/final-dist ./
+COPY entrypoint.sh ./entrypoint.sh
 
+COPY --from=builder --chown=nestjs:nodejs /app/final_dist ./
+
+RUN chmod +x entrypoint.sh
+
+# switch to non-root user
 USER nestjs
 
 # # expose port 5000 to outer environment
 EXPOSE 5000
 
 # run app
-CMD npx prisma migrate deploy && node /app/main.js
+CMD ["./entrypoint.sh"]

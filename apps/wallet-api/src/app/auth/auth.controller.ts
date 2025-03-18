@@ -38,6 +38,8 @@ import {
 } from './auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './local/local.guard';
+import { JwtService } from '@nestjs/jwt';
+import { IJWTPayload } from './jwt/jwt.strategy';
 
 @SkipAuth()
 @Controller('auth')
@@ -51,6 +53,7 @@ import { LocalGuard } from './local/local.guard';
 })
 export class AuthController {
   constructor(
+    private readonly jwtService: JwtService,
     private readonly authService: AuthService,
     private readonly configService: ConfigService
   ) {}
@@ -172,7 +175,6 @@ export class AuthController {
   }
 
   @Post('logout')
-  @SkipAuth(false)
   @ApiBearerAuth()
   @ApiCreatedResponse({
     schema: { properties: { messaage: { type: 'string' } } },
@@ -181,11 +183,18 @@ export class AuthController {
     summary: 'Close user session.',
   })
   async logout(@Req() req: Request, @Res() res: Response) {
-    //update database
-    await this.authService.logout(req.user?.id as string);
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
+      return;
+    }
+
+    const token = authHeader.split(' ')[1];
+    const payload = this.jwtService.decode<IJWTPayload>(token);
+    // update database
+    await this.authService.logout(payload.sub);
 
     // clear credentials from cookies
-    res.clearCookie('access_token');
     res.clearCookie('refresh_token');
 
     res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });

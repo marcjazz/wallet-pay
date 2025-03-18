@@ -7,7 +7,11 @@ import {
   RefreshCcw,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { useVerifyAccount } from '../../api/hooks/useAccounts';
+
+import {
+  useGetIdentityVerification,
+  useVerifyAccount,
+} from '../../api/hooks/useAccounts';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
@@ -20,7 +24,7 @@ export const kycChipVariants: Record<
     color: 'error',
     icon: <AlertTriangle size={12} color="white" />,
   },
-  COMPLETED: {
+  PASSED: {
     color: 'primary',
     icon: <CheckCircle size={12} color="#157CFB" />,
   },
@@ -61,19 +65,39 @@ export default function ExternalAccountCard({
 
   const { mutate: handleVerifyAccount, isPending: isVerifyingAccount } =
     useVerifyAccount();
+  const { data: identityVerification } = useGetIdentityVerification(
+    externalAccount.identity_verification_guid ?? ''
+  );
 
   const verifyAccount = (cybrid_external_account_id: string) => {
-    handleVerifyAccount(
-      {
-        account_type: AccountType.EXTERNAL,
-        external_bank_account_id: cybrid_external_account_id,
-      },
-      {
-        onSuccess: () => refetchExternalAccounts(),
-        // TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
-      }
-    );
+    if (
+      externalAccount.verification_status === null ||
+      ['FAILED', 'EXPIRED'].includes(
+        externalAccount.verification_status as string
+      )
+    ) {
+      handleVerifyAccount(
+        {
+          account_type: AccountType.EXTERNAL,
+          external_bank_account_id: cybrid_external_account_id,
+        },
+        {
+          onSuccess: () => {
+            refetchExternalAccounts();
+          },
+          // TODO: USE alert in case of error. will be replaced with proper notifications later
+          onError: (error) => alert(error.message),
+        }
+      );
+    } else if (
+      identityVerification?.state === VerificationStatus.WAITING &&
+      identityVerification?.persona_hosted_link
+    ) {
+      const url = encodeURI(
+        `${identityVerification.persona_hosted_link}&redirect-uri=${window.location.href}`
+      );
+      window.open(url, '_self');
+    }
   };
 
   return (
@@ -98,10 +122,9 @@ export default function ExternalAccountCard({
         >
           <Typography>{externalAccount.name}</Typography>
           <Chip
-            onClick={() => {
-              if (externalAccount.verification_status === null)
-                verifyAccount(externalAccount.cybrid_external_account_id);
-            }}
+            onClick={() =>
+              verifyAccount(externalAccount.cybrid_external_account_id)
+            }
             label={formatMessage({
               id:
                 externalAccount.verification_status ||
@@ -113,7 +136,7 @@ export default function ExternalAccountCard({
               bgcolor:
                 theme.palette[
                   externalAccount.verification_status ===
-                  VerificationStatus.COMPLETED
+                  VerificationStatus.PASSED
                     ? 'primary'
                     : externalAccount.verification_status === null
                     ? 'error'
@@ -121,7 +144,7 @@ export default function ExternalAccountCard({
                 ].light,
               color:
                 externalAccount.verification_status ===
-                VerificationStatus.COMPLETED
+                VerificationStatus.PASSED
                   ? theme.palette['primary'].main
                   : externalAccount.verification_status === null
                   ? 'white'
@@ -142,14 +165,13 @@ export default function ExternalAccountCard({
         <Typography variant="h3" color="#BABDBE">
           {`********${externalAccount.mask}`.replace(/(.{4})(?=.)/g, '$1 ')}
         </Typography>
-        {/* </Box> */}
       </Box>
 
       <Button
         variant="text"
         sx={{ padding: 0, typography: 'p2r' }}
         endIcon={<ChevronRight size={20} />}
-        onClick={handleSelect}
+        onClick={() => handleSelect()}
       >
         {formatMessage({ id: 'details' })}
       </Button>

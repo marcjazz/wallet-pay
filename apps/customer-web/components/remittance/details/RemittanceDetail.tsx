@@ -52,7 +52,7 @@ export default function RemittanceDetail({
     transaction?.receiver_payout_info_id as string
   );
   const { data: externalAccounts, isFetching: isLoadingExternalAccounts } =
-    useExternalAccounts(VerificationStatus.COMPLETED);
+    useExternalAccounts(VerificationStatus.PASSED);
 
   const receiptHeader: Record<
     TransactionStatus,

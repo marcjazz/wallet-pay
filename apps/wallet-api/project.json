@@ -16,6 +16,7 @@
         "outputPath": "dist/apps/wallet-api",
         "main": "apps/wallet-api/src/main.ts",
         "tsConfig": "apps/wallet-api/tsconfig.app.json",
+        "generatePackageJson": true,
         "assets": [
           "apps/wallet-api/src/assets"
         ],

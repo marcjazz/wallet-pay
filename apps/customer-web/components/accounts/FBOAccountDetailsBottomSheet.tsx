@@ -179,14 +179,14 @@ export default function FBOAccountDetailsBottomSheet({
               typography: 'l3r',
               bgcolor:
                 theme.palette[
-                  account.verification_status === VerificationStatus.COMPLETED
+                  account.verification_status === VerificationStatus.PASSED
                     ? 'primary'
                     : account.verification_status === null
                     ? 'error'
                     : 'secondary'
                 ].light,
               color:
-                account.verification_status === VerificationStatus.COMPLETED
+                account.verification_status === VerificationStatus.PASSED
                   ? theme.palette['primary'].main
                   : account.verification_status === null
                   ? 'white'

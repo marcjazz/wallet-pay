@@ -20,6 +20,7 @@ import {
   PostIdentityVerificationBankModel,
   PostQuoteBankModel,
   PostQuoteBankModelProductTypeEnum,
+  PostQuoteBankModelSideEnum,
   PostTradeBankModel,
   PostTransferBankModel,
   PostTransferBankModelTransferTypeEnum,
@@ -431,7 +432,7 @@ export class CybridService {
         asset: 'USDC_SOL',
         deliver_amount: totalAmount,
         product_type: PostQuoteBankModelProductTypeEnum.CryptoTransfer,
-        side: 'withdrawal',
+        side: PostQuoteBankModelSideEnum.Withdrawal,
       },
     });
 

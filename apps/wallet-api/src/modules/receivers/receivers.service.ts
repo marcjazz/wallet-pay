@@ -13,7 +13,6 @@ import { $Enums } from '@prisma/client';
 import { SearchQueryDto } from '../../app/app.dto';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { validatePhoneNumber } from '../../helpers/utils';
-import { MomoService } from '../../momo/momo.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReceiverDto } from './receiver.dto';
 
@@ -23,8 +22,7 @@ export class RecieversService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly cybridService: CybridService,
-    private readonly momoService: MomoService
+    private readonly cybridService: CybridService
   ) {}
 
   async findAll(query: SearchQueryDto) {
@@ -76,13 +74,20 @@ export class RecieversService {
     }
 
     // Validate receiver's account name
-    const { family_name, given_name } =
-      await this.momoService.getAccountHolderBasicInfo(phoneNumber);
-    if (!fullname.includes(family_name) || !fullname.includes(given_name)) {
-      throw new UnprocessableEntityException(
-        `Receiver's fullname doesn't match MoMo Account holder basic info`
-      );
-    }
+    // const { family_name, given_name } =
+    //   await this.momoService.getAccountHolderBasicInfo(phoneNumber);
+    // const regex = new RegExp(
+    //   `(?=.*\\b${family_name}\\b)(?=.*\\b${given_name}\\b)`,
+    //   'i'
+    // );
+    // if (
+    //   process.env.NODE_ENV === 'production' &&
+    //   fullname.search(regex) === -1
+    // ) {
+    //   throw new UnprocessableEntityException(
+    //     `Receiver's fullname doesn't match MoMo Account holder basic info`
+    //   );
+    // }
 
     const counterparty = await this.cybridService.createCounterparty(
       customer.cybrid_customer_guid,
@@ -93,7 +98,7 @@ export class RecieversService {
       }
     );
 
-    setTimeout(async () => {
+    const timeout = setTimeout(async () => {
       try {
         this.logger.log(`Counterparty verification started...`);
         const counterpartyVerification =
@@ -120,10 +125,11 @@ export class RecieversService {
         this.logger.log(
           `Counterparty verification completed with status ${counterpartyVerification.state}`
         );
+        clearInterval(timeout);
       } catch (error) {
         this.logger.error(error);
       }
-    }, 7000);
+    }, 1000);
 
     return await this.prismaService.cybridCounterparty.create({
       data: {

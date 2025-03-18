@@ -46,21 +46,73 @@ export class AccountService {
   async verifyAccount(
     payload: VerifyCybridAccountDto
   ): Promise<IdentityVerificationEntity> {
-    return this.apiClient.post<IdentityVerificationEntity>(
-      '/api/v1/accounts/verify',
-      payload
+    const { identity_verification_guid } =
+      await this.apiClient.post<IdentityVerificationEntity>(
+        '/api/v1/accounts/identity-verification/verify',
+        payload
+      );
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const identityVerification = await this.getIdentityVerification(
+        identity_verification_guid
+      );
+      if (identityVerification.state === 'WAITING') {
+        return identityVerification;
+      } else if (identityVerification.state === 'FAILED') {
+        throw new Error('Identity verification failed');
+      } else {
+        // Wait for 1 second before checking again.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+  }
+
+  /**
+   * Verify a Cybrid account or an external bank account.
+   * @param payload Account verification details.
+   * @returns Identity verification entity.
+   */
+  async getIdentityVerification(
+    identityVerificationGuid: string
+  ): Promise<IdentityVerificationEntity> {
+    return this.apiClient.get<IdentityVerificationEntity>(
+      `/api/v1/accounts/identity-verification/${identityVerificationGuid}`
     );
   }
 
   /**
    * Initialize a Plaid connection workflow.
    * @param payload Workflow initialization details.
-   * @returns Workflow creation confirmation (empty object).
+   * @returns Workflow guid.
    */
   async createWorkflow(payload: CreateWorkflowDto): Promise<WorkflowEntity> {
-    return this.apiClient.post<WorkflowEntity>(
-      '/api/v1/accounts/init-plaid-connect',
-      payload
+    const { workflow_guid } = await this.apiClient.post<{
+      workflow_guid: string;
+    }>('/api/v1/accounts/plaid-connect/init', payload);
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const workflow = await this.getWorkflow(workflow_guid);
+      if (workflow.state === 'completed') {
+        return workflow;
+      } else if (workflow.state === 'failed') {
+        throw new Error('Plaid connection');
+      } else {
+        // Wait for 1 second before checking again.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+  }
+
+  /**
+   * Get initiliazed Plaid connection workflow.
+   * @param workflowGuid Workflow guid details.
+   * @returns Workflow entity.
+   */
+  async getWorkflow(workflowGuid: string): Promise<WorkflowEntity> {
+    return this.apiClient.get<WorkflowEntity>(
+      `/api/v1/accounts/plaid-connect/${workflowGuid}`
     );
   }
 

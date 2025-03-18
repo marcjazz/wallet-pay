@@ -74,11 +74,11 @@ export default function ExternalAccounts() {
       )}
       {isConnectingPlaid && plaidLinkToken && (
         <Plaid
-          setIsSubmitting={setIsConnectingPlaid}
           plaidPublicToken={plaidLinkToken}
           handleSuccess={() => {
-            setPlaidLinkToken(undefined);
             refetchExternalAccounts();
+            setIsConnectingPlaid(false);
+            setPlaidLinkToken(undefined);
           }}
         />
       )}
@@ -157,12 +157,12 @@ export default function ExternalAccounts() {
             <Scrollbars universal autoHide>
               {externalAccounts.map((externalAccount) => (
                 <ExternalAccountCard
-                  refetchExternalAccounts={refetchExternalAccounts}
                   key={externalAccount.cybrid_external_account_id}
                   externalAccount={externalAccount}
                   handleSelect={() =>
                     setSelectedExternalAccount(externalAccount)
                   }
+                  refetchExternalAccounts={refetchExternalAccounts}
                 />
               ))}
             </Scrollbars>
