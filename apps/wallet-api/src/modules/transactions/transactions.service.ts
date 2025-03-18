@@ -30,6 +30,7 @@ import {
   QueryTransactionDto,
   ReceiverPayoutInfoDto,
 } from './transaction.dto';
+import { constants } from '../../constants';
 
 type CustomerAccountInfo = {
   balance: number;
@@ -427,7 +428,7 @@ export class TransactionsService {
       product_type: PostQuoteBankModelProductTypeEnum.Trading,
       deliver_amount: fiatAmount,
       customer_guid: customerGuid,
-      symbol: 'USDC_SOL-USD',
+      symbol: constants.SUPPORTED_TRADE_SYMBOL,
       side: PostQuoteBankModelSideEnum.Buy,
     });
 
