@@ -47,7 +47,7 @@ export class TransactionsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService
   ) {}
 
   async initiateInstantFunding(
@@ -68,6 +68,14 @@ export class TransactionsService {
 
     const { currency, customerGuid, fiatAccountGuid, externalAccountGuid } =
       sourceAccountGuids;
+
+    // Retrieving supported currency rate
+    const usedCurrency =
+      await this.prismaService.supportedCurrency.findFirstOrThrow({
+        select: { currency: true, xaf_rate: true },
+        where: { currency: currency.toLocaleUpperCase() },
+      });
+
     const bankGuid = this.configService.get('CYBRID_BANK_GUID');
     const fundingTransferQuote = await this.cybridService.createQuote(
       customerGuid,
@@ -110,6 +118,7 @@ export class TransactionsService {
           fees: 0,
           currency,
           initial_currency: currency,
+          conversion_rate: usedCurrency.xaf_rate,
           amount: (fundingTransfer.amount as number) / 100,
           initial_currency_amount: payload.amount / 100,
           transaction_id: generateTransactionId(),
