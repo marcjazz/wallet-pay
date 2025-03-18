@@ -173,7 +173,7 @@ export class TransactionProcessor {
         prismaPromises
       );
     }
-
+    this.logger.debug(prismaPromises)
     await this.prismaService.$transaction([
       ...prismaPromises,
       this.prismaService.cybridTransaction.update({
