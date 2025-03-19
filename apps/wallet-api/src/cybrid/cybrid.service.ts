@@ -79,7 +79,8 @@ export class CybridService {
   }
 
   async createCustomer(
-    asset: CybridSupportedCurrency
+    asset: CybridSupportedCurrency,
+    customerName: string
   ): Promise<NewCybridCustomerType> {
     const customersBankApi = await this.cybridConfig.getInstance(
       CustomersBankApi,
@@ -102,7 +103,7 @@ export class CybridService {
           const fiatAccountObservable = accountsBankApi.createAccount({
             postAccountBankModel: {
               asset,
-              name: `${asset} Account`,
+              name: `${customerName.trim()}'s ${asset} Account`,
               customer_guid: customer.guid,
               type: PostAccountBankModelTypeEnum.Fiat,
             },
@@ -111,7 +112,7 @@ export class CybridService {
           const cryptoAccountObservable = accountsBankApi.createAccount({
             postAccountBankModel: {
               asset: 'USDC_SOL',
-              name: `USDC (Solana) account`,
+              name: `${customerName.trim()}'s USDC (Solana) Account`,
               customer_guid: customer.guid,
               type: PostAccountBankModelTypeEnum.Trading,
             },
