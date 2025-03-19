@@ -62,7 +62,6 @@ export class TransactionProcessor {
         `${transfer.transfer_type} transfers not supported yet!`
       );
     }
-    this.logger.debug(supportedTransfeTypes);
 
     if (transfer.transfer_type === 'instant_funding') {
       // Insant funding is done with usd account
@@ -135,8 +134,6 @@ export class TransactionProcessor {
         })
       );
     }
-
-    this.logger.debug(updateOperations);
 
     if (transfer.transfer_type !== 'crypto') {
       updateOperations.push(
@@ -230,8 +227,6 @@ export class TransactionProcessor {
       );
     }
 
-    this.logger.debug(accountUpdateOperations);
-
     await this.prismaService.$transaction([
       ...accountUpdateOperations,
       this.prismaService.cybridTransaction.update({
@@ -320,29 +315,6 @@ export class TransactionProcessor {
       transactionStatus,
       customerGuid: transaction.InitiatedBy.cybrid_customer_guid,
     };
-  }
-
-  private async buildAccountUpdateOperations(
-    customerGuid: string,
-    accountGuid: string,
-    prismaPromises: Array<PrismaPromise<unknown>>
-  ) {
-    const customerAccount = await this.cybridService.getAccount(
-      customerGuid,
-      accountGuid
-    );
-    this.logger.debug(customerAccount);
-    prismaPromises.push(
-      this.prismaService.cybridAccount.update({
-        // Convert cents to USD
-        data: {
-          balance:
-            (customerAccount.platform_available as number) /
-            (customerAccount.asset === 'USDC_SOL' ? 1e6 : 100),
-        },
-        where: { cybrid_account_guid: accountGuid },
-      })
-    );
   }
 
   private async sendReceiptEmail(
