@@ -4,7 +4,6 @@ import {
   IsEnum,
   IsFQDN,
   IsHexadecimal,
-  // IsJWT,
   IsNumber,
   IsPort,
   IsString,
@@ -65,6 +64,9 @@ class EnvironmentVariables {
   @IsHexadecimal()
   CYBRID_BANK_EXTERNAL_WALLET_GUID: string;
 
+  @IsUrl()
+  CYBRID_API_BASE_URL: string;
+  
   @IsUrl()
   CYBRID_BANK_LEVEL_TOKEN_ENDPOINT: string;
 

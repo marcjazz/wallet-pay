@@ -417,6 +417,17 @@ export class CybridService {
     );
   }
 
+  async getBankAccount(accountGuid: string) {
+    const account = await this.cybridConfig.getInstance(AccountsBankApi, [
+      'accounts:read',
+    ]);
+
+    const getBankAccountObservable = account.getAccount({ accountGuid });
+    return new Promise<AccountBankModel>((next, error) =>
+      getBankAccountObservable.subscribe({ error, next })
+    );
+  }
+
   async settleXafPayUSDCFunds(
     bankGuid: string,
     externalWalletGuid: string,
