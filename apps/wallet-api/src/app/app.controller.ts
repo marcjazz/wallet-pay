@@ -1,7 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
 
 import { AppService } from './app.service';
+import { SkipAuth } from './auth/auth.decorator';
 
+@SkipAuth()
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}

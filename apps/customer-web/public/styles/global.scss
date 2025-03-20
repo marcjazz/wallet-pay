@@ -15,17 +15,9 @@ body {
   background-color: var(--color-background);
 
   width: 100%;
-  max-width: 744px;
-  margin: 0 auto;
+  max-width: 480px;
+  margin: 0 auto !important;
   height: 100svh;
-}
-
-.container--x {
-  width: 100%;
-  max-width: 1276px;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  margin: 0 auto;
 }
 
 .stripe-card {

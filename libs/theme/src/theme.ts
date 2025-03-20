@@ -247,6 +247,16 @@ export function useTheme() {
       },
     },
     components: {
+      MuiTooltip: {
+        defaultProps: {
+          arrow: true,
+        },
+      },
+      MuiSkeleton: {
+        defaultProps: {
+          animation: 'wave',
+        },
+      },
       MuiButton: {
         defaultProps: {
           variant: 'contained',
@@ -288,6 +298,14 @@ export function useTheme() {
               color: '#BFDBFE',
             },
           }),
+          outlinedInherit: () => ({
+            borderColor: '#C8CDD0',
+            color: 'black',
+            fontSize: '16px',
+            fontWeight: '400',
+            fontFamily: 'DM Sans',
+            lineHeight: 24 / 16,
+          }),
           sizeLarge: () => ({
             padding: '18px 24px',
           }),
@@ -305,9 +323,96 @@ export function useTheme() {
           }),
         },
       },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            fontSize: '12px',
+            fontWeight: '400',
+            fontFamily: 'DM Sans',
+            lineHeight: 14.88 / 12,
+            width: 'fit-content',
+            padding: '0 6px',
+          },
+        },
+      },
+      MuiFormHelperText: {
+        styleOverrides: {
+          root: {
+            fontSize: '12px',
+            fontWeight: '400',
+            fontFamily: 'DM Sans',
+            lineHeight: 14.88 / 12,
+            width: 'fit-content',
+            padding: '0 6px',
+            margin: 0,
+          },
+        },
+      },
+      MuiFormControl: {
+        defaultProps: {
+          size: 'medium',
+          fullWidth: true,
+        },
+        styleOverrides: {
+          root: {
+            gap: '6px',
+          },
+        },
+      },
+      MuiInputAdornment: {
+        styleOverrides: {
+          root: {
+            marginRight: '10px',
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        defaultProps: {
+          size: 'medium',
+        },
+        styleOverrides: {
+          root: {
+            borderRadius: '10px',
+            padding: '16px',
+          },
+          input: {
+            '&::placeholder': {
+              color: '#415058',
+            },
+            borderRadius: '0 !important',
+            fontSize: '14px',
+            fontWeight: '400',
+            fontFamily: 'DM Sans',
+            lineHeight: 21 / 14,
+            padding: 0,
+          },
+          adornedEnd: {
+            paddingRight: '10px',
+          },
+          adornedStart: {
+            paddingLeft: '10px',
+          },
+        },
+      },
+      MuiDivider: {
+        styleOverrides: {
+          root: {
+            backgroundColor: '#C8CDD0',
+          },
+        },
+      },
       MuiTypography: {
         defaultProps: {
           variant: 'p1r',
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            '& .MuiSelect-select': {
+              color: '#415058',
+            },
+          },
         },
       },
     },

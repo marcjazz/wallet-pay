@@ -10,6 +10,8 @@ node_modules
 
 # IDEs and editors
 /.idea
+.env
+.env.*
 .project
 .classpath
 .c9/
@@ -43,3 +45,6 @@ Thumbs.db
 
 # Next.js
 .next
+
+#keys
+*.pem

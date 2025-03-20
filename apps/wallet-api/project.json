@@ -6,7 +6,9 @@
   "targets": {
     "build": {
       "executor": "@nx/webpack:webpack",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "target": "node",
@@ -14,12 +16,16 @@
         "outputPath": "dist/apps/wallet-api",
         "main": "apps/wallet-api/src/main.ts",
         "tsConfig": "apps/wallet-api/tsconfig.app.json",
-        "assets": ["apps/wallet-api/src/assets"],
+        "generatePackageJson": true,
+        "assets": [
+          "apps/wallet-api/src/assets"
+        ],
         "webpackConfig": "apps/wallet-api/webpack.config.js"
       },
       "configurations": {
         "development": {},
-        "production": {}
+        "production": {},
+        "test": {}
       }
     },
     "serve": {
@@ -32,6 +38,9 @@
         "development": {
           "buildTarget": "wallet-api:build:development"
         },
+        "test": {
+          "buildTarget": "wallet-api:build:test"
+        },
         "production": {
           "buildTarget": "wallet-api:build:production"
         }
@@ -39,13 +48,25 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
+      "outputs": [
+        "{options.outputFile}"
+      ]
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
       "options": {
         "jestConfig": "apps/wallet-api/jest.config.ts"
+      }
+    },
+    "swagger": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx openapi-typescript http://localhost:5000/docs-yaml --output libs/api/data-types/api-docs.ts"
+        ]
       }
     }
   },
