@@ -56,14 +56,19 @@ export class TransactionProcessor {
 
     const updateOperations: PrismaPromise<unknown>[] = [];
 
-    const supportedTransfeTypes = ['crypto', 'book', 'instant_funding'];
+    const supportedTransfeTypes = [
+      'crypto',
+      'book',
+      'funding',
+      'instant_funding',
+    ];
     if (!supportedTransfeTypes.includes(transfer.transfer_type ?? '')) {
       throw new NotImplementedException(
         `${transfer.transfer_type} transfers not supported yet!`
       );
     }
 
-    if (transfer.transfer_type === 'instant_funding') {
+    if (transfer.transfer_type?.includes('funding')) {
       // Insant funding is done with usd account
       const fiatAccount = await this.cybridService.getAccount(
         customerGuid,

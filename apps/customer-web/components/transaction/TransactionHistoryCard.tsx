@@ -5,8 +5,7 @@ import { AlertCircle, ArrowDown, CheckCircle, RefreshCcw } from 'react-feather';
 import { useIntl } from 'react-intl';
 import {
   CybridTransactionEntity,
-  TransactionStatus,
-  TransactionType,
+  TransactionStatus
 } from '../../api/types';
 
 interface TransactionHistoryCardProps {
@@ -49,14 +48,14 @@ export default function TransactionHistoryCard({
         <Avatar
           sx={{
             bgcolor:
-              transaction_type === TransactionType.INSTANT_FUNDING
+              transaction.transaction_type.includes('FUNDING')
                 ? theme.palette.secondary.main
                 : theme.palette.primary.dark,
             height: '50px',
             width: '50px',
           }}
         >
-          {transaction_type === TransactionType.INSTANT_FUNDING ? (
+          {transaction.transaction_type.includes('FUNDING') ? (
             <ArrowDown size={30} color="white" />
           ) : (
             <Image
@@ -82,7 +81,7 @@ export default function TransactionHistoryCard({
       </Box>
       <Box sx={{ display: 'grid', rowGap: 0.5 }}>
         <Typography variant="p1m">
-          {transaction_type === TransactionType.INSTANT_FUNDING
+          {transaction.transaction_type.includes('FUNDING')
             ? formatMessage({ id: transaction_type })
             : recipient_fullname}
         </Typography>

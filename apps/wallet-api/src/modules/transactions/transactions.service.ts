@@ -2,6 +2,7 @@ import {
   PostQuoteBankModelProductTypeEnum,
   PostQuoteBankModelSideEnum,
   PostTradeBankModelTradeTypeEnum,
+  PostTransferBankModelPaymentRailEnum,
   PostTransferBankModelTransferTypeEnum,
   PostTransferParticipantBankModelTypeEnum,
   TradeBankModel,
@@ -51,11 +52,8 @@ export class TransactionsService {
     private readonly configService: ConfigService
   ) {}
 
-  async initiateInstantFunding(
-    payload: InitiateFundingTransferDto,
-    personId: string
-  ) {
-    const transferType = PostTransferBankModelTransferTypeEnum.InstantFunding;
+  async initiateFunding(payload: InitiateFundingTransferDto, personId: string) {
+    let transferType = PostTransferBankModelTransferTypeEnum.Funding;
 
     const sourceAccountGuids = await this.getSourceAccountInfo(
       personId,
@@ -69,6 +67,19 @@ export class TransactionsService {
 
     const { currency, customerGuid, fiatAccountGuid, externalAccountGuid } =
       sourceAccountGuids;
+
+    const bankFiatAccountGuid = this.configService.get(
+      'CYBRID_BANK_FIAT_ACCOUNT_GUID'
+    );
+    const bankFiatAccount = await this.cybridService.getAccount(
+      customerGuid,
+      bankFiatAccountGuid
+    );
+
+    // Switch to instant transaction when platform fiat account funds are available
+    if ((bankFiatAccount.platform_balance ?? 0) > payload.amount) {
+      transferType = PostTransferBankModelTransferTypeEnum.InstantFunding;
+    }
 
     // Retrieving supported currency rate
     const usedCurrency =
@@ -94,6 +105,10 @@ export class TransactionsService {
       customerGuid,
       {
         transfer_type: transferType,
+        payment_rail:
+          transferType === PostTransferBankModelTransferTypeEnum.Funding
+            ? PostTransferBankModelPaymentRailEnum.Ach
+            : undefined,
         quote_guid: fundingTransferQuote.guid as string,
         external_bank_account_guid: externalAccountGuid,
         source_participants: [
@@ -241,10 +256,10 @@ export class TransactionsService {
   private async getSourceAccountInfo(
     personId: string,
     sourceAccountId: string,
-    purpose: 'book' | 'instant_funding'
+    purpose: 'book' | 'funding'
   ) {
     let customerAccount: CustomerAccountInfo | null = null;
-    if (purpose === 'book') {
+    if (purpose) {
       const cybridAccount = await this.prismaService.cybridAccount.findFirst({
         select: {
           balance: true,

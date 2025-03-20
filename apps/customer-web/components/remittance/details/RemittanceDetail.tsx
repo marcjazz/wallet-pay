@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { useExternalAccounts } from 'apps/customer-web/api/hooks/useAccounts';
+import { useExternalAccounts } from '../../../api/hooks/useAccounts';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
@@ -228,17 +228,14 @@ export default function RemittanceDetail({
               >
                 <Avatar
                   sx={{
-                    bgcolor:
-                      transaction.transaction_type ===
-                      TransactionType.INSTANT_FUNDING
-                        ? theme.palette.secondary.main
-                        : theme.palette.primary.dark,
+                    bgcolor: transaction.transaction_type.includes('FUNDING')
+                      ? theme.palette.secondary.main
+                      : theme.palette.primary.dark,
                     height: '20px',
                     width: '20px',
                   }}
                 >
-                  {transaction.transaction_type ===
-                  TransactionType.INSTANT_FUNDING ? (
+                  {transaction.transaction_type.includes('FUNDING') ? (
                     <ArrowDown size={15} color="white" />
                   ) : (
                     <ArrowUpRight size={15} color="white" />
@@ -252,7 +249,7 @@ export default function RemittanceDetail({
           </Box>
         </Box>
 
-        {transaction.transaction_type === TransactionType.INSTANT_FUNDING ? (
+        {transaction.transaction_type.includes('FUNDING') ? (
           <Box sx={{ display: 'grid', rowGap: 2 }}>
             <ReceiptLine
               title={formatMessage({ id: 'debitAccount' })}

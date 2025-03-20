@@ -200,6 +200,7 @@ export const website = {
   partnerTermsAndConditions: 'Partner Terms and Conditions',
   transactionDetails: 'Transaction Details',
   INSTANT_FUNDING: 'Account funding',
+  FUNDING: 'Account funding',
   debitAccount: 'Debit Account',
   transactionFees: 'Transaction Fees',
   totalDebit: 'Total Debit',
