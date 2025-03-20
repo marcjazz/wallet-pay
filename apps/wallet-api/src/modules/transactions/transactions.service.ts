@@ -71,14 +71,18 @@ export class TransactionsService {
     const bankFiatAccountGuid = this.configService.get(
       'CYBRID_BANK_FIAT_ACCOUNT_GUID'
     );
-    const bankFiatAccount = await this.cybridService.getAccount(
-      customerGuid,
-      bankFiatAccountGuid
-    );
 
-    // Switch to instant transaction when platform fiat account funds are available
-    if ((bankFiatAccount.platform_balance ?? 0) > payload.amount) {
-      transferType = PostTransferBankModelTransferTypeEnum.InstantFunding;
+    try {
+      const { platform_balance } = await this.cybridService.getBankAccount(
+        bankFiatAccountGuid
+      );
+
+      // Switch to instant transaction when platform fiat account funds are available
+      if ((platform_balance ?? 0) > payload.amount) {
+        transferType = PostTransferBankModelTransferTypeEnum.InstantFunding;
+      }
+    } catch (error) {
+      this.logger.error('Could not retrieve platform fiat account!');
     }
 
     // Retrieving supported currency rate

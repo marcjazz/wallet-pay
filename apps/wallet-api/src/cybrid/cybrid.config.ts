@@ -60,6 +60,8 @@ export class CybridConfig {
     }
 
     const bankLevelAllowedScopes: ApiScopeType[] = [
+      // usefull for reading platform fiat account
+      'accounts:read',
       // useful for creating a new customer
       'customers:execute',
       // useful for requesting customer level token
@@ -90,12 +92,15 @@ export class CybridConfig {
         }
       );
 
+    const baseUrl = this.configService.get<string>(
+      'CYBRID_API_BASE_URL',
+      'https://bank.production.cybrid.app'
+    );
+
     return new ModelBankApi(
       new Configuration({
         ...this.configuration,
-        ...(process.env.NODE_ENV === 'production'
-          ? { basePath: 'https://bank.production.cybrid.app/' }
-          : {}),
+        basePath: baseUrl,
         accessToken: `Bearer ${token}`,
       })
     ) as InstanceType<T>;
@@ -111,7 +116,7 @@ export class CybridConfig {
       .post<{ access_token: string }>(
         this.configService.get(
           'CYBRID_CUSTOMER_LEVEL_TOKEN_ENDPOINT',
-          'https://id.sandbox.cybrid.app/api/customer_tokens'
+          'https://id.production.cybrid.app/api/customer_tokens'
         ),
         {
           scopes,
@@ -162,7 +167,7 @@ export class CybridConfig {
         .post<CybridAuthResponse>(
           this.configService.get(
             'CYBRID_BANK_LEVEL_TOKEN_ENDPOINT',
-            `https://id.sandbox.cybrid.app/oauth/token`
+            `https://id.production.cybrid.app/oauth/token`
           ),
           {
             grant_type: 'client_credentials',
