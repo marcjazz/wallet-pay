@@ -55,7 +55,7 @@ export class TransactionsController {
       throw new UnauthorizedException(`Invalid One time password`);
     }
 
-    return this.transactionsService.initiateInstantFunding(
+    return this.transactionsService.initiateFunding(
       // Convert amount to cents
       { ...payload, amount: payload.amount * 100 },
       req.user?.person_id as string

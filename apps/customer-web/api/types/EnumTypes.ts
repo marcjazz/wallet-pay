@@ -33,23 +33,12 @@ export enum OTPUsage {
 }
 
 /**
- * Enum for transfer types.
- */
-export enum TransferType {
-  // FUNDING = 'funding',
-  BOOK = 'book',
-  // CRYPTO = 'crypto',
-  INSTANT_FUNDING = 'instant_funding',
-  // INTER_ACCOUNT = 'inter_account',
-  // LIGHTNING = 'lightning',
-}
-
-/**
  * Enum for transaction types.
  */
 export enum TransactionType {
   REMITTANCE = 'REMITTANCE',
   CONVERT = 'CONVERT',
+  FUNDING = 'FUNDING',
   INSTANT_FUNDING = 'INSTANT_FUNDING',
   WITHDRAWAL = 'WITHDRAWAL',
   ACCOUNT = 'ACCOUNT',
