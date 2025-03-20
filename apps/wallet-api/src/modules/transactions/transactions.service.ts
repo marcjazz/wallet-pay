@@ -259,7 +259,7 @@ export class TransactionsService {
     purpose: 'book' | 'funding'
   ) {
     let customerAccount: CustomerAccountInfo | null = null;
-    if (purpose) {
+    if (purpose === 'book') {
       const cybridAccount = await this.prismaService.cybridAccount.findFirst({
         select: {
           balance: true,
