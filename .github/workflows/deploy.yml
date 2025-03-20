@@ -47,12 +47,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Configure SSH key
+        run: |
+          # Write the SSH private key to a file
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" >key.pem
+
+          # Set correct permissions for the SSH key file
+          chmod 600 key.pem
+
+      - name: Setup Production Env
+        run: |
+          # Create .env file
+          echo "${{ secrets.ENV_FILE }}" >.env
+          echo "REGISTRY_USERNAME=${{ github.actor }}" >>.env
+          echo "REGISTRY_PASSWORD=${{ secrets.GITHUB_TOKEN }}" >>.env
+          chmod 600 .env
+          echo "Environment variables updated!"
+
+      - name: Pre-Deployment
+        run: |
+          # Ensure the target directory exists on the server before copying
+          echo "Ensuring the target directory exists..."
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p /home/xafpay/wallet"
+
+          # Copy compose.yml to the server
+          echo "Copying compose.yml to the server..."
+          scp -i key.pem -o StrictHostKeyChecking=no compose.yml .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/xafpay/wallet/
+
       - name: Deploy Web & Api
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
-          ENV_FILE: ${{ secrets.ENV_FILE }}
           REGISTRY_USERNAME: ${{ github.actor }}
           REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: . ./deploy.sh
