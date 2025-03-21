@@ -26,6 +26,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
+import { AjaxErrorFilter } from '../exception-filters/ajax-error.filter';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -72,8 +74,20 @@ import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
       useClass: JwtAuthGuard,
     },
     {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
+    {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AjaxErrorFilter,
     },
     {
       provide: APP_FILTER,
@@ -82,14 +96,6 @@ import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
     {
       provide: APP_FILTER,
       useClass: PrismaExceptionFilter,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ClassSerializerInterceptor,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
     },
   ],
 })
