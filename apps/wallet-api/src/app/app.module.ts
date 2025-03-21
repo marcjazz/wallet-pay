@@ -8,10 +8,12 @@ import {
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AllExceptionsFilter } from '../exception-filters/all-exception.filter';
 import { HttpExceptionFilter } from '../exception-filters/http-exception.filter';
 import { PrismaExceptionFilter } from '../exception-filters/prisma-exception.filter';
 import { validate } from '../helpers/env.validation';
+import { logger } from '../helpers/logger';
 import { MailerModule } from '../mailer/mailer.module';
 import { AccountsModule } from '../modules/accounts/accounts.module';
 import { CurrenciesModule } from '../modules/currencies/currencies.module';
@@ -24,7 +26,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt/jwt-auth.guard';
-import { logger } from '../helpers/logger';
+import { AjaxErrorFilter } from '../exception-filters/ajax-error.filter';
 
 @Module({
   imports: [
@@ -41,6 +43,14 @@ import { logger } from '../helpers/logger';
           port: configService.get<number>('REDIS_PORT'),
         },
       }),
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
     }),
     PrismaModule,
     MailerModule,
@@ -64,8 +74,20 @@ import { logger } from '../helpers/logger';
       useClass: JwtAuthGuard,
     },
     {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
+    {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AjaxErrorFilter,
     },
     {
       provide: APP_FILTER,
@@ -74,10 +96,6 @@ import { logger } from '../helpers/logger';
     {
       provide: APP_FILTER,
       useClass: PrismaExceptionFilter,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ClassSerializerInterceptor,
     },
   ],
 })

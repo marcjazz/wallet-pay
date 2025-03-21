@@ -25,6 +25,7 @@
     "@nestjs/platform-express": "^10.4.15",
     "@nestjs/schedule": "^4.1.1",
     "@nestjs/swagger": "^7.4.2",
+    "@nestjs/throttler": "^6.4.0",
     "@nx/next": "18.3.5",
     "@prisma/client": "^6.4.1",
     "@tchakoumi/handy-components": "^0.0.1",
