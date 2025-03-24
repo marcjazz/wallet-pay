@@ -206,7 +206,7 @@ export class TransactionsService {
             await this.prismaService.cybridTransaction.findUniqueOrThrow({
               where: {
                 cybrid_transaction_guid: job.data,
-                status: { in: ['COMPLETED', 'PENDING'] },
+                status: { in: ['COMPLETED', 'REVIEWING'] },
               },
             });
 
