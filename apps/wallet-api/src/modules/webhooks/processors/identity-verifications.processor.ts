@@ -8,8 +8,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 
 @Processor(constants.WEBHOOK_QUEUE)
-export class IdentityVerificationProcessor {
-  private readonly logger = new Logger(IdentityVerificationProcessor.name);
+export class IdentityVerificationsProcessor {
+  private readonly logger = new Logger(IdentityVerificationsProcessor.name);
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -17,7 +17,7 @@ export class IdentityVerificationProcessor {
   ) {}
 
   @Process(constants.CYBRID_IDENTITY_VERIFICATION_EVENTS)
-  async handleIdentityVerificationEvents(
+  async handle(
     job: Job<CybridSubscriptionEventObjectDto>
   ) {
     const { event_type: eventType, object_guid: objectGuid, guid } = job.data;

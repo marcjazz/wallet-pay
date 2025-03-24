@@ -19,8 +19,8 @@ import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dt
 import { parseEventObject } from '../helpers/event-parser';
 
 @Processor(constants.WEBHOOK_QUEUE)
-export class TransactionProcessor {
-  private readonly logger = new Logger(TransactionProcessor.name);
+export class TransactionsProcessor {
+  private readonly logger = new Logger(TransactionsProcessor.name);
 
   constructor(
     private readonly cybridService: CybridService,
@@ -30,7 +30,7 @@ export class TransactionProcessor {
   ) {}
 
   @Process(constants.CYBRID_TRANSFER_EVENTS)
-  async handleCybridTransferEvents(job: Job<CybridSubscriptionEventObjectDto>) {
+  async handle(job: Job<CybridSubscriptionEventObjectDto>) {
     const { event_type: eventType, guid } = job.data;
     this.logger.log(
       `Processing (event: ${eventType}, Guid: ${guid}) from cybrid...`

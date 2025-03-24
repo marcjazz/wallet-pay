@@ -2,8 +2,8 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { constants } from '../../constants';
 import { CybridModule } from '../../cybrid/cybrid.module';
-import { IdentityVerificationProcessor } from './processors/identity-verification.processor';
-import { TransactionProcessor } from './processors/transaction.processor';
+import { IdentityVerificationsProcessor } from './processors/identity-verifications.processor';
+import { TransactionsProcessor } from './processors/transactions.processor';
 import { WebhooksController } from './webhooks.controller';
 import { TradesProcessor } from './processors/trades.processor';
 
@@ -16,8 +16,8 @@ import { TradesProcessor } from './processors/trades.processor';
   ],
   controllers: [WebhooksController],
   providers: [
-    IdentityVerificationProcessor,
-    TransactionProcessor,
+    IdentityVerificationsProcessor,
+    TransactionsProcessor,
     TradesProcessor,
   ],
 })
