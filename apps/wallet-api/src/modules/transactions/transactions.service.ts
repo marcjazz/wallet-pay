@@ -32,6 +32,8 @@ import {
   ReceiverPayoutInfoDto,
 } from './transaction.dto';
 import { constants } from '../../constants';
+import { InjectQueue } from '@nestjs/bull';
+import { Job, Queue } from 'bull';
 
 type CustomerAccountInfo = {
   balance: number;
@@ -49,7 +51,8 @@ export class TransactionsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    @InjectQueue(constants.WEBHOOK_QUEUE) private readonly tansfersQueue: Queue
   ) {}
 
   async initiateFunding(payload: InitiateFundingTransferDto, personId: string) {
@@ -188,25 +191,50 @@ export class TransactionsService {
       throw new UnprocessableEntityException('Infussicient account balance');
     }
 
-    const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
-
     // trade USD for USDC_SOL
-    const [fiatTrade] = await this.trateFiatForCrypto(
+    const [fiatTrade, cybridTransaction] = await this.trateFiatForCrypto(
       sourceAccountInfo,
       payload.amount
     );
 
     // execute book transfer on customer's  USDC_SOL to xafpay bank level account
-    const cybridTransaction = await this.executeBookTransfer(
-      fiatTrade.receive_amount as number,
-      payload.amount,
-      sourceAccountInfo,
-      cybridCounterparty.cybrid_counterparty_guid
+    this.tansfersQueue.process(
+      `book-transfer-${fiatTrade.guid}`,
+      async (job: Job<string>, done) => {
+        try {
+          const trade =
+            await this.prismaService.cybridTransaction.findUniqueOrThrow({
+              where: {
+                cybrid_transaction_guid: job.data,
+                status: { in: ['COMPLETED', 'PENDING'] },
+              },
+            });
+
+          const cybridCounterparty = await this.getCounterpartyFromReceiver(
+            receiver
+          );
+
+          const jobData = await this.executeBookTransfer(
+            trade.amount as number,
+            payload.amount,
+            sourceAccountInfo,
+            cybridCounterparty.cybrid_counterparty_guid
+          );
+          done(null, jobData);
+        } catch (error) {
+          done(error);
+        }
+      }
     );
+    this.tansfersQueue.add(`book-transfer-${fiatTrade.guid}`, fiatTrade.guid, {
+      backoff: 5000,
+      attempts: 5,
+      priority: 1,
+    });
 
     return new CybridTransactionEntity({
       ...cybridTransaction,
-      recipient_fullname: cybridCounterparty.fullname,
+      recipient_fullname: null,
     });
   }
 
