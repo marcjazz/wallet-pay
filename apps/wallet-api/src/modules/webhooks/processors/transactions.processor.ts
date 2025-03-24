@@ -44,8 +44,6 @@ export class TransactionsProcessor {
       return;
     }
 
-    this.logger.debug(parsedObject);
-
     const {
       customerGuid,
       transactionGuid,
