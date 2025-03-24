@@ -5,6 +5,7 @@ import { CybridModule } from '../../cybrid/cybrid.module';
 import { IdentityVerificationProcessor } from './processors/identity-verification.processor';
 import { TransactionProcessor } from './processors/transaction.processor';
 import { WebhooksController } from './webhooks.controller';
+import { TradesProcessor } from './processors/trades.processor';
 
 @Module({
   imports: [
@@ -14,6 +15,10 @@ import { WebhooksController } from './webhooks.controller';
     }),
   ],
   controllers: [WebhooksController],
-  providers: [IdentityVerificationProcessor, TransactionProcessor],
+  providers: [
+    IdentityVerificationProcessor,
+    TransactionProcessor,
+    TradesProcessor,
+  ],
 })
 export class WebhooksModule {}

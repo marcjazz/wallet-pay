@@ -1,6 +1,6 @@
 import { InjectQueue, Process, Processor } from '@nestjs/bull';
 import { Logger, NotImplementedException } from '@nestjs/common';
-import { CybridTransactionStatus, PrismaPromise } from '@prisma/client';
+import { PrismaPromise } from '@prisma/client';
 import { Job, Queue } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
@@ -16,6 +16,7 @@ import { InitiatePayoutPayload } from '../../../types/momo';
 import { PawapayPayoutEntity } from '../../../types/pawapay';
 import { PawapayPayoutStatus } from '../../../types/pawapay/enum';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
+import { parseEventObject } from '../helpers/event-parser';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class TransactionProcessor {
@@ -35,7 +36,10 @@ export class TransactionProcessor {
       `Processing (event: ${eventType}, Guid: ${guid}) from cybrid...`
     );
 
-    const parsedObject = await this.parseCybridEventObject(job.data);
+    const parsedObject = await parseEventObject(job.data, {
+      logger: this.logger,
+      prisma: this.prismaService,
+    });
     if (!parsedObject) {
       return;
     }
@@ -160,94 +164,6 @@ export class TransactionProcessor {
     );
   }
 
-  @Process(constants.CYBRID_TRADE_EVENTS)
-  async handleCybridTradeEvents(job: Job<CybridSubscriptionEventObjectDto>) {
-    const { event_type: eventType, guid } = job.data;
-    this.logger.log(
-      `Processing (event: ${eventType}, Guid: ${guid}) from cybrid...`
-    );
-
-    const parsedObject = await this.parseCybridEventObject(job.data);
-    if (!parsedObject) {
-      return;
-    }
-
-    const { customerGuid, transactionGuid, transactionStatus } = parsedObject;
-
-    const trade = await this.cybridService.getTrade(
-      customerGuid,
-      transactionGuid
-    );
-    if (
-      trade.trade_type !== 'platform' ||
-      trade.symbol !== constants.SUPPORTED_TRADE_SYMBOL
-    ) {
-      throw new NotImplementedException(
-        `${trade.trade_type} not  supported for symbol ${trade.symbol} yet!`
-      );
-    }
-
-    const { CryptoCybridAccount: cryptoAccount, CybridAccount: fiatAccount } =
-      await this.prismaService.cybridTransaction.findUniqueOrThrow({
-        select: {
-          CryptoCybridAccount: { select: { cybrid_account_guid: true } },
-          CybridAccount: { select: { cybrid_account_guid: true } },
-        },
-        where: { cybrid_transaction_guid: transactionGuid },
-      });
-
-    const accountUpdateOperations: PrismaPromise<unknown>[] = [];
-
-    if (cryptoAccount) {
-      const customerAccount = await this.cybridService.getAccount(
-        customerGuid,
-        cryptoAccount.cybrid_account_guid
-      );
-      accountUpdateOperations.push(
-        this.prismaService.cybridAccount.update({
-          data: {
-            balance:
-              // Convert lamports to SOL
-              (customerAccount.platform_available as number) / 1e6,
-          },
-          where: { cybrid_account_guid: cryptoAccount.cybrid_account_guid },
-        })
-      );
-    }
-
-    if (fiatAccount) {
-      const customerAccount = await this.cybridService.getAccount(
-        customerGuid,
-        fiatAccount.cybrid_account_guid
-      );
-      accountUpdateOperations.push(
-        this.prismaService.cybridAccount.update({
-          data: {
-            balance:
-              // Convert cents to USD
-              (customerAccount.platform_available as number) / 100,
-          },
-          where: { cybrid_account_guid: fiatAccount.cybrid_account_guid },
-        })
-      );
-    }
-
-    await this.prismaService.$transaction([
-      ...accountUpdateOperations,
-      this.prismaService.cybridTransaction.update({
-        data:
-          transactionStatus === 'COMPLETED'
-            ? { status: transactionStatus, settled_at: new Date() }
-            : { status: transactionStatus },
-        where: { cybrid_transaction_guid: transactionGuid },
-      }),
-    ]);
-
-    this.logger.log(
-      `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
-    );
-  }
-
   @Process(constants.PAWAPAY_PAYOUT_EVENTS)
   async handlePawapayPayoutEvents(job: Job<PawapayPayoutEntity>) {
     const { payoutId, status, amount } = job.data;
@@ -280,46 +196,6 @@ export class TransactionProcessor {
         Number(amount)
       );
     }
-  }
-
-  private async parseCybridEventObject(
-    eventObject: CybridSubscriptionEventObjectDto
-  ) {
-    const {
-      guid,
-      event_type: eventType,
-      object_guid: transactionGuid,
-    } = eventObject;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, status] = eventType.split('.');
-    const transactionStatus =
-      status.toLocaleUpperCase() as CybridTransactionStatus;
-
-    const transaction = await this.prismaService.cybridTransaction.findUnique({
-      include: { InitiatedBy: { select: { cybrid_customer_guid: true } } },
-      where: { cybrid_transaction_guid: transactionGuid },
-    });
-    if (!transaction) {
-      this.logger.error(
-        `No transaction record was found for ${transactionGuid}!`
-      );
-      return;
-    }
-
-    //  Do nothing if transaction status was already set to a final state
-    if (transaction.status === 'COMPLETED' || transaction.status === 'FAILED') {
-      this.logger.log(
-        `(event: ${eventType}, Guid: ${guid}) from cybrid was ignored because transaction was already in final state`
-      );
-      return;
-    }
-
-    return {
-      transaction,
-      transactionGuid,
-      transactionStatus,
-      customerGuid: transaction.InitiatedBy.cybrid_customer_guid,
-    };
   }
 
   private async sendReceiptEmail(
