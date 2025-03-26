@@ -40,7 +40,7 @@ export class TransactionsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cybridService: CybridService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService
   ) {}
 
   async initiateFunding(payload: InitiateFundingTransferDto, personId: string) {
@@ -179,6 +179,8 @@ export class TransactionsService {
       throw new UnprocessableEntityException('Infussicient account balance');
     }
 
+    const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
+
     // trade USD for USDC_SOL
     const [fiatTrade] = await this.trateFiatForCrypto(
       sourceAccountInfo,
@@ -193,8 +195,6 @@ export class TransactionsService {
         where: { currency: currency.toLocaleUpperCase() },
       });
 
-    const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
-
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
@@ -206,8 +206,8 @@ export class TransactionsService {
           initial_currency_amount: Number(fiatTrade.deliver_amount) / 100,
           amount: Number(fiatTrade.receive_amount) / 1e6,
           transaction_type: 'REMITTANCE',
-          transaction_id: generateTransactionId(),
-          cybrid_transaction_guid: fiatTrade.guid as string,
+          transaction_id: fiatTrade.guid as string,
+          cybrid_transaction_guid: `${constants.UNSCHEDULED_TRASACTION}-${fiatTrade.guid}`,
           status: 'STORING',
           InitiatedBy: {
             connect: { cybrid_customer_guid: customerGuid },

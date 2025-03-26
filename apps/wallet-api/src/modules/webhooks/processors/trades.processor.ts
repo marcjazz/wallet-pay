@@ -64,7 +64,7 @@ export class TradesProcessor {
       );
     }
 
-    if (trade.state === 'settling') {
+    if (trade.state === 'completed') {
       const sourceAccountInfo = await resolveAccountInfo(this.prismaService, {
         purpose: 'book',
         accountId: transaction.cybrid_account_id as string,
@@ -192,8 +192,8 @@ export class TradesProcessor {
     const cybridTransaction = await this.prismaService.cybridTransaction.update(
       {
         data: {
-          fees: 0,
           currency: 'USDC_SOL',
+          fees: bookTransfer.fee ?? 0,
           conversion_rate: usedCurrency.xaf_rate,
           initial_currency: currency,
           // convert cents to dollars
@@ -205,8 +205,7 @@ export class TradesProcessor {
             bookTransfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
         },
         where: {
-          transaction_type: 'REMITTANCE',
-          cybrid_transaction_guid: trade.guid,
+          cybrid_transaction_guid: `${constants.UNSCHEDULED_TRASACTION}-${trade.guid}`,
         },
       }
     );

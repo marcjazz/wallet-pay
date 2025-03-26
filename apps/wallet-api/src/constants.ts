@@ -41,5 +41,6 @@ export const constants = {
   CYBRID_TRANSFER_EVENTS: 'cybrid_transfer_events',
   CYBRID_TRADE_EVENTS: 'cybrid_trade_events',
   PAWAPAY_PAYOUT_EVENTS: 'pawapay_payout_events',
-  SUPPORTED_TRADE_SYMBOL: 'USDC_SOL-USD'
+  SUPPORTED_TRADE_SYMBOL: 'USDC_SOL-USD',
+  UNSCHEDULED_TRASACTION: 'waiting',
 };
