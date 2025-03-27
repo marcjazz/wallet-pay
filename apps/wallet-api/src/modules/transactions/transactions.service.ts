@@ -345,8 +345,9 @@ export class TransactionsService {
         ReceiverPayoutInfo: { select: { cybrid_counterparty_guid: true } },
       },
       where: {
-        cybrid_transfer_settlement_guid: null,
+        status: 'COMPLETED',
         transaction_type: 'REMITTANCE',
+        cybrid_transfer_settlement_guid: null,
         receiver_payout_info_id: { not: null },
       },
     });
