@@ -182,47 +182,10 @@ export class TransactionsService {
     const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
 
     // trade USD for USDC_SOL
-    const [fiatTrade] = await this.trateFiatForCrypto(
+    const [, cybridTransaction] = await this.trateFiatForCrypto(
       sourceAccountInfo,
+      cybridCounterparty.cybrid_counterparty_guid,
       payload.amount
-    );
-
-    const { currency, customerGuid, cryptoAccountGuid } = sourceAccountInfo;
-
-    const usedCurrency =
-      await this.prismaService.supportedCurrency.findFirstOrThrow({
-        select: { currency: true, xaf_rate: true },
-        where: { currency: currency.toLocaleUpperCase() },
-      });
-
-    const cybridTransaction = await this.prismaService.cybridTransaction.create(
-      {
-        data: {
-          fees: 0,
-          currency: 'USDC_SOL',
-          conversion_rate: usedCurrency.xaf_rate,
-          initial_currency: currency,
-          // convert cents to dollars
-          initial_currency_amount: Number(fiatTrade.deliver_amount) / 100,
-          amount: Number(fiatTrade.receive_amount) / 1e6,
-          transaction_type: 'REMITTANCE',
-          transaction_id: fiatTrade.guid as string,
-          cybrid_transaction_guid: `${constants.UNSCHEDULED_TRASACTION}-${fiatTrade.guid}`,
-          status: 'STORING',
-          InitiatedBy: {
-            connect: { cybrid_customer_guid: customerGuid },
-          },
-          CryptoCybridAccount: {
-            connect: { cybrid_account_guid: cryptoAccountGuid },
-          },
-          ReceiverPayoutInfo: {
-            connect: {
-              cybrid_counterparty_guid:
-                cybridCounterparty.cybrid_counterparty_guid,
-            },
-          },
-        },
-      }
     );
 
     return new CybridTransactionEntity({
@@ -285,6 +248,7 @@ export class TransactionsService {
       fiatAccountGuid,
       cryptoAccountGuid,
     }: CustomerAccountInfo,
+    counterpartyGuid: string,
     fiatAmount: number
   ): Promise<[TradeBankModel, CybridTransaction]> {
     const tradeQuote = await this.cybridService.createQuote(customerGuid, {
@@ -318,7 +282,7 @@ export class TransactionsService {
           cybrid_transaction_guid: tradeTransaction.guid as string,
           status:
             tradeTransaction.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
-          transaction_type: 'CONVERT',
+          transaction_type: 'REMITTANCE',
           InitiatedBy: {
             connect: { cybrid_customer_guid: customerGuid },
           },
@@ -327,6 +291,11 @@ export class TransactionsService {
           },
           CryptoCybridAccount: {
             connect: { cybrid_account_guid: cryptoAccountGuid },
+          },
+          ReceiverPayoutInfo: {
+            connect: {
+              cybrid_counterparty_guid: counterpartyGuid,
+            },
           },
         },
       }
@@ -378,7 +347,6 @@ export class TransactionsService {
       where: {
         cybrid_transfer_settlement_guid: null,
         transaction_type: 'REMITTANCE',
-        initial_currency: 'USDC_SOL',
         receiver_payout_info_id: { not: null },
       },
     });

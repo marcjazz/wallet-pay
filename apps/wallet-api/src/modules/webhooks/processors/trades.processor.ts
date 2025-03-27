@@ -64,7 +64,10 @@ export class TradesProcessor {
       );
     }
 
-    if (trade.state === 'completed') {
+    if (
+      trade.state === 'completed' &&
+      transaction.transaction_type === 'REMITTANCE'
+    ) {
       const sourceAccountInfo = await resolveAccountInfo(this.prismaService, {
         purpose: 'book',
         accountId: transaction.cybrid_account_id as string,
@@ -189,23 +192,28 @@ export class TradesProcessor {
         where: { currency: currency.toLocaleUpperCase() },
       });
 
-    const cybridTransaction = await this.prismaService.cybridTransaction.update(
+    const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
+          fees: 0,
           currency: 'USDC_SOL',
-          fees: bookTransfer.fee ?? 0,
           conversion_rate: usedCurrency.xaf_rate,
           initial_currency: currency,
           // convert cents to dollars
           initial_currency_amount: Number(trade.deliver_amount) / 100,
-          amount: Number(bookTransfer.amount) / 1e6,
+          // convert lamports to sol
+          amount: Number(trade.receive_amount) / 1e6,
+          transaction_type: 'ACCOUNT',
           transaction_id: trade.guid as string,
           cybrid_transaction_guid: bookTransfer.guid as string,
           status:
-            bookTransfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
-        },
-        where: {
-          cybrid_transaction_guid: `${constants.UNSCHEDULED_TRASACTION}-${trade.guid}`,
+            bookTransfer.state?.toUpperCase() as $Enums.CybridTransactionStatus,
+          InitiatedBy: {
+            connect: { cybrid_customer_guid: customerGuid },
+          },
+          CryptoCybridAccount: {
+            connect: { cybrid_account_guid: cryptoAccountGuid },
+          },
         },
       }
     );
