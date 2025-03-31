@@ -448,9 +448,9 @@ export class CybridService {
       },
     });
 
-    return new Promise<TransferBankModel>((next) =>
+    return new Promise<TransferBankModel>((next, error) =>
       quotesBankObservable.subscribe({
-        error: (error) => this.logger.error(error),
+        error,
         next: async (quote) => {
           const transfersBankApi = await this.cybridConfig.getInstance(
             TransfersBankApi,
@@ -466,10 +466,7 @@ export class CybridService {
             },
           });
 
-          transfersObservable.subscribe({
-            error: (error) => this.logger.error(error),
-            next,
-          });
+          transfersObservable.subscribe({ error, next });
         },
       })
     );
