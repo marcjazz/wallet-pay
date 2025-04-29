@@ -21,10 +21,11 @@ COPY --from=deps /app/deps ./node_modules
 
 # Generate openapi docs
 RUN --mount=type=bind,src=peex-openapi.yaml,target=/app/peex-openapi.yaml \
+    --mount=type=bind,src=./apps/wallet-api,target=/app/apps/wallet-api \
     npx openapi-typescript-codegen \
     --input ./peex-openapi.yaml \
-    --output apps/wallet-api/src/peex/peex-client \
-    --client axios 
+    --output /app/apps/wallet-api/src/peex/peex-client \
+    --client axios
 
 # Build nestjs project
 RUN --mount=type=bind,src=package.json,target=/app/package.json \ 
