@@ -9,7 +9,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
 import { Response } from 'express';
 import { SkipAuth } from '../../app/auth/auth.decorator';
@@ -17,6 +17,7 @@ import { constants } from '../../constants';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto';
 import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
+import { PeexCallbackGuard } from './guards/peex-callback.guard';
 
 @SkipAuth()
 @ApiTags('Webhooks')
@@ -28,10 +29,10 @@ export class WebhooksController {
     private webhooksQueue: Queue
   ) {}
 
+  @ApiExcludeEndpoint()
   @HttpCode(HttpStatus.OK)
   @Post('cybrid-subscriptions')
   @UseGuards(CybridSubscriptionsGuard)
-  @ApiOperation({ summary: 'Cybrid subscription events handler. ' })
   async handleSubscriptionEvents(
     @Res() resp: Response,
     @Body() eventObject: CybridSubscriptionEventObjectDto
@@ -59,6 +60,22 @@ export class WebhooksController {
           `Event type not implemented yet ${eventType}`
         );
     }
+
+    resp.status(HttpStatus.OK).send('OK');
+  }
+
+  @ApiExcludeEndpoint()
+  @HttpCode(HttpStatus.OK)
+  @Post('peex-callback')
+  @UseGuards(PeexCallbackGuard)
+  async handlePayoutCallback(
+    @Res() resp: Response,
+    @Body() eventObject: unknown
+  ) {
+    this.webhooksQueue.add('', eventObject, {
+      attempts: 3,
+      backoff: 5000,
+    });
 
     resp.status(HttpStatus.OK).send('OK');
   }

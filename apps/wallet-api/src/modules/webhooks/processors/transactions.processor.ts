@@ -17,15 +17,17 @@ import { PawapayPayoutEntity } from '../../../types/pawapay';
 import { PawapayPayoutStatus } from '../../../types/pawapay/enum';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 import { parseEventObject } from '../helpers/event-parser';
+import { PeexService } from '../../../peex/peex.service';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class TransactionsProcessor {
   private readonly logger = new Logger(TransactionsProcessor.name);
 
   constructor(
+    private readonly peexService: PeexService,
     private readonly cybridService: CybridService,
-    private readonly prismaService: PrismaService,
     private readonly mailerService: MailerService,
+    private readonly prismaService: PrismaService,
     @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhooksQueue: Queue
   ) {}
 
@@ -106,11 +108,9 @@ export class TransactionsProcessor {
         })
       );
 
-      const receiptUrl = `/remittance/${cybridTransaction.cybrid_transaction_id}`;
       // Sending remittance settlement email
       const { person, cybridCounterparty } = await this.sendReceiptEmail(
-        cybridTransaction.cybrid_transaction_guid,
-        receiptUrl
+        cybridTransaction.cybrid_transaction_guid
       );
 
       const amountReceived =
@@ -120,7 +120,6 @@ export class TransactionsProcessor {
       const initiatePayoutPayload: InitiatePayoutPayload = {
         amount: amountReceived,
         customerEmail: person.email,
-        payoutId: cybridTransaction.pawapay_payout_id,
         transactionId: cybridTransaction.transaction_id,
         receipientPhonenumber: phoneNumber?.includes('237')
           ? phoneNumber
@@ -128,7 +127,7 @@ export class TransactionsProcessor {
         callbackUrl: `${process.env.API_BASE_URL}/webhooks/payout-callback`,
       };
 
-      await this.initiatePayout(initiatePayoutPayload, transactionGuid);
+      await this.initiatePayout(initiatePayoutPayload);
     } else if (
       transfer.transfer_type === 'crypto' &&
       transactionStatus === 'COMPLETED'
@@ -185,11 +184,9 @@ export class TransactionsProcessor {
         where: { cybrid_transaction_id: transaction.cybrid_transaction_id },
       });
 
-      const receiptUrl = `/remittance/${transaction.cybrid_transaction_id}`;
       // Sending payout receipt email
       await this.sendReceiptEmail(
         transaction.cybrid_transaction_guid,
-        receiptUrl,
         new Date(),
         Number(amount)
       );
@@ -197,8 +194,7 @@ export class TransactionsProcessor {
   }
 
   private async sendReceiptEmail(
-    transactionGuid: string,
-    receiptUrl: string,
+    transactionGuidOrId: string,
     payoutAt?: Date,
     amountReceived?: number
   ) {
@@ -206,12 +202,17 @@ export class TransactionsProcessor {
       InitiatedBy: { Person: person },
       ReceiverPayoutInfo: cybridCounterparty,
       ...cybridTransaction
-    } = await this.prismaService.cybridTransaction.findUniqueOrThrow({
+    } = await this.prismaService.cybridTransaction.findFirstOrThrow({
       include: {
         ReceiverPayoutInfo: true,
         InitiatedBy: { select: { Person: true } },
       },
-      where: { cybrid_transaction_guid: transactionGuid },
+      where: {
+        OR: [
+          { transaction_id: transactionGuidOrId },
+          { cybrid_transaction_guid: transactionGuidOrId },
+        ],
+      },
     });
 
     const transactionId = cybridTransaction.transaction_id;
@@ -227,7 +228,7 @@ export class TransactionsProcessor {
       transactionId,
       initiatedAt: initiatedAt.toString(),
       customerName: `${person.first_name} ${person.last_name}`,
-      receiptUrl: `${receiptUrl}/${cybridTransaction.cybrid_transaction_id}`,
+      receiptUrl: `/remittance/${cybridTransaction.cybrid_transaction_id}`,
       recipientName: cybridCounterparty?.fullname ?? 'N/A',
       recipientPhoneNumber: `${recipientPhoneNumber} (${mobileMoneyPartner} Cameroon)`,
       amountSent: `${cybridTransaction.initial_currency_amount} ${cybridTransaction.initial_currency}`,
@@ -250,33 +251,53 @@ export class TransactionsProcessor {
     return { person, cybridCounterparty };
   }
 
-  private async initiatePayout(
-    initiatePayoutPayload: InitiatePayoutPayload,
-    transactionGuid: string
-  ) {
-    const jobName = `initiate-remittance-payout-${transactionGuid}`;
-    this.webhooksQueue.process(
-      jobName,
-      async ({ data: jobData }: Job<InitiatePayoutPayload>, done) => {
-        this.logger.log(
-          `Processing (event: ${jobName}, PayoutRef: ${initiatePayoutPayload.payoutId}, txnGui: ${transactionGuid}) from server...`
-        );
-        try {
-          //TODO: Initiate transaction with Payout partner here
-          done(null, jobData);
+  private async initiatePayout({
+    transactionId,
+    receipientPhonenumber,
+    amount,
+  }: InitiatePayoutPayload) {
+    try {
+      //FIXME: Initiate transaction with Payout partner here
+      await this.peexService.requestPayment({
+        amount,
+        track_id: transactionId,
+        mobile_phone: receipientPhonenumber,
+      });
 
-          this.logger.log(
-            `Successfully processed (event: ${jobName}) from server.`
+      const jobName = `initiate-remittance-payout-${transactionId}`;
+      this.webhooksQueue.process(jobName, async (_, done) => {
+        this.logger.log(
+          `Processing (event: ${jobName}, PayoutRef: ${transactionId}...`
+        );
+
+        const payment = await this.peexService.getRequestPayment(transactionId);
+        if (payment?.status === 'failed') {
+          await this.sendReceiptEmail(
+            transactionId,
+            new Date(),
+            payment.amount
           );
-        } catch (error) {
-          this.logger.error(error, jobName);
-          done(error, null);
+        } else if (payment?.status === 'paid') {
+          await this.sendReceiptEmail(
+            transactionId,
+            new Date(),
+            payment.amount
+          );
+        } else {
+          return done(Error('Payout not completed yet!'));
         }
-      }
-    );
-    await this.webhooksQueue.add(jobName, initiatePayoutPayload, {
-      attempts: 3,
-      backoff: { type: 'exponential', delay: 15000 },
-    });
+
+        done(null, payment);
+        this.logger.log(
+          `Successfully processed (event: ${jobName}) from server.`
+        );
+      });
+      await this.webhooksQueue.add(jobName, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 15000 },
+      });
+    } catch (error) {
+      this.logger.error(error);
+    }
   }
 }

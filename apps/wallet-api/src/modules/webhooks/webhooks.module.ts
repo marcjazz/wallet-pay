@@ -1,11 +1,12 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
+import { PeexService } from '../../peex/peex.service';
 import { constants } from '../../constants';
 import { CybridModule } from '../../cybrid/cybrid.module';
 import { IdentityVerificationsProcessor } from './processors/identity-verifications.processor';
+import { TradesProcessor } from './processors/trades.processor';
 import { TransactionsProcessor } from './processors/transactions.processor';
 import { WebhooksController } from './webhooks.controller';
-import { TradesProcessor } from './processors/trades.processor';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TradesProcessor } from './processors/trades.processor';
     IdentityVerificationsProcessor,
     TransactionsProcessor,
     TradesProcessor,
+    PeexService,
   ],
 })
 export class WebhooksModule {}

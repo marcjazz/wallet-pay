@@ -32,15 +32,6 @@ class EnvironmentVariables {
   JWT_SECRET: string;
 
   @IsString()
-  POSTGRES_PASSWORD: string;
-
-  @IsString()
-  POSTGRES_USER: string;
-
-  @IsString()
-  POSTGRES_DB: string;
-
-  @IsString()
   DATABASE_URL: string;
 
   @IsString()

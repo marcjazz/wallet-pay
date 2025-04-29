@@ -25,7 +25,6 @@ export type InitiatePayoutPayload = {
   receipientPhonenumber: string;
   customerEmail: string;
   transactionId: string;
-  payoutId: string;
   callbackUrl?: string;
 };
 

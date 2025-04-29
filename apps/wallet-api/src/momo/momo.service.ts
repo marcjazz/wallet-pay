@@ -76,7 +76,6 @@ export class MomoService {
     amount,
     receipientPhonenumber,
     customerEmail,
-    payoutId: xReferenceId,
     transactionId,
     callbackUrl,
   }: InitiatePayoutPayload) {
@@ -106,13 +105,13 @@ export class MomoService {
       },
       {
         headers: {
-          'X-Reference-Id': xReferenceId,
+          'X-Reference-Id': transactionId,
           'X-Callback-Url': callbackUrl,
         },
       }
     );
 
-    return xReferenceId;
+    return transactionId;
   }
 
   async getCashTransfer(referenceId: string) {

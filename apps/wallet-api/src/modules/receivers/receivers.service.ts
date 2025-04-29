@@ -25,6 +25,10 @@ export class RecieversService {
     private readonly cybridService: CybridService
   ) {}
 
+  async getCustomers() {
+    return this.cybridService.getCustomers();
+  }
+
   async findAll(query: SearchQueryDto) {
     return this.prismaService.cybridCounterparty.findMany({
       where: {

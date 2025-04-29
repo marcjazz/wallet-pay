@@ -19,12 +19,27 @@ import { Request } from 'express';
 import { SearchQueryDto } from '../../app/app.dto';
 import { CreateReceiverDto, ReceiverEntity } from './receiver.dto';
 import { RecieversService as ReceiversService } from './receivers.service';
+import { SkipAuth } from '@xafpay/api/app/auth/auth.decorator';
+import { PeexService } from '@xafpay/api/peex/peex.service';
 
 @ApiBearerAuth()
 @ApiTags('Receivers')
 @Controller('receivers')
 export class ReceiversController {
-  constructor(private readonly receiversService: ReceiversService) {}
+  constructor(
+    private readonly receiversService: ReceiversService,
+    private readonly peexService: PeexService
+  ) {}
+
+  @SkipAuth()
+  @Post('test')
+  async getCustomers() {
+    return this.peexService.requestPayment({
+      amount: 100,
+      mobile_phone: '+237673016895',
+      track_id: crypto.randomUUID(),
+    });
+  }
 
   @Get()
   @ApiResponse({ status: 200, type: [ReceiverEntity] })
