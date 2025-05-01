@@ -19,6 +19,8 @@ FROM base AS builder
 
 COPY --from=deps /app/deps ./node_modules
 
+RUN ls -al
+
 # Generate openapi docs
 RUN --mount=type=bind,src=peex-openapi.yaml,target=/app/peex-openapi.yaml \
     --mount=type=bind,src=./apps/wallet-api,target=/app/apps/wallet-api \
