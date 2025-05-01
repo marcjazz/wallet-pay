@@ -361,10 +361,8 @@ export class TransactionsService {
       'CYBRID_BANK_GUID'
     ) as string;
 
-    const totalAmount = transactions.reduce(
-      (total, tx) => total + tx.amount,
-      0
-    );
+    const totalAmount =
+      1e6 * transactions.reduce((total, tx) => total + tx.amount, 0);
 
     const remittanceParticipants = transactions.reduce<Participants>(
       (participants, { amount, ReceiverPayoutInfo }) => ({
@@ -378,7 +376,7 @@ export class TransactionsService {
         destination_participants: [
           ...participants.destination_participants,
           {
-            amount,
+            amount: amount * 1e6, // usdc_sol to lamports
             guid: ReceiverPayoutInfo?.cybrid_counterparty_guid as string,
             type: PostTransferParticipantBankModelTypeEnum.Counterparty,
           },
