@@ -1,6 +1,5 @@
 import ResetPassword from '../../../../components/auth/reset-password/ResetPassword';
-import React from 'react';
 
-export default function NewPassword() {
+export default async function NewPassword() {
   return <ResetPassword />;
 }

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { AppLayout } from '../components/AppLayout';
 import { ReactQueryProvider } from '../context/ReactQueryProvider';
 import '../public/styles/global.scss';

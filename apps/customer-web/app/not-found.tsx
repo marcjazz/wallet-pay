@@ -1,5 +1,3 @@
-import React from 'react';
-
-export default function NotFound() {
+export default async function NotFound() {
   return <div>Not Found Page</div>;
 }
