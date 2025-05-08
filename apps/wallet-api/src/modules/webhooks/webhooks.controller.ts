@@ -72,7 +72,7 @@ export class WebhooksController {
     @Res() resp: Response,
     @Body() eventObject: unknown
   ) {
-    this.webhooksQueue.add('', eventObject, {
+    await this.webhooksQueue.add(constants.PAYOUT_PARTNER_EVENTS, eventObject, {
       attempts: 3,
       backoff: 5000,
     });

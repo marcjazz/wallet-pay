@@ -35,15 +35,15 @@ export class PeexService {
 
     if (error) {
       this.logger.error(error);
-      throw new Error('Unable to verify phone number');
+      throw new Error('Unable to retrieve partner details');
     }
 
     return data;
   }
 
-  async verifyPhone(mobile_phone: string) {
+  async verifyPhone(phone_number: string) {
     const { data, error } = await DefaultService.verifyPhoneNumber({
-      body: { mobile_phone },
+      body: { phone_number },
       client: this.apiClient,
     });
 
@@ -82,7 +82,7 @@ export class PeexService {
 
     if (error) {
       this.logger.error(error);
-      throw new Error('Unable to verify phone number');
+      throw new Error('Unable to placed payment!');
     }
 
     return data?.request;
@@ -96,7 +96,7 @@ export class PeexService {
 
     if (error) {
       this.logger.error(error);
-      throw new Error('Unable to verify phone number');
+      throw new Error('Unable to retrieve payment details');
     }
 
     return data ? data[0] : null;

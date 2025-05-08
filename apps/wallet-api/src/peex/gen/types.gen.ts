@@ -88,7 +88,7 @@ export type GetPartnerInfoResponse = GetPartnerInfoResponses[keyof GetPartnerInf
 
 export type VerifyPhoneNumberData = {
     body: {
-        mobile_phone: string;
+        phone_number: string;
     };
     path?: never;
     query?: never;

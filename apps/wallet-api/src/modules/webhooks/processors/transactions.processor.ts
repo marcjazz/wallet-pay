@@ -4,20 +4,11 @@ import { PrismaPromise } from '@prisma/client';
 import { Job, Queue } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
-import { validatePhoneNumber } from '../../../helpers/utils';
-import { generatePayoutReceiptEmail } from '../../../mailer/emails/payout-email';
-import {
-  generateTransactionReceiptEmail,
-  TransactionReceipt,
-} from '../../../mailer/emails/transaction-email';
 import { MailerService } from '../../../mailer/mailer.service';
+import { PeexService } from '../../../peex/peex.service';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { InitiatePayoutPayload } from '../../../types/momo';
-import { PawapayPayoutEntity } from '../../../types/pawapay';
-import { PawapayPayoutStatus } from '../../../types/pawapay/enum';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 import { parseEventObject } from '../helpers/event-parser';
-import { PeexService } from '../../../peex/peex.service';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class TransactionsProcessor {
@@ -109,25 +100,20 @@ export class TransactionsProcessor {
       );
 
       // Sending remittance settlement email
-      const { person, cybridCounterparty } = await this.sendReceiptEmail(
-        cybridTransaction.cybrid_transaction_guid
-      );
+      const { cybridCounterparty } = await this.mailerService.sendReceiptEmail({
+        transactionGuidOrId: cybridTransaction.cybrid_transaction_guid,
+      });
 
       const amountReceived =
         cybridTransaction.initial_currency_amount *
         (cybridTransaction.conversion_rate as number);
       const phoneNumber = cybridCounterparty?.phone_number;
-      const initiatePayoutPayload: InitiatePayoutPayload = {
-        amount: amountReceived,
-        customerEmail: person.email,
-        transactionId: cybridTransaction.transaction_id,
-        receipientPhonenumber: phoneNumber?.includes('237')
-          ? phoneNumber
-          : `237${phoneNumber}`,
-        callbackUrl: `${process.env.API_BASE_URL}/webhooks/payout-callback`,
-      };
 
-      await this.initiatePayout(initiatePayoutPayload);
+      await this.initiatePayout(
+        cybridTransaction.transaction_id,
+        amountReceived,
+        phoneNumber?.includes('237') ? phoneNumber : `237${phoneNumber}`
+      );
     } else if (
       transfer.transfer_type === 'crypto' &&
       transactionStatus === 'COMPLETED'
@@ -161,143 +147,24 @@ export class TransactionsProcessor {
     );
   }
 
-  @Process(constants.PAWAPAY_PAYOUT_EVENTS)
-  async handlePawapayPayoutEvents(job: Job<PawapayPayoutEntity>) {
-    const { payoutId, status, amount } = job.data;
-
-    let transaction = await this.prismaService.cybridTransaction.findFirst({
-      where: { pawapay_payout_id: payoutId, settled_at: null },
-    });
-    if (!transaction) {
-      this.logger.error(
-        `No transaction record was found for payout Id: ${payoutId}!`
-      );
-      return;
-    }
-
-    if (
-      transaction.status === 'COMPLETED' &&
-      status === PawapayPayoutStatus.ACCEPTED
-    ) {
-      transaction = await this.prismaService.cybridTransaction.update({
-        data: { settled_at: new Date() },
-        where: { cybrid_transaction_id: transaction.cybrid_transaction_id },
-      });
-
-      // Sending payout receipt email
-      await this.sendReceiptEmail(
-        transaction.cybrid_transaction_guid,
-        new Date(),
-        Number(amount)
-      );
-    }
-  }
-
-  private async sendReceiptEmail(
-    transactionGuidOrId: string,
-    payoutAt?: Date,
-    amountReceived?: number
+  private async initiatePayout(
+    transactionId: string,
+    amountReceived: number,
+    phoneNumber: string
   ) {
-    const {
-      InitiatedBy: { Person: person },
-      ReceiverPayoutInfo: cybridCounterparty,
-      ...cybridTransaction
-    } = await this.prismaService.cybridTransaction.findFirstOrThrow({
-      include: {
-        ReceiverPayoutInfo: true,
-        InitiatedBy: { select: { Person: true } },
+    await this.webhooksQueue.add(
+      `${constants.INITIATE_PAYOUT_EVENTS}-${transactionId}`,
+      {
+        amount: amountReceived,
+        transactionId,
+        receipientPhonenumber: phoneNumber,
       },
-      where: {
-        OR: [
-          { transaction_id: transactionGuidOrId },
-          { cybrid_transaction_guid: transactionGuidOrId },
-        ],
-      },
-    });
-
-    const transactionId = cybridTransaction.transaction_id;
-    const initiatedAt = new Date(cybridTransaction.initiated_at);
-    const recipientPhoneNumber = cybridCounterparty?.phone_number;
-    const mobileMoneyPartner = recipientPhoneNumber
-      ? validatePhoneNumber(recipientPhoneNumber) === 0
-        ? 'Mobile Money'
-        : 'Orange Money'
-      : 'N/A';
-
-    const receiptData: TransactionReceipt = {
-      transactionId,
-      initiatedAt: initiatedAt.toString(),
-      customerName: `${person.first_name} ${person.last_name}`,
-      receiptUrl: `/remittance/${cybridTransaction.cybrid_transaction_id}`,
-      recipientName: cybridCounterparty?.fullname ?? 'N/A',
-      recipientPhoneNumber: `${recipientPhoneNumber} (${mobileMoneyPartner} Cameroon)`,
-      amountSent: `${cybridTransaction.initial_currency_amount} ${cybridTransaction.initial_currency}`,
-    };
-
-    await this.mailerService.sendMessage({
-      to: person.email,
-      subject: payoutAt
-        ? `Payout Receipt (${transactionId})`
-        : `Transaction Receipt (${transactionId})`,
-      html: amountReceived
-        ? generatePayoutReceiptEmail({
-            ...receiptData,
-            amountReceived: `${amountReceived} XAF`,
-            payoutAt: cybridTransaction.payout_at?.toString() ?? `N/A`,
-          })
-        : generateTransactionReceiptEmail(receiptData),
-    });
-
-    return { person, cybridCounterparty };
-  }
-
-  private async initiatePayout({
-    transactionId,
-    receipientPhonenumber,
-    amount,
-  }: InitiatePayoutPayload) {
-    try {
-      //FIXME: Initiate transaction with Payout partner here
-      await this.peexService.requestPayment({
-        amount,
-        track_id: transactionId,
-        mobile_phone: receipientPhonenumber,
-      });
-
-      const jobName = `initiate-remittance-payout-${transactionId}`;
-      this.webhooksQueue.process(jobName, async (_, done) => {
-        this.logger.log(
-          `Processing (event: ${jobName}, PayoutRef: ${transactionId}...`
-        );
-
-        const payment = await this.peexService.getRequestPayment(transactionId);
-        if (payment?.status === 'failed') {
-          await this.sendReceiptEmail(
-            transactionId,
-            new Date(),
-            payment.amount
-          );
-        } else if (payment?.status === 'paid') {
-          await this.sendReceiptEmail(
-            transactionId,
-            new Date(),
-            payment.amount
-          );
-        } else {
-          return done(Error('Payout not completed yet!'));
-        }
-
-        done(null, payment);
-        this.logger.log(
-          `Successfully processed (event: ${jobName}) from server.`
-        );
-      });
-      await this.webhooksQueue.add(jobName, {
+      {
         attempts: 3,
+        removeOnFail: false,
+        removeOnComplete: true,
         backoff: { type: 'exponential', delay: 15000 },
-      });
-    } catch (error) {
-      this.logger.error(error);
-    }
+      }
+    );
   }
 }

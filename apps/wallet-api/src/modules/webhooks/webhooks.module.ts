@@ -7,6 +7,7 @@ import { IdentityVerificationsProcessor } from './processors/identity-verificati
 import { TradesProcessor } from './processors/trades.processor';
 import { TransactionsProcessor } from './processors/transactions.processor';
 import { WebhooksController } from './webhooks.controller';
+import { PayoutProcessor } from './processors/payout.processor';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WebhooksController } from './webhooks.controller';
     IdentityVerificationsProcessor,
     TransactionsProcessor,
     TradesProcessor,
+    PayoutProcessor,
     PeexService,
   ],
 })
