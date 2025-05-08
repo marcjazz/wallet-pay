@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine3.21 AS base
 
 LABEL maintainer="Lorrain Tchakoumi <lorraintchakoumi@gmail.com>"
 LABEL org.opencontainers.image.description="NextJs frontend for the XafPay Wallet"

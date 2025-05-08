@@ -15,6 +15,7 @@
     "@cybrid/cybrid-api-bank-typescript": "^0.123.295",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
+    "@hey-api/client-fetch": "^0.10.0",
     "@mui/material": "^5.16.7",
     "@mui/x-date-pickers": "^7.15.0",
     "@nestjs/axios": "^3.0.3",
@@ -140,7 +141,7 @@
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
-    "typescript": "5.4.5",
+    "typescript": "^5.8.3",
     "url-loader": "^4.1.1"
   }
 }
