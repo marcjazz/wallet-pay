@@ -429,57 +429,50 @@ export class TransactionsService {
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async pullUnterminatedTransaction() {
-    try {
-      const transactions = await this.prismaService.cybridTransaction.findMany({
-        select: {
-          CybridAccount: { select: { cybrid_customer_id: true } },
-          cybrid_transaction_guid: true,
-          transaction_type: true,
-        },
-        where: { status: { notIn: ['COMPLETED', 'FAILED'] } },
-      });
+    const transactions = await this.prismaService.cybridTransaction.findMany({
+      select: {
+        CybridAccount: { select: { cybrid_customer_id: true } },
+        cybrid_transaction_guid: true,
+        transaction_type: true,
+      },
+      where: { status: { notIn: ['COMPLETED', 'FAILED'] } },
+    });
 
-      const [tradeIds, transferIds] = transactions.reduce<[string[], string[]]>(
-        ([trades, transfers], tx) => {
-          const { cybrid_transaction_guid: guid, transaction_type: type } = tx;
-          return type === 'CONVERT' || type === 'REMITTANCE'
-            ? [[...trades, guid], transfers]
-            : [trades, [...transfers, guid]];
-        },
-        [[], []]
-      );
+    const [tradeIds, transferIds] = transactions.reduce<[string[], string[]]>(
+      ([trades, transfers], tx) => {
+        const { cybrid_transaction_guid: guid, transaction_type: type } = tx;
+        return type === 'CONVERT' || type === 'REMITTANCE'
+          ? [[...trades, guid], transfers]
+          : [trades, [...transfers, guid]];
+      },
+      [[], []]
+    );
 
-      if (!tradeIds.length && !transferIds.length) return;
+    if (!tradeIds.length && !transferIds.length) return;
 
-      const [trades, transfers] = await Promise.all([
-        this.cybridService.getTrades({ guid: tradeIds.join(',') }),
-        this.cybridService.getTransfers({ guid: transferIds.join(',') }),
-      ]);
+    const [trades, transfers] = await Promise.all([
+      this.cybridService.getTrades({ guid: tradeIds.join(',') }),
+      this.cybridService.getTransfers({ guid: transferIds.join(',') }),
+    ]);
 
-      const statusIdMap = new Map<CybridTransactionStatus, Set<string>>();
+    const statusIdMap = new Map<CybridTransactionStatus, Set<string>>();
 
-      [...trades.objects, ...transfers.objects].forEach((object) => {
-        const status = object.state?.toUpperCase() as CybridTransactionStatus;
-        if (!status || !object.guid) return;
+    [...trades.objects, ...transfers.objects].forEach((object) => {
+      const status = object.state?.toUpperCase() as CybridTransactionStatus;
+      if (!status || !object.guid) return;
 
-        const ids = statusIdMap.get(status) ?? new Set();
-        ids.add(object.guid);
-        statusIdMap.set(status, ids);
-      });
+      const ids = statusIdMap.get(status) ?? new Set();
+      ids.add(object.guid);
+      statusIdMap.set(status, ids);
+    });
 
-      await this.prismaService.$transaction(
-        Array.from(statusIdMap.entries()).map(([status, ids]) =>
-          this.prismaService.cybridTransaction.updateMany({
-            where: { cybrid_transaction_guid: { in: Array.from(ids) } },
-            data: { status },
-          })
-        )
-      );
-    } catch (error) {
-      this.logger.error(
-        'Failed to pull or update unfinished transactions',
-        error
-      );
-    }
+    await this.prismaService.$transaction(
+      Array.from(statusIdMap.entries()).map(([status, ids]) =>
+        this.prismaService.cybridTransaction.updateMany({
+          where: { cybrid_transaction_guid: { in: Array.from(ids) } },
+          data: { status },
+        })
+      )
+    );
   }
 }

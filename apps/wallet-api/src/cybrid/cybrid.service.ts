@@ -401,7 +401,7 @@ export class CybridService {
   async getTransfers(queries: ListTransfersRequest) {
     const transfersBankApi = await this.cybridConfig.getInstance(
       TransfersBankApi,
-      ['trades:read']
+      ['transfers:read']
     );
 
     const transfersObservable = transfersBankApi.listTransfers(queries);
