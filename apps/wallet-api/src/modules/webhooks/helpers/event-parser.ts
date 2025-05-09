@@ -20,14 +20,9 @@ export async function parseEventObject(
     status === 'settling' ? 'reviewing' : status
   ).toLocaleUpperCase() as CybridTransactionStatus;
 
-  const transaction = await deps.prisma.cybridTransaction.findFirst({
+  const transaction = await deps.prisma.cybridTransaction.findUnique({
     include: { InitiatedBy: { select: { cybrid_customer_guid: true } } },
-    where: {
-      OR: [
-        { cybrid_transaction_guid: transactionGuid },
-        { cybrid_transfer_settlement_guid: transactionGuid },
-      ],
-    },
+    where: { cybrid_transaction_guid: transactionGuid },
   });
   if (!transaction) {
     deps.logger.error(
@@ -48,6 +43,6 @@ export async function parseEventObject(
     transaction,
     transactionGuid,
     transactionStatus,
-    customerGuid: transaction.InitiatedBy.cybrid_customer_guid,
+    customerGuid: transaction.InitiatedBy?.cybrid_customer_guid ?? "",
   };
 }

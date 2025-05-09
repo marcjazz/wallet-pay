@@ -94,7 +94,7 @@ export class CybridTransactionEntity implements CybridTransaction {
   @ApiProperty({
     description: 'Settlement transfer guid for remittance transaction type',
   })
-  cybrid_transfer_settlement_guid: string | null = null;
+  withdrawal_transaction_id: string | null = null;
 
   @ApiProperty()
   amount: number;
@@ -172,7 +172,7 @@ export class CybridTransactionEntity implements CybridTransaction {
   pawapay_payout_id: string;
 
   @Exclude()
-  initiated_by: string;
+  initiated_by: string | null;
 
   constructor(props: CybridTransactionEntity) {
     Object.assign(this, props);

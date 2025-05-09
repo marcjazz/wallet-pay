@@ -330,11 +330,7 @@ export class TransactionsService {
     return cybridCounterparty;
   }
 
-  @Cron(
-    process.env.NODE_ENV === 'production'
-      ? CronExpression.EVERY_6_HOURS
-      : CronExpression.EVERY_5_MINUTES
-  )
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async settleRemittanceTransations() {
     this.logger.verbose(`Settling remittance transactions...`);
 
@@ -347,7 +343,7 @@ export class TransactionsService {
       where: {
         status: 'COMPLETED',
         transaction_type: 'REMITTANCE',
-        cybrid_transfer_settlement_guid: null,
+        withdrawal_transaction_id: null,
         receiver_payout_info_id: { not: null },
       },
     });
@@ -399,8 +395,22 @@ export class TransactionsService {
       remittanceParticipants
     );
 
+    const transaction = await this.prismaService.cybridTransaction.create({
+      data: {
+        amount: totalAmount,
+        cybrid_transaction_guid: transfer.guid as string,
+        fees: transfer.fee ?? 0,
+        initial_currency: 'USDC_SOL',
+        initial_currency_amount: totalAmount,
+        status:
+          transfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
+        transaction_id: transfer.quote_guid as string,
+        transaction_type: 'WITHDRAWAL',
+      },
+    });
+
     await this.prismaService.cybridTransaction.updateMany({
-      data: { cybrid_transfer_settlement_guid: transfer.guid },
+      data: { withdrawal_transaction_id: transaction.cybrid_transaction_id },
       where: {
         cybrid_transaction_id: {
           in: transactions.map((tx) => tx.cybrid_transaction_id),

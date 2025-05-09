@@ -36,7 +36,7 @@ export class MailerService {
     amountReceived?: number;
   }) {
     const {
-      InitiatedBy: { Person: person },
+      InitiatedBy,
       ReceiverPayoutInfo: cybridCounterparty,
       ...cybridTransaction
     } = await this.prismaService.cybridTransaction.findFirstOrThrow({
@@ -51,6 +51,10 @@ export class MailerService {
         ],
       },
     });
+    const person = InitiatedBy?.Person
+    if(!person) {
+      throw new Error("Email receiver not found!")
+    }
 
     const transactionId = cybridTransaction.transaction_id;
     const initiatedAt = new Date(cybridTransaction.initiated_at);
