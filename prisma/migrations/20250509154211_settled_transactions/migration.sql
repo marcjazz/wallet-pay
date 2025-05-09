@@ -4,6 +4,9 @@
   - You are about to drop the column `cybrid_transfer_settlement_guid` on the `cybrid_transactions` table. All the data in the column will be lost.
 
 */
+-- AlterEnum
+ALTER TYPE "cybrid_transfer_status" ADD VALUE 'reverted';
+
 -- AlterTable
 ALTER TABLE "cybrid_transactions" DROP COLUMN "cybrid_transfer_settlement_guid",
 ADD COLUMN     "withdrawal_transaction_id" VARCHAR(45),
