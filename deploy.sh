@@ -6,25 +6,10 @@ echo "$SSH_PRIVATE_KEY" >key.pem
 # Set correct permissions for the SSH key file
 chmod 600 key.pem
 
-# Ensure the target directory exists on the server before copying
-echo "Ensuring the target directory exists..."
-ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p /home/xafpay/wallet"
-
-# Create .env file
-echo "$ENV_FILE" >.env
-echo "REGISTRY_PASSWORD=$REGISTRY_PASSWORD" >>.env
-echo "REGISTRY_USERNAME=$REGISTRY_USERNAME" >>.env
-chmod 600 .env
-echo "Environment variables updated!"
-
-# Copy compose.yml to the server
-echo "Copying compose.yml to the server..."
-scp -i key.pem -o StrictHostKeyChecking=no compose.yml .env $SERVER_USER@$SERVER_IP:/home/xafpay/wallet/
-
 # SSH into the server and execute docker-compose commands
 echo "Starting deployment on the server..."
 ssh -i key.pem -T -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<'EOF'
-  # Change to the target directory where compose.yml is located
+  mkdir -p /home/xafpay/wallet
   cd /home/xafpay/wallet
   
   # Source the .env file to export variables
