@@ -13,8 +13,8 @@ async function bootstrap() {
     cors: {
       origin:
         process.env.NODE_ENV === 'production'
-          ? /^(?:[a-zA-Z0-9-]+\.)*xafpay\.com$/
-          : /^http:\/\/localhost/,
+          ? /^https:\/\/(www\.)?xafpay\.com$/
+          : /^http:\/\/localhost(:\d+)?$/,
       credentials: true,
     },
     rawBody: true,
