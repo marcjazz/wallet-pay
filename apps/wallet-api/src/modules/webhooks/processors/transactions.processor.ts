@@ -5,7 +5,6 @@ import { Job, Queue } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
 import { MailerService } from '../../../mailer/mailer.service';
-import { PeexService } from '../../../peex/peex.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 import { parseEventObject } from '../helpers/event-parser';
@@ -15,7 +14,6 @@ export class TransactionsProcessor {
   private readonly logger = new Logger(TransactionsProcessor.name);
 
   constructor(
-    private readonly peexService: PeexService,
     private readonly cybridService: CybridService,
     private readonly mailerService: MailerService,
     private readonly prismaService: PrismaService,

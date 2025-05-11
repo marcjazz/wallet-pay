@@ -403,7 +403,7 @@ export class TransactionsService {
       data: {
         amount: totalAmount,
         cybrid_transaction_guid: transfer.guid as string,
-        fees: transfer.fee ?? 0,
+        fees: (transfer.fee ?? 0) / 1e6,
         initial_currency: 'USDC_SOL',
         initial_currency_amount: totalAmount,
         status:
@@ -435,7 +435,7 @@ export class TransactionsService {
         cybrid_transaction_guid: true,
         transaction_type: true,
       },
-      where: { status: { notIn: ['COMPLETED', 'FAILED'] } },
+      where: { status: { notIn: ['COMPLETED', 'FAILED', 'REVERTED'] } },
     });
 
     const [tradeIds, transferIds] = transactions.reduce<[string[], string[]]>(
