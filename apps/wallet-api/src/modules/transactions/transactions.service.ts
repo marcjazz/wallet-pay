@@ -401,11 +401,11 @@ export class TransactionsService {
 
     const transaction = await this.prismaService.cybridTransaction.create({
       data: {
-        amount: totalAmount,
+        amount: totalAmount / 1e6,
         cybrid_transaction_guid: transfer.guid as string,
         fees: (transfer.fee ?? 0) / 1e6,
         initial_currency: 'USDC_SOL',
-        initial_currency_amount: totalAmount,
+        initial_currency_amount: totalAmount / 1e6,
         status:
           transfer.state?.toLocaleUpperCase() as $Enums.CybridTransactionStatus,
         transaction_id: transfer.quote_guid as string,

@@ -79,8 +79,7 @@ export class TransactionsProcessor {
       );
     } else if (
       transfer.transfer_type === 'book' &&
-      cybridTransaction.transaction_type === 'REMITTANCE' &&
-      transactionStatus === 'COMPLETED'
+      cybridTransaction.transaction_type === 'REMITTANCE'
     ) {
       // Book transfer (actual remittance) is done with usdc_sol account
       const cryptoAccount = await this.cybridService.getAccount(
@@ -116,7 +115,7 @@ export class TransactionsProcessor {
       transfer.transfer_type === 'crypto' &&
       'FAILED' === transactionStatus
     ) {
-      // Resetting related transaction in case settlement fails. 
+      // Resetting related transaction in case settlement fails.
       updateOperations.push(
         this.prismaService.cybridTransaction.updateMany({
           data: { withdrawal_transaction_id: null },
