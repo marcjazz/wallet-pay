@@ -47,13 +47,14 @@ export class MailerService {
       where: {
         OR: [
           { transaction_id: emailObject.transactionGuidOrId },
+          { remittance_payout_ref: emailObject.transactionGuidOrId },
           { cybrid_transaction_guid: emailObject.transactionGuidOrId },
         ],
       },
     });
-    const person = InitiatedBy?.Person
-    if(!person) {
-      throw new Error("Email receiver not found!")
+    const person = InitiatedBy?.Person;
+    if (!person) {
+      throw new Error('Email receiver not found!');
     }
 
     const transactionId = cybridTransaction.transaction_id;

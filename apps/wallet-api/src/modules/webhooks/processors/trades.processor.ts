@@ -236,9 +236,10 @@ export class TradesProcessor {
         where: { cybrid_transaction_guid: transactionGuid },
       });
 
-    const amountReceived =
+    const amountReceived = Math.floor(
       transaction.initial_currency_amount *
-      (transaction.conversion_rate as number);
+        (transaction.conversion_rate as number)
+    );
     const phoneNumber = cybridCounterparty?.phone_number;
 
     await this.webhooksQueue.add(

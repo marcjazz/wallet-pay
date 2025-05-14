@@ -36,6 +36,7 @@ import {
   QueryTransactionDto,
   ReceiverPayoutInfoDto,
 } from './transaction.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class TransactionsService {
@@ -289,6 +290,7 @@ export class TransactionsService {
           // convert cents to dollars
           initial_currency_amount: fiatAmount / 100,
           transaction_id: generateTransactionId(),
+          remittance_payout_ref: randomUUID(),
           // convert lamports to USDC_SOL
           amount: (tradeTransaction.receive_amount as number) / 1e6,
           cybrid_transaction_guid: tradeTransaction.guid as string,
