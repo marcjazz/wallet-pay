@@ -2,10 +2,11 @@ import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { constants } from '../../../constants';
+import { getInsufficientFundsAlertMessage } from '../../../mailer/emails/insufficient-funds-alert';
+import { getPayoutFailureAlertMessage } from '../../../mailer/emails/payout-failure-alert';
 import { MailerService } from '../../../mailer/mailer.service';
 import { ClientPaymentRequest } from '../../../peex/gen/types.gen';
 import { PeexService } from '../../../peex/peex.service';
-import { getInsufficientFundsAlertMessage } from '../../../mailer/emails/insufficient-funds-alert';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class PayoutProcessor {
@@ -31,9 +32,15 @@ export class PayoutProcessor {
     const transactionGuidOrId = payment.track_id.split('.')[1];
 
     if (payment?.status === 'failed') {
-      // Sending remittance settlement email
-      await this.mailerService.sendReceiptEmail({
-        transactionGuidOrId,
+      this.mailerService.sendMessage({
+        subject: 'Insufficient Funds Alert',
+        text: getPayoutFailureAlertMessage(
+          payment.track_id,
+          payment.identifier_by as string,
+          payment.amount as number,
+          payment.message as string
+        ),
+        to: 'XAfPay Inc <no-reply@xafpay.com>',
       });
     } else if (payment?.status === 'paid') {
       // Sending remittance settlement email
