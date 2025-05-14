@@ -47,7 +47,7 @@ export class PeexCallbackGuard implements CanActivate {
   ): Promise<boolean> {
     const validUsername = this.configService.get('PEEX_USERNAME', 'peex');
     const validPassword = this.configService.get(
-      'PEEX_USERNAME',
+      'PEEX_PASSWORD',
       'peex_callback'
     );
 
