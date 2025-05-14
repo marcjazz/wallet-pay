@@ -245,7 +245,7 @@ export class TradesProcessor {
       constants.INITIATE_PAYOUT_EVENTS,
       {
         amount: amountReceived,
-        transactionId: transactionGuid,
+        trackId: transaction.remittance_payout_ref,
         receipientPhonenumber: phoneNumber?.includes('237')
           ? phoneNumber
           : `237${phoneNumber}`,

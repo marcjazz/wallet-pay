@@ -169,7 +169,7 @@ export class CybridTransactionEntity implements CybridTransaction {
   payout_at: Date | null;
 
   @ApiProperty()
-  pawapay_payout_id: string;
+  remittance_payout_ref: string | null;
 
   @Exclude()
   initiated_by: string | null;

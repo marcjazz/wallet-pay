@@ -50,15 +50,13 @@ export class PayoutProcessor {
   async handlePayout(
     job: Job<{
       amount: number;
-      transactionId: string;
+      trackId: string;
       receipientPhonenumber: string;
     }>
   ) {
     const jobName = job.name;
-    const { amount, receipientPhonenumber, transactionId } = job.data;
-    this.logger.log(
-      `Processing (event: ${jobName}, PayoutRef: ${transactionId})...`
-    );
+    const { amount, receipientPhonenumber, trackId } = job.data;
+    this.logger.log(`Processing (event: ${jobName}, PayoutRef: ${trackId})...`);
 
     try {
       const accountInfo = await this.peexService.getPartnerInfo();
@@ -76,7 +74,7 @@ export class PayoutProcessor {
 
       const payment = await this.peexService.requestPayment({
         amount,
-        track_id: `${transactionId}-${job.attemptsMade}`,
+        track_id: trackId,
         mobile_phone: receipientPhonenumber,
       });
 
