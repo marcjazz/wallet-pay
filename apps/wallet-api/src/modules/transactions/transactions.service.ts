@@ -272,12 +272,20 @@ export class TransactionsService {
       }
     );
 
+    // Retrieving supported currency rate
+    const usedCurrency =
+      await this.prismaService.supportedCurrency.findFirstOrThrow({
+        select: { currency: true, xaf_rate: true },
+        where: { currency: currency.toLocaleUpperCase() },
+      });
+
     const cybridTransaction = await this.prismaService.cybridTransaction.create(
       {
         data: {
           currency: 'USDC_SOL',
           fees: tradeTransaction.fee ?? 0,
           initial_currency: currency,
+          conversion_rate: usedCurrency.xaf_rate,
           // convert cents to dollars
           initial_currency_amount: fiatAmount / 100,
           transaction_id: generateTransactionId(),
