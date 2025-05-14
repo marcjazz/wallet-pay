@@ -46,7 +46,7 @@ export class MailerService {
       },
       where: {
         OR: [
-          { transaction_id: emailObject.transactionGuidOrId },
+          { cybrid_transaction_id: emailObject.transactionGuidOrId },
           { remittance_payout_ref: emailObject.transactionGuidOrId },
           { cybrid_transaction_guid: emailObject.transactionGuidOrId },
         ],
