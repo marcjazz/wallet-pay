@@ -16,8 +16,8 @@ export class PayoutProcessor {
   ) {}
 
   @Process(constants.PAYOUT_PARTNER_EVENTS)
-  async handle(job: Job<ClientPaymentRequest>) {
-    const payment = job.data;
+  async handle(job: Job<ClientPaymentRequest[]>) {
+    const [payment] = job.data;
     const jobName = `payout.${payment?.status}`;
     this.logger.log(
       `Processing (event: ${jobName}, PayoutRef: ${payment?.track_id}...`
