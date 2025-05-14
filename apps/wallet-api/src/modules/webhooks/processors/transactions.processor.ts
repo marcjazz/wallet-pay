@@ -1,7 +1,7 @@
-import { InjectQueue, Process, Processor } from '@nestjs/bull';
+import { Process, Processor } from '@nestjs/bull';
 import { Logger, NotImplementedException } from '@nestjs/common';
 import { PrismaPromise } from '@prisma/client';
-import { Job, Queue } from 'bull';
+import { Job } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
 import { MailerService } from '../../../mailer/mailer.service';
@@ -16,8 +16,7 @@ export class TransactionsProcessor {
   constructor(
     private readonly cybridService: CybridService,
     private readonly mailerService: MailerService,
-    private readonly prismaService: PrismaService,
-    @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhooksQueue: Queue
+    private readonly prismaService: PrismaService
   ) {}
 
   @Process(constants.CYBRID_TRANSFER_EVENTS)
@@ -79,7 +78,8 @@ export class TransactionsProcessor {
       );
     } else if (
       transfer.transfer_type === 'book' &&
-      cybridTransaction.transaction_type === 'REMITTANCE'
+      cybridTransaction.transaction_type === 'REMITTANCE' &&
+      transfer.state === 'completed'
     ) {
       // Book transfer (actual remittance) is done with usdc_sol account
       const cryptoAccount = await this.cybridService.getAccount(
@@ -97,20 +97,9 @@ export class TransactionsProcessor {
       );
 
       // Sending remittance settlement email
-      const { cybridCounterparty } = await this.mailerService.sendReceiptEmail({
+      await this.mailerService.sendReceiptEmail({
         transactionGuidOrId: cybridTransaction.cybrid_transaction_guid,
       });
-
-      const amountReceived =
-        cybridTransaction.initial_currency_amount *
-        (cybridTransaction.conversion_rate as number);
-      const phoneNumber = cybridCounterparty?.phone_number;
-
-      await this.initiatePayout(
-        cybridTransaction.transaction_id,
-        amountReceived,
-        phoneNumber?.includes('237') ? phoneNumber : `237${phoneNumber}`
-      );
     } else if (
       transfer.transfer_type === 'crypto' &&
       'FAILED' === transactionStatus
@@ -139,27 +128,6 @@ export class TransactionsProcessor {
 
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
-    );
-  }
-
-  private async initiatePayout(
-    transactionId: string,
-    amountReceived: number,
-    phoneNumber: string
-  ) {
-    await this.webhooksQueue.add(
-      `${constants.INITIATE_PAYOUT_EVENTS}-${transactionId}`,
-      {
-        amount: amountReceived,
-        transactionId,
-        receipientPhonenumber: phoneNumber,
-      },
-      {
-        attempts: 3,
-        removeOnFail: false,
-        removeOnComplete: true,
-        backoff: { type: 'exponential', delay: 15000 },
-      }
     );
   }
 }

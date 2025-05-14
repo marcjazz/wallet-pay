@@ -4,7 +4,7 @@ import {
   PostTransferParticipantBankModelTypeEnum,
   TradeBankModel,
 } from '@cybrid/cybrid-api-bank-typescript';
-import { Process, Processor } from '@nestjs/bull';
+import { InjectQueue, Process, Processor } from '@nestjs/bull';
 import {
   Logger,
   NotFoundException,
@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { $Enums, PrismaPromise } from '@prisma/client';
-import { Job } from 'bull';
+import { Job, Queue } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -30,7 +30,8 @@ export class TradesProcessor {
   constructor(
     private readonly cybridService: CybridService,
     private readonly prismaService: PrismaService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhooksQueue: Queue
   ) {}
 
   @Process(constants.CYBRID_TRADE_EVENTS)
@@ -64,20 +65,24 @@ export class TradesProcessor {
       );
     }
 
-    if (
-      trade.state === 'completed' &&
-      transaction.transaction_type === 'REMITTANCE'
-    ) {
-      const sourceAccountInfo = await resolveAccountInfo(this.prismaService, {
-        purpose: 'book',
-        accountId: transaction.cybrid_account_id as string,
-      });
-
-      if (!sourceAccountInfo) {
-        throw new NotFoundException('Source bank account not found!');
+    if (transaction.transaction_type === 'REMITTANCE') {
+      // optimitic payout
+      if (trade.state === 'settling') {
+        await this.initiatePayout(transaction.cybrid_transaction_guid);
       }
 
-      await this.executeBookTransfer(trade, sourceAccountInfo);
+      if (trade.state === 'completed') {
+        const sourceAccountInfo = await resolveAccountInfo(this.prismaService, {
+          purpose: 'book',
+          accountId: transaction.cybrid_account_id as string,
+        });
+
+        if (!sourceAccountInfo) {
+          throw new NotFoundException('Source bank account not found!');
+        }
+
+        await this.executeBookTransfer(trade, sourceAccountInfo);
+      }
     }
 
     const { CryptoCybridAccount: cryptoAccount, CybridAccount: fiatAccount } =
@@ -219,5 +224,38 @@ export class TradesProcessor {
     );
 
     return cybridTransaction;
+  }
+
+  private async initiatePayout(transactionGuid: string) {
+    const { ReceiverPayoutInfo: cybridCounterparty, ...transaction } =
+      await this.prismaService.cybridTransaction.findFirstOrThrow({
+        include: {
+          ReceiverPayoutInfo: true,
+          InitiatedBy: { select: { Person: true } },
+        },
+        where: { cybrid_transaction_guid: transactionGuid },
+      });
+
+    const amountReceived =
+      transaction.initial_currency_amount *
+      (transaction.conversion_rate as number);
+    const phoneNumber = cybridCounterparty?.phone_number;
+
+    await this.webhooksQueue.add(
+      constants.INITIATE_PAYOUT_EVENTS,
+      {
+        amount: amountReceived,
+        transactionId: transactionGuid,
+        receipientPhonenumber: phoneNumber?.includes('237')
+          ? phoneNumber
+          : `237${phoneNumber}`,
+      },
+      {
+        attempts: 3,
+        removeOnFail: false,
+        removeOnComplete: true,
+        backoff: { type: 'exponential', delay: 15000 },
+      }
+    );
   }
 }
