@@ -7,6 +7,7 @@ import { getPayoutFailureAlertMessage } from '../../../mailer/emails/payout-fail
 import { MailerService } from '../../../mailer/mailer.service';
 import { ClientPaymentRequest } from '../../../peex/gen/types.gen';
 import { PeexService } from '../../../peex/peex.service';
+import type { PayoutPayload } from '../../../types/payout';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class PayoutProcessor {
@@ -55,15 +56,9 @@ export class PayoutProcessor {
   }
 
   @Process(constants.INITIATE_PAYOUT_EVENTS)
-  async handlePayout(
-    job: Job<{
-      amount: number;
-      trackId: string;
-      receipientPhonenumber: string;
-    }>
-  ) {
+  async handlePayout(job: Job<PayoutPayload>) {
     const jobName = job.name;
-    const { amount, receipientPhonenumber, trackId } = job.data;
+    const { amount, trackId } = job.data;
     this.logger.log(
       `Processing (event: ${jobName}, PayoutRef: ${job.attemptsMade}.${trackId})...`
     );
@@ -83,9 +78,8 @@ export class PayoutProcessor {
       }
 
       const payment = await this.peexService.requestPayment({
-        amount,
-        track_id: `${job.attemptsMade}.${trackId}`,
-        mobile_phone: receipientPhonenumber,
+        ...job.data,
+        trackId: `${job.attemptsMade}.${trackId}`,
       });
 
       if (payment?.status === 'rejected') {

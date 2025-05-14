@@ -16,6 +16,7 @@ import { Job, Queue } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { PayoutPayload } from '../../../types/payout';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 import {
   CustomerAccountInfo,
@@ -31,7 +32,8 @@ export class TradesProcessor {
     private readonly cybridService: CybridService,
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
-    @InjectQueue(constants.WEBHOOK_QUEUE) private readonly webhooksQueue: Queue
+    @InjectQueue(constants.WEBHOOK_QUEUE)
+    private readonly webhooksQueue: Queue<PayoutPayload>
   ) {}
 
   @Process(constants.CYBRID_TRADE_EVENTS)
@@ -227,29 +229,38 @@ export class TradesProcessor {
   }
 
   private async initiatePayout(transactionGuid: string) {
-    const { ReceiverPayoutInfo: cybridCounterparty, ...transaction } =
-      await this.prismaService.cybridTransaction.findFirstOrThrow({
-        include: {
-          ReceiverPayoutInfo: true,
-          InitiatedBy: { select: { Person: true } },
-        },
-        where: { cybrid_transaction_guid: transactionGuid },
-      });
+    const {
+      ReceiverPayoutInfo: cybridCounterparty,
+      InitiatedBy,
+      ...transaction
+    } = await this.prismaService.cybridTransaction.findFirstOrThrow({
+      include: {
+        ReceiverPayoutInfo: true,
+        InitiatedBy: { select: { Person: true } },
+      },
+      where: { cybrid_transaction_guid: transactionGuid },
+    });
 
     const amountReceived = Math.floor(
       transaction.initial_currency_amount *
         (transaction.conversion_rate as number)
     );
-    const phoneNumber = cybridCounterparty?.phone_number;
+    const receiverPhoneNumber = cybridCounterparty?.phone_number;
+    const { last_name, first_name, phone_number } = InitiatedBy?.Person ?? {};
 
     await this.webhooksQueue.add(
       constants.INITIATE_PAYOUT_EVENTS,
       {
         amount: amountReceived,
-        trackId: transaction.remittance_payout_ref,
-        receipientPhonenumber: phoneNumber?.includes('237')
-          ? phoneNumber
-          : `237${phoneNumber}`,
+        senderLastName: last_name,
+        senderFirstName: first_name,
+        senderMobilePhone: phone_number,
+        trackId:
+          transaction.remittance_payout_ref ??
+          transaction.cybrid_transaction_id,
+        receipientPhonenumber: receiverPhoneNumber?.includes('237')
+          ? receiverPhoneNumber
+          : `237${receiverPhoneNumber}`,
       },
       {
         attempts: 3,

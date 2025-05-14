@@ -7,7 +7,7 @@ import {
   createClient,
   createConfig,
 } from '@hey-api/client-fetch';
-
+import type { PayoutPayload } from '../types/payout';
 
 @Injectable()
 export class PeexService {
@@ -55,11 +55,14 @@ export class PeexService {
     return data;
   }
 
-  async requestPayment(payload: {
-    amount: number;
-    track_id: string;
-    mobile_phone: string;
-  }) {
+  async requestPayment({
+    amount,
+    receipientPhonenumber,
+    trackId,
+    senderFirstName,
+    senderLastName,
+    senderMobilePhone,
+  }: PayoutPayload) {
     const { data, error } = await DefaultService.requestMobilePayment({
       body: {
         aml_cft: true,
@@ -71,11 +74,13 @@ export class PeexService {
         fxrate: 1,
         fund_origin: '',
         purpose: '',
-        sender_country: '',
-        sender_first_name: '',
-        sender_last_name: '',
-        sender_mobile_phone: '',
-        ...payload,
+        sender_country: 'US',
+        mobile_phone: receipientPhonenumber,
+        sender_first_name: senderFirstName ?? 'XafPay',
+        sender_last_name: senderLastName ?? 'llc',
+        sender_mobile_phone: senderMobilePhone ?? '+1703899-5276',
+        amount,
+        track_id: trackId,
       },
       client: this.apiClient,
     });
