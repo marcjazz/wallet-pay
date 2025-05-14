@@ -28,17 +28,18 @@ export class PayoutProcessor {
       );
       return;
     }
+    const transactionGuidOrId = payment.track_id.split('.')[1];
 
     if (payment?.status === 'failed') {
       // Sending remittance settlement email
       await this.mailerService.sendReceiptEmail({
-        transactionGuidOrId: payment.track_id,
+        transactionGuidOrId,
       });
     } else if (payment?.status === 'paid') {
       // Sending remittance settlement email
       await this.mailerService.sendReceiptEmail({
+        transactionGuidOrId,
         amountReceived: payment.amount,
-        transactionGuidOrId: payment.track_id,
         payoutAt: new Date(payment.updated_at as string),
       });
     }
@@ -56,7 +57,9 @@ export class PayoutProcessor {
   ) {
     const jobName = job.name;
     const { amount, receipientPhonenumber, trackId } = job.data;
-    this.logger.log(`Processing (event: ${jobName}, PayoutRef: ${trackId})...`);
+    this.logger.log(
+      `Processing (event: ${jobName}, PayoutRef: ${job.attemptsMade}.${trackId})...`
+    );
 
     try {
       const accountInfo = await this.peexService.getPartnerInfo();
@@ -74,7 +77,7 @@ export class PayoutProcessor {
 
       const payment = await this.peexService.requestPayment({
         amount,
-        track_id: trackId,
+        track_id: `${job.attemptsMade}.${trackId}`,
         mobile_phone: receipientPhonenumber,
       });
 
