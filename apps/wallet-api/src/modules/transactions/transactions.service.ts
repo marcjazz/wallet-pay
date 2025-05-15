@@ -468,7 +468,9 @@ export class TransactionsService {
     const statusIdMap = new Map<CybridTransactionStatus, Set<string>>();
 
     [...trades.objects, ...transfers.objects].forEach((object) => {
-      const status = object.state?.toUpperCase() as CybridTransactionStatus;
+      const status = (
+        object.state === 'cancelled' ? 'failed' : object.state
+      )?.toLocaleUpperCase() as CybridTransactionStatus;
       if (!status || !object.guid) return;
 
       const ids = statusIdMap.get(status) ?? new Set();

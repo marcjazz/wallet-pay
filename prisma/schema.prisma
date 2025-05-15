@@ -500,6 +500,7 @@ enum IdentityVerificationStatus {
 enum CybridTransactionStatus {
   STORING   @map("storing")
   REVIEWING @map("reviewing")
+  SETTLING  @map("settling")
   PENDING   @map("pending")
   COMPLETED @map("completed")
   REVERTED  @map("reverted")

@@ -17,7 +17,7 @@ export async function parseEventObject(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, status] = eventType.split('.');
   const transactionStatus = (
-    status === 'settling' ? 'reviewing' : status
+    status === 'cancelled' ? 'failed' : status
   ).toLocaleUpperCase() as CybridTransactionStatus;
 
   const transaction = await deps.prisma.cybridTransaction.findUnique({
@@ -43,6 +43,6 @@ export async function parseEventObject(
     transaction,
     transactionGuid,
     transactionStatus,
-    customerGuid: transaction.InitiatedBy?.cybrid_customer_guid ?? "",
+    customerGuid: transaction.InitiatedBy?.cybrid_customer_guid ?? '',
   };
 }
