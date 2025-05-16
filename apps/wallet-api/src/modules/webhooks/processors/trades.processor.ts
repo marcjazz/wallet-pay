@@ -69,14 +69,11 @@ export class TradesProcessor {
 
     if (transaction.transaction_type === 'REMITTANCE') {
       // optimitic payout
-      if (trade.state === 'settling') {
-        this.logger.debug(
-          `trade: ${trade.state}, transactionStatus: ${transactionStatus}`
-        );
+      if (transactionStatus === 'SETTLING') {
         await this.initiatePayout(transaction.cybrid_transaction_guid);
       }
 
-      if (trade.state === 'completed') {
+      if (transactionStatus === 'COMPLETED') {
         const sourceAccountInfo = await resolveAccountInfo(this.prismaService, {
           purpose: 'book',
           accountId: transaction.cybrid_account_id as string,
