@@ -17,7 +17,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto';
 import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
 import { PeexCallbackGuard } from './guards/peex-callback.guard';
+import { SkipAuth } from '../../app/auth/auth.decorator';
 
+@SkipAuth()
 @ApiTags('Webhooks')
 @Controller('webhooks')
 export class WebhooksController {
