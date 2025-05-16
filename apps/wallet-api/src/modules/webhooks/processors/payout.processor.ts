@@ -8,13 +8,15 @@ import { MailerService } from '../../../mailer/mailer.service';
 import { ClientPaymentRequest } from '../../../peex/gen/types.gen';
 import { PeexService } from '../../../peex/peex.service';
 import type { PayoutPayload } from '../../../types/payout';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class PayoutProcessor {
   private readonly logger = new Logger(PayoutProcessor.name);
   constructor(
     private readonly peexService: PeexService,
-    private readonly mailerService: MailerService
+    private readonly mailerService: MailerService,
+    private readonly prismaService: PrismaService
   ) {}
 
   @Process(constants.PAYOUT_PARTNER_EVENTS)
@@ -45,6 +47,12 @@ export class PayoutProcessor {
       });
     } else if (payment?.status === 'paid') {
       // Sending remittance settlement email
+      await this.prismaService.cybridTransaction.updateMany({
+        data: {
+          payout_at: new Date(),
+        },
+        where: { remittance_payout_ref: transactionGuidOrId },
+      });
       await this.mailerService.sendReceiptEmail({
         transactionGuidOrId,
         amountReceived: payment.amount,
@@ -59,6 +67,17 @@ export class PayoutProcessor {
   async handlePayout(job: Job<PayoutPayload>) {
     const jobName = job.name;
     const { amount, trackId } = job.data;
+    const payout = await this.prismaService.cybridTransaction.findFirst({
+      where: { remittance_payout_ref: trackId },
+    });
+
+    if (payout?.payout_at) {
+      this.logger.debug(
+        ` Ingoring (event: ${jobName}, PayoutRef: ${job.attemptsMade}.${trackId})`
+      );
+      return;
+    }
+
     this.logger.log(
       `Processing (event: ${jobName}, PayoutRef: ${job.attemptsMade}.${trackId})...`
     );
@@ -86,9 +105,11 @@ export class PayoutProcessor {
         throw new Error(`${payment?.payment_proof}: Failed to place payment!`);
       }
 
-      this.logger.log(`Successfully processed (event: ${jobName})`);
+      this.logger.log(
+        `Successfully processed (event: ${jobName}, PayoutRef: ${job.attemptsMade}.${trackId})`
+      );
     } catch (error) {
-      this.logger.error(`Payout failed: ${error.message}`);
+      this.logger.error(`Payout (${job.id}) failed: ${error.message}`);
       throw new Error('Failed to place payment!');
     }
   }

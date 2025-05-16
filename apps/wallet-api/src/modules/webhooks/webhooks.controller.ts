@@ -12,14 +12,12 @@ import {
 import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
 import { Response } from 'express';
-import { SkipAuth } from '../../app/auth/auth.decorator';
 import { constants } from '../../constants';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from './dtos/cybrid-subscription.dto';
 import { CybridSubscriptionsGuard } from './guards/cybrid-subscriptions.guard';
 import { PeexCallbackGuard } from './guards/peex-callback.guard';
 
-@SkipAuth()
 @ApiTags('Webhooks')
 @Controller('webhooks')
 export class WebhooksController {

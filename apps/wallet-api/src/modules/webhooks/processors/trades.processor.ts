@@ -70,6 +70,9 @@ export class TradesProcessor {
     if (transaction.transaction_type === 'REMITTANCE') {
       // optimitic payout
       if (trade.state === 'settling') {
+        this.logger.debug(
+          `trade: ${trade.state}, transactionStatus: ${transactionStatus}`
+        );
         await this.initiatePayout(transaction.cybrid_transaction_guid);
       }
 
@@ -248,16 +251,17 @@ export class TradesProcessor {
     const receiverPhoneNumber = cybridCounterparty?.phone_number;
     const { last_name, first_name, phone_number } = InitiatedBy?.Person ?? {};
 
+    const trackId =
+      transaction.remittance_payout_ref ?? transaction.cybrid_transaction_id;
+
     await this.webhooksQueue.add(
       constants.INITIATE_PAYOUT_EVENTS,
       {
+        trackId,
         amount: amountReceived,
         senderLastName: last_name,
         senderFirstName: first_name,
         senderMobilePhone: phone_number,
-        trackId:
-          transaction.remittance_payout_ref ??
-          transaction.cybrid_transaction_id,
         receipientPhonenumber: receiverPhoneNumber?.includes('237')
           ? receiverPhoneNumber
           : `237${receiverPhoneNumber}`,
@@ -267,6 +271,7 @@ export class TradesProcessor {
         removeOnFail: false,
         removeOnComplete: true,
         backoff: { type: 'exponential', delay: 15000 },
+        jobId: `${constants.INITIATE_PAYOUT_EVENTS}-${trackId}`,
       }
     );
   }
