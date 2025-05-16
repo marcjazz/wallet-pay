@@ -110,6 +110,10 @@ export class PayoutProcessor {
       );
     } catch (error) {
       this.logger.error(`Payout (${job.id}) failed: ${error.message}`);
+      if (error.statusCode == 442) {
+        return;
+      }
+
       throw new Error('Failed to place payment!');
     }
   }
