@@ -62,6 +62,10 @@ export default function RemittanceDetail({
       image: <AlertCircle color={theme.palette.error.main} size="76" />,
       title: formatMessage({ id: 'failed' }),
     },
+    SETTLING: {
+      image: <RefreshCcw color="black" size="76" />,
+      title: formatMessage({ id: 'pending' }),
+    },
     PENDING: {
       image: <RefreshCcw color="black" size="76" />,
       title: formatMessage({ id: 'pending' }),
