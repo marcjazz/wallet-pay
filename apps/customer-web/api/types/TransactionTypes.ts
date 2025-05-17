@@ -62,4 +62,12 @@ export interface CybridTransactionEntity {
   receiver_bank_payout_info_id?: string | null;
   /** Full name of the recipient, if applicable. */
   recipient_fullname?: string | null;
+  /** Withdrawal transaction ID. */
+  withdrawal_transaction_id?: string | null;
+  /** Cybrid crypto account ID. */
+  cybrid_crypto_account_id?: string | null;
+  /** Remittance payout reference. */
+  remittance_payout_ref?: string | null;
+  /** Payout at. */
+  payout_at?: string | null;
 }

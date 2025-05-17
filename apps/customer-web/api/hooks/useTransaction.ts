@@ -7,7 +7,7 @@ import {
   GetTransactionsQueryParams,
   TransactionService,
 } from '../services/TransactionService';
-import { TransactionType } from '../types';
+import { TransactionStatus, TransactionType } from '../types';
 import {
   CybridTransactionEntity,
   InitiateFundingTransferDto,
@@ -40,6 +40,9 @@ export const useTransactions = (params?: GetTransactionsQueryParams) => {
               ...transaction,
               // TODO: hardcoded because we endure the fees for now.
               fees: 0,
+              status: transaction.payout_at
+                ? TransactionStatus.COMPLETED
+                : transaction.status,
             };
           });
         });
@@ -90,6 +93,9 @@ export const useTransaction = (id: string) => {
           ...transaction,
           // TODO: hardcoded because we endure the fees for now.
           fees: 0,
+          status: transaction.payout_at
+            ? TransactionStatus.COMPLETED
+            : transaction.status,
         };
       }),
   });
