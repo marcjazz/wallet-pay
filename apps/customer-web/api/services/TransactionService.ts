@@ -2,6 +2,7 @@ import {
   CybridTransactionEntity,
   InitiateFundingTransferDto,
   TransactionStatus,
+  TransactionType,
 } from '../types';
 import { ApiClient } from './ApiClient';
 
@@ -14,6 +15,8 @@ export interface GetTransactionsQueryParams {
   order_by?: 'date' | 'amount';
   /** Direction of sorting (ascending or descending). */
   order_direction?: 'asc' | 'desc';
+  /** Filter by transaction type. */
+  transaction_types?: TransactionType[];
 }
 
 /**

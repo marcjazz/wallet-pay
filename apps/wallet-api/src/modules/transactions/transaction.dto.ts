@@ -3,6 +3,7 @@ import {
   $Enums,
   CybridTransaction,
   CybridTransactionStatus,
+  CybridTransactionType,
 } from '@prisma/client';
 import { Exclude, Type } from 'class-transformer';
 import {
@@ -73,7 +74,7 @@ export class InitiateRemittanceDto extends InitiateFundingTransferDto {
   @ApiProperty({
     example: `http://localhost:4200/transactions/:generatedId`,
     default: `http://localhost:4200/transactions`,
-    description: `Your application transaction details page to be include in receipt emails. 
+    description: `Your application transaction details page to be include in receipt emails.
             The generated id will be appended to it as a path`,
   })
   receipt_url = 'http://localhost:4200/transactions';
@@ -189,6 +190,11 @@ export class QueryTransactionDto {
   @IsEnum(CybridTransactionStatus)
   @ApiPropertyOptional({ enum: CybridTransactionStatus })
   status?: CybridTransactionStatus;
+
+  @IsOptional()
+  @IsEnum(CybridTransactionType, { each: true })
+  @ApiPropertyOptional({ enum: CybridTransactionType, isArray: true })
+  transaction_types?: CybridTransactionType[];
 
   @IsOptional()
   @IsIn(['date', 'amount'])

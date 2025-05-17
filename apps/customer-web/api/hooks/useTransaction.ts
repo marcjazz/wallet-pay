@@ -7,6 +7,7 @@ import {
   GetTransactionsQueryParams,
   TransactionService,
 } from '../services/TransactionService';
+import { TransactionType } from '../types';
 import {
   CybridTransactionEntity,
   InitiateFundingTransferDto,
@@ -23,7 +24,15 @@ const transactionService = new TransactionService(apiClient);
 export const useTransactions = (params?: GetTransactionsQueryParams) => {
   return useQuery<CybridTransactionEntity[], Error>({
     queryKey: ['transactions', params],
-    queryFn: () => transactionService.findTransactions(params),
+    queryFn: () =>
+      transactionService.findTransactions({
+        ...params,
+        transaction_types: [
+          TransactionType.FUNDING,
+          TransactionType.INSTANT_FUNDING,
+          TransactionType.REMITTANCE,
+        ],
+      }),
     initialData: [],
     placeholderData: keepPreviousData, // Retains data during pagination or query updates.
   });
