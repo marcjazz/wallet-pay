@@ -292,7 +292,7 @@ export class TransactionsService {
       {
         data: {
           currency: 'USDC_SOL',
-          fees: tradeTransaction.fee ?? 0,
+          fees: (tradeTransaction.fee ?? 0) / 100,
           initial_currency: currency,
           conversion_rate: usedCurrency.xaf_rate,
           // convert cents to dollars
