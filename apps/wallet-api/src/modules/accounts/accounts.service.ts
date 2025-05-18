@@ -61,7 +61,10 @@ export class AccountsService {
       customer.cybrid_customer_guid,
       {
         type: PostIdentityVerificationBankModelTypeEnum.Kyc,
-        method: PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
+        method:
+          customer.verification_status === 'FAILED'
+            ? PostIdentityVerificationBankModelMethodEnum.DocumentSubmission
+            : PostIdentityVerificationBankModelMethodEnum.IdAndSelfie,
         customer_guid: customer.cybrid_customer_guid,
       }
     );
