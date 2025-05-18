@@ -31,6 +31,7 @@ export default function TransactionHistoryCard({
     STORING: <RefreshCcw color="black" size={13} />,
     REVIEWING: <RefreshCcw color="black" size={13} />,
     PENDING: <RefreshCcw color="black" size={13} />,
+    SETTLING: <RefreshCcw color="black" size={13} />,
     COMPLETED: <CheckCircle size={13} color={theme.palette.success.dark} />,
   };
 

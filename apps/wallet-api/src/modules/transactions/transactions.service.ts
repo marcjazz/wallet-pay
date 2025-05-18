@@ -21,6 +21,7 @@ import {
   CybridTransaction,
   CybridTransactionStatus,
 } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { constants } from '../../constants';
 import { CybridService, Participants } from '../../cybrid/cybrid.service';
 import { generateTransactionId } from '../../helpers/otp-generator';
@@ -36,7 +37,6 @@ import {
   QueryTransactionDto,
   ReceiverPayoutInfoDto,
 } from './transaction.dto';
-import { randomUUID } from 'crypto';
 
 @Injectable()
 export class TransactionsService {
@@ -206,7 +206,13 @@ export class TransactionsService {
   }
 
   async getTransactions(
-    { order_by, order_direction, search, status }: QueryTransactionDto,
+    {
+      order_by,
+      order_direction,
+      search,
+      status,
+      transaction_types,
+    }: QueryTransactionDto,
     personId: string
   ) {
     const personFullnameSelect = {
@@ -227,7 +233,9 @@ export class TransactionsService {
       where: {
         InitiatedBy: { person_id: personId },
         transaction_type: {
-          not: 'CONVERT',
+          ...(transaction_types
+            ? { in: transaction_types }
+            : { not: 'CONVERT' }),
         },
         ...(status ? { status } : {}),
       },
@@ -284,7 +292,7 @@ export class TransactionsService {
       {
         data: {
           currency: 'USDC_SOL',
-          fees: tradeTransaction.fee ?? 0,
+          fees: (tradeTransaction.fee ?? 0) / 100,
           initial_currency: currency,
           conversion_rate: usedCurrency.xaf_rate,
           // convert cents to dollars
