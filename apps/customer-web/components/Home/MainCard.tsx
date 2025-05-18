@@ -277,12 +277,17 @@ export default function MainCard() {
                 }
               >
                 {formatMessage({
-                  id: !activeAccount.verification_status
-                    ? 'verifyNow'
-                    : activeAccount.verification_status ===
-                      VerificationStatus.WAITING
-                    ? 'completeNow'
-                    : 'waitAminute',
+                  id:
+                    !activeAccount.verification_status ||
+                    activeAccount.verification_status ===
+                      VerificationStatus.FAILED ||
+                    activeAccount.verification_status ===
+                      VerificationStatus.EXPIRED
+                      ? 'verifyNow'
+                      : activeAccount.verification_status ===
+                        VerificationStatus.WAITING
+                      ? 'completeNow'
+                      : 'waitAminute',
                 })}
               </Button>
             ))}
