@@ -71,7 +71,7 @@ export class RecieversService {
     const [first, last] = fullname.split(' ');
 
     // Validate receiver's phone number
-    if (validatePhoneNumber(phoneNumber) !== 0) {
+    if (validatePhoneNumber(phoneNumber) === -1) {
       throw new UnprocessableEntityException(
         'Phone number must be a valid Mobile money number'
       );
