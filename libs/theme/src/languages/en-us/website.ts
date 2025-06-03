@@ -225,6 +225,7 @@ export const website = {
   WEST: 'West',
   SOUTH: 'South',
   SOUTH_WEST: 'South West',
-  waitAminute: "Wait a minute...",
-  completeNow: "Complete KYC now"
+  waitAminute: 'Wait a minute...',
+  completeNow: 'Complete KYC now',
+  howItWorks: 'How it works',
 };
