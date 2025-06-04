@@ -246,4 +246,14 @@ export const website = {
     'Available for all countries in Africa: Whether you want to support your family, pay for services or invest, we make it easy to transfer money to any destination in Africa.',
   conformityAndCompliance:
     'Regulatory compliance: Our services comply with all international regulations to ensure maximum transparency and security.',
+  whyTrust: 'Find out why they place their trust in us',
+  speedAndReliability: 'Fast and reliable service',
+  speedAndReliabilityDescription:
+    'Unrivalled speed and reliability. We guarantee secure money transfers in the blink of an eye.',
+  securityFirst: 'First-rate security',
+  securityFirstDescription:
+    'Unrivalled speed and reliability. We guarantee secure money transfers in the blink of an eye.',
+  competitivePrices: 'Competitive rates',
+  competitivePriceDescription:
+    'Unrivalled speed and reliability. We guarantee secure money transfers in the blink of an eye.',
 };

@@ -4,11 +4,32 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Box, Typography } from '@mui/material';
 import { useIntl } from 'react-intl';
 import PageLayout from '../components/layout/pageLayout';
+import { useTheme } from '@xafpay/theme';
+import Image from 'next/image';
 
 export default function Index() {
   const { formatMessage } = useIntl();
+  const theme = useTheme()
+
+  const whyTrustData = [
+    {
+      title: formatMessage({ id: 'speedAndReliability' }),
+      description: formatMessage({ id: 'speedAndReliabilityDescription' }),
+    },
+    {
+      title: formatMessage({ id: 'securityFirst' }),
+      description: formatMessage({ id: 'securityFirstDescription' }),
+    },
+    {
+      title: formatMessage({ id: 'competitivePrices' }),
+      description: formatMessage({ id: 'competitivePriceDescription' }),
+    }
+  ]
   return (
     <PageLayout>
+      {/* 
+      Second section for remittance representation
+      */}
       <Box sx={{
         display: 'grid',
         padding: '48px 118px',
@@ -120,6 +141,60 @@ export default function Index() {
               {formatMessage({ id: 'conformityAndCompliance' })}
             </Typography>
           </Box>
+        </Box>
+      </Box>
+      {/* 
+      Third section for Trusty
+      */}
+      <Box sx={{
+        display: 'grid',
+        textAlign: 'center',
+        justifyContent: 'center',
+        margin: '68px 0',
+        rowGap: 6,
+      }}>
+        <Typography
+          variant="h1"
+          color={theme.palette.primary.dark}
+        >
+          {formatMessage({ id: 'whyTrust' })}
+        </Typography>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          columnGap: 15,
+        }}>
+          {whyTrustData.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                border: '1px solid lightgray',
+                borderRadius: '10px',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'grid',
+                  rowGap: 3,
+                  margin: 2,
+                }}>
+                <Image
+                  src="/assets/speed.png"
+                  alt="speed" width={150}
+                  height={100}
+                  style={{
+                    justifySelf: 'center'
+                  }}
+                />
+                <Typography variant="h3">
+                  {item.title}
+                </Typography>
+                <Typography variant="p1r">
+                  {item.description}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
         </Box>
       </Box>
     </PageLayout>
