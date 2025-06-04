@@ -1,14 +1,23 @@
 'use client';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { Box, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Typography } from '@mui/material';
 import { useIntl } from 'react-intl';
 import PageLayout from '../components/layout/pageLayout';
 import { useTheme } from '@xafpay/theme';
 import Image from 'next/image';
+import { IPaymentMethods } from '@xafpay/types';
+import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
+import { useEffect, useState } from 'react';
+
+interface IFaq {
+  question: string,
+  response: string
+}
 
 export default function Index() {
   const { formatMessage } = useIntl();
+  const [faqQuestionsData, setFaqQuestionsData] = useState<IFaq[]>([])
   const theme = useTheme()
 
   const whyTrustData = [
@@ -25,6 +34,46 @@ export default function Index() {
       description: formatMessage({ id: 'competitivePriceDescription' }),
     }
   ]
+
+  const paymentMethods: IPaymentMethods[] = [
+    {
+      link: '/assets/momo.png',
+      alt: 'MTN mobile money'
+    },
+    {
+      link: '/assets/om.png',
+      alt: 'Orange money'
+    },
+    {
+      link: '/assets/cash.png',
+      alt: 'Cash money'
+    },
+    {
+      link: '/assets/bank-deposit.png',
+      alt: 'Bank deposit'
+    },
+  ]
+  const faqQuestions = [
+    {
+      question: 'What are the transaction fees on Xafpay ?',
+      response: 'Xafpay serves a clair transaction fees. The fees could change depending od the transaction amount and the payment method.'
+    },
+    {
+      question: 'What are the transaction fees on Xafpay ?',
+      response: 'Xafpay serves a clair transaction fees. The fees could change depending od the transaction amount and the payment method.'
+    },
+    {
+      question: 'What are the transaction fees on Xafpay ?',
+      response: 'Xafpay serves a clair transaction fees. The fees could change depending od the transaction amount and the payment method.'
+    },
+    {
+      question: 'What are the transaction fees on Xafpay ?',
+      response: 'Xafpay serves a clair transaction fees. The fees could change depending od the transaction amount and the payment method.'
+    },
+  ]
+  useEffect(() => (
+    setFaqQuestionsData(faqQuestions)
+  ), [])
   return (
     <PageLayout>
       {/* 
@@ -189,11 +238,170 @@ export default function Index() {
                 <Typography variant="h3">
                   {item.title}
                 </Typography>
-                <Typography variant="p1r">
+                <Typography
+                  variant="p1r"
+                  width={300}
+                >
                   {item.description}
                 </Typography>
               </Box>
             </Box>
+          ))}
+        </Box>
+      </Box>
+      {/* 
+      Fourth section for engagement
+      */}
+      <Box sx={{
+        display: 'grid',
+        textAlign: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: `url('/assets/mobileAccess.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        height: '430px',
+        color: 'white'
+      }}>
+        <Box sx={{
+          display: 'grid',
+          rowGap: 4,
+          maxWidth: '80rem'
+        }}>
+          <Typography variant="h1">
+            {formatMessage({ id: 'heroMessageEngagement' })}
+          </Typography>
+          <Typography variant="h3">
+            {formatMessage({ id: 'subtextMessageEngagement' })}
+          </Typography>
+        </Box>
+      </Box>
+      {/* Sixth section for payout methods */}
+      <Box sx={{
+        display: 'grid',
+        justifyContent: 'center',
+        textAlign: 'center',
+        rowGap: 4,
+        margin: 7
+      }}>
+        <Typography
+          variant="h1"
+          color={theme.palette.primary.dark}
+        >
+          {formatMessage({ id: 'payoutMethods' })}
+        </Typography>
+        <Box sx={{
+          display: 'grid',
+          gridAutoFlow: 'column',
+          columnGap: 7,
+        }}>
+          {paymentMethods.map(({ link, alt }, index) => (
+            <Image
+              key={index}
+              src={link}
+              alt={alt}
+              width={100}
+              height={55}
+            />
+          ))}
+        </Box>
+      </Box>
+      <Box sx={{
+        height: '372px',
+        background: `url('/assets/mobileTransaction.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: '50% 60%',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        textAlign: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        display: 'grid'
+      }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            backgroundColor: 'rgba(7, 43, 88, 0.6)',
+            height: '100%',
+            width: '100%'
+          }}
+        />
+        <Box sx={{
+          display: 'grid',
+          rowGap: 4,
+          color: 'white',
+          width: '60rem',
+        }}>
+          <Typography
+            variant="h1"
+            zIndex={1}
+          >
+            {formatMessage({ id: 'pushToAction' })}
+          </Typography>
+          <Button
+            variant='contained'
+            sx={{
+              justifySelf: 'center',
+              backgroundColor: 'white',
+              width: '18rem',
+              color: theme.palette.primary.main
+            }}
+          >
+            {formatMessage({ id: 'sendMoney' })}
+          </Button>
+        </Box>
+      </Box>
+      {/* ninth section for faq */}
+      <Box sx={{
+        display: 'grid',
+        justifyContent: 'center',
+        alignContent: 'center',
+        rowGap: 5,
+        margin: 7
+      }}>
+        <Typography
+          variant="h1"
+          justifySelf="center"
+          color={theme.palette.primary.dark}
+        >
+          {formatMessage({ id: 'faq' })}
+        </Typography>
+        <Box
+          sx={{
+            maxWidth: '62.5rem',
+            marginBottom: 2,
+          }}
+        >
+          {faqQuestionsData.map(({ question, response }, index) => (
+            <Accordion
+              disableGutters
+              square
+              elevation={0}
+              key={index}
+              sx={{
+                marginBottom: 2
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
+                sx={{
+                  maxWidth: '25rem',
+                  flexDirection: 'row-reverse',
+                  '& .MuiAccordionSummary-content': {
+                    marginLeft: theme.spacing(1),
+                  }
+                }}
+              >
+                {question}
+              </AccordionSummary>
+              <AccordionDetails sx={{
+                '&.MuiAccordionDetails-root': {
+                  padding: '8px 38px 16px'
+                }
+              }}>
+                {response}
+              </AccordionDetails>
+            </Accordion>
           ))}
         </Box>
       </Box>

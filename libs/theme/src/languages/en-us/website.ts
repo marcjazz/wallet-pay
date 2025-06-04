@@ -256,4 +256,10 @@ export const website = {
   competitivePrices: 'Competitive rates',
   competitivePriceDescription:
     'Unrivalled speed and reliability. We guarantee secure money transfers in the blink of an eye.',
+  heroMessageEngagement: 'Everything you need for your financial transactions.',
+  subtextMessageEngagement:
+    'Manage your transfers and payments easily with our application. Fast, secure and available at all times, so your finances are always under control, wherever you are.',
+  payoutMethods: 'Payout Methods',
+  pushToAction: 'Getting started is easy',
+  faq: 'FAQ of Xafpay',
 };
