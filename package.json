@@ -12,6 +12,7 @@
     "@cybrid/cybrid-api-bank-typescript": "^0.123.295",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^7.1.1",
     "@mui/material": "^5.16.7",
     "@mui/x-date-pickers": "^7.15.0",
     "@nestjs/axios": "^3.0.3",
