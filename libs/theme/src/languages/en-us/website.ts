@@ -238,4 +238,12 @@ export const website = {
   products: 'Products',
   xafshop: 'Xafshop',
   xafpay: 'Xafpay',
+  HeroRemittanceMessage:
+    'Transfer money securely from the USA and Canada to Africa',
+  reliableRemittanceService:
+    'A reliable solution for sending money from North America to your loved ones in Africa.',
+  serviceLocation:
+    'Available for all countries in Africa: Whether you want to support your family, pay for services or invest, we make it easy to transfer money to any destination in Africa.',
+  conformityAndCompliance:
+    'Regulatory compliance: Our services comply with all international regulations to ensure maximum transparency and security.',
 };
