@@ -228,4 +228,14 @@ export const website = {
   waitAminute: 'Wait a minute...',
   completeNow: 'Complete KYC now',
   howItWorks: 'How it works',
+  remittanceOnYourHands: 'Your money transfer solution at hand',
+  ContactUsMessage:
+    'If you would like to know more about the Xafpay application or if you have any other questions, please contact us via the application chat or by email at contact@xafpay.com.',
+  privacyPolice: 'Privacy Policy',
+  ressources: 'Ressources',
+  phone: 'Phone',
+  getInTouch: 'Get in Touch',
+  products: 'Products',
+  xafshop: 'Xafshop',
+  xafpay: 'Xafpay',
 };
