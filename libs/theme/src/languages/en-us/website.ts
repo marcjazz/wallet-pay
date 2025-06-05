@@ -277,4 +277,18 @@ export const website = {
   howItWorksStep5: 'Pay securely',
   howItWorksStep5Description:
     'Start by creating an Xafpay account in just a few minutes. Fill in your basic details and choose the payment method that suits you best.',
+  remittanceSolutionOnHand: 'Your money transfer solution at hand',
+  qrCodeEngagement:
+    'Get instant access to all your financial services by scanning the QR code below.',
+  adviceheroMessage: 'Save on your transfers with Xafpay.',
+  heroMessage: 'Transfer money to Cameroon with our unbeatable rates.',
+  descriptionheroMessage:
+    'Maximise the value of your remittances to Cameroon with our exceptional exchange rates.',
+  heroActionBtn: 'Send money',
+  OurExchangeRate: 'Our Exchange Rate',
+  whenYouSend: 'When you send',
+  WillReceive: 'They will receive',
+  OurTransactionFees: 'Our transaction fees',
+  feesRate: '1% only',
+  transferNow: 'Transfert Now',
 };

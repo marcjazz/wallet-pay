@@ -9,6 +9,8 @@ import Image from 'next/image';
 import { IPaymentMethods } from '@xafpay/types';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import HeroIllustration from '../components/HeroIllustration';
 
 interface IFaq {
   question: string,
@@ -78,6 +80,69 @@ export default function Index() {
   ), [])
   return (
     <PageLayout>
+      {/* 
+      Hero page section
+      */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr',
+        padding: '48px 130px',
+        height: '90vh',
+        columnGap: '10rem',
+        alignItems: 'center',
+      }}>
+        <Box sx={{
+          display: 'grid',
+          textAlign: 'start',
+          rowGap: 4,
+          width: '50rem',
+          height: 'fit-content',
+          transform: 'translateY(-20px)',
+        }}>
+          <Typography
+            variant="p1m"
+            color={theme.palette.secondary.main}
+          >
+            {formatMessage({ id: 'adviceheroMessage' })}
+          </Typography>
+          <Typography variant='h1'>
+            {formatMessage({ id: 'heroMessage' })}
+          </Typography>
+          <Typography
+            variant="h2"
+            fontWeight='light'
+            width='43rem'
+          >
+            {formatMessage({ id: 'descriptionheroMessage' })}
+          </Typography>
+          <Box sx={{
+            display: 'flex',
+            gap: '1rem',
+          }}>
+            <Button
+              variant='outlined'
+              size='large'
+              sx={{
+                width: '18rem',
+                fontSize: '1.2rem',
+              }}
+            >
+              {formatMessage({ id: 'register' })}
+            </Button>
+            <Button
+              variant='contained'
+              size='large'
+              sx={{
+                width: '18rem',
+                fontSize: '1.2rem',
+              }}
+            >
+              {formatMessage({ id: 'heroActionBtn' })}
+            </Button>
+          </Box>
+        </Box>
+        <HeroIllustration />
+      </Box>
       {/* 
       Second section for remittance representation
       */}
@@ -524,7 +589,51 @@ export default function Index() {
         </Box>
       </Box>
 
-      {/* Sixth section for payout methods */}
+      {/* Sixth section for why trust us */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: '1fr auto',
+        justifyContent: 'center',
+        width: '75rem',
+        justifySelf: 'center',
+        columnGap: 5,
+        margin: '68px 0'
+      }}>
+        <Box sx={{
+          display: 'grid',
+          rowGap: 4,
+          height: 'fit-content',
+          alignSelf: 'center'
+        }}>
+          <Typography variant='h1'>
+            {formatMessage({ id: 'remittanceSolutionOnHand' })}
+          </Typography>
+          <Typography
+            variant='h2'
+            fontWeight='light'
+          >
+            {formatMessage({ id: 'qrCodeEngagement' })}
+          </Typography>
+          <QRCodeSVG
+            value='www.xafpay.com'
+            style={{
+              width: '10rem',
+              height: '10rem'
+            }}
+          />
+        </Box>
+        <Image
+          src='/assets/phoneIllustration.png'
+          alt='phone illustration'
+          width={400}
+          height={600}
+          style={{
+            objectFit: 'contain'
+          }}
+        />
+      </Box>
+
+      {/* Seventh section for payout methods */}
       <Box sx={{
         display: 'grid',
         justifyContent: 'center',
