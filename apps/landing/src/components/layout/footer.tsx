@@ -8,6 +8,7 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface ISocialIcon {
     icon: JSX.Element;
@@ -63,12 +64,7 @@ export default function Footer() {
                 <Typography variant="h1">
                     {formatMessage({ id: 'remittanceOnYourHands' })}
                 </Typography>
-                <Image
-                    src="/assets/qrlExample.png"
-                    alt="Footer Image"
-                    width={128}
-                    height={125}
-                />
+                <QRCodeSVG value='https://xafpay.com' />
             </Box>
             <Box sx={{
                 display: 'flex',
