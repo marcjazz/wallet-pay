@@ -1,7 +1,7 @@
 'use client';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Chip, Typography } from '@mui/material';
 import { useIntl } from 'react-intl';
 import PageLayout from '../components/layout/pageLayout';
 import { useTheme } from '@xafpay/theme';
@@ -71,6 +71,8 @@ export default function Index() {
       response: 'Xafpay serves a clair transaction fees. The fees could change depending od the transaction amount and the payment method.'
     },
   ]
+  //TODO: Create a varaible that handle data for how it works section
+
   useEffect(() => (
     setFaqQuestionsData(faqQuestions)
   ), [])
@@ -192,6 +194,7 @@ export default function Index() {
           </Box>
         </Box>
       </Box>
+
       {/* 
       Third section for Trusty
       */}
@@ -249,6 +252,7 @@ export default function Index() {
           ))}
         </Box>
       </Box>
+
       {/* 
       Fourth section for engagement
       */}
@@ -276,6 +280,250 @@ export default function Index() {
           </Typography>
         </Box>
       </Box>
+
+      {/* Fifth section for  how it works*/}
+      <Box sx={{
+        display: 'grid',
+        justifyContent: 'center',
+        marginTop: '68px'
+      }}>
+        <Typography
+          variant='h1'
+          color={theme.palette.primary.dark}
+          textAlign='center'
+          marginBottom={4}
+        >
+          {formatMessage({ id: 'howItWorks' })}
+        </Typography>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          columnGap: 25,
+          alignItems: 'center'
+        }}>
+          <Image
+            src='/assets/exchangeRate.png'
+            alt='first registration step'
+            width={400}
+            height={350}
+            style={{
+              objectFit: 'contain',
+            }}
+          />
+          <Box sx={{
+            display: 'grid',
+            rowGap: 2,
+            height: 'fit-content',
+            transform: 'translate(9px, -36px)'
+          }}>
+            <Chip
+              label='1'
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '30%',
+              }}
+            />
+            <Typography variant='h3'>
+              {formatMessage({ id: 'howItWorksStep1' })}
+            </Typography>
+            <Typography
+              variant='p1r'
+              maxWidth='25rem'
+            >
+              {formatMessage({ id: 'howItWorksStep1Description' })}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          columnGap: 25,
+          alignItems: 'center'
+        }}>
+          <Box sx={{
+            display: 'grid',
+            rowGap: 2,
+            height: 'fit-content',
+            transform: 'translate(9px, -77px)'
+          }}>
+            <Chip
+              label='2'
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '30%',
+              }}
+            />
+            <Typography variant='h3'>
+              {formatMessage({ id: 'howItWorksStep2' })}
+            </Typography>
+            <Typography
+              variant='p1r'
+              maxWidth='25rem'
+            >
+              {formatMessage({ id: 'howItWorksStep2Description' })}
+            </Typography>
+          </Box>
+          <Image
+            src='/assets/preTransactionOverview.png'
+            alt='second registration step'
+            width={350}
+            height={600}
+            style={{
+              objectFit: 'contain',
+              objectPosition: 'top'
+            }}
+          />
+
+        </Box>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          columnGap: 25,
+          alignItems: 'center'
+        }}>
+          <Image
+            src='/assets/accountBalance.png'
+            alt='first registration step'
+            width={350}
+            height={280}
+            style={{
+              objectFit: 'contain',
+              objectPosition: 'top',
+              justifySelf: 'end'
+            }}
+          />
+          <Box sx={{
+            display: 'grid',
+            rowGap: 2,
+            height: 'fit-content',
+            transform: 'translate(9px, -40px)'
+          }}>
+            <Chip
+              label='3'
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '30%',
+              }}
+            />
+            <Typography variant='h3'>
+              {formatMessage({ id: 'howItWorksStep3' })}
+            </Typography>
+            <Typography
+              variant='p1r'
+              maxWidth='25rem'
+            >
+              {formatMessage({ id: 'howItWorksStep3Description' })}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          columnGap: 25,
+          alignItems: 'center'
+        }}>
+          <Box sx={{
+            display: 'grid',
+            rowGap: 2,
+            height: 'fit-content',
+            transform: 'translate(9px, -77px)'
+          }}>
+            <Chip
+              label='4'
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '30%',
+              }}
+            />
+            <Typography variant='h3'>
+              {formatMessage({ id: 'howItWorksStep4' })}
+            </Typography>
+            <Typography
+              variant='p1r'
+              maxWidth='25rem'
+            >
+              {formatMessage({ id: 'howItWorksStep4Description' })}
+            </Typography>
+          </Box>
+          <Image
+            src='/assets/preTransactionOverview.png'
+            alt='second registration step'
+            width={350}
+            height={600}
+            style={{
+              objectFit: 'contain',
+              objectPosition: 'top'
+            }}
+          />
+        </Box>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          columnGap: 25,
+          alignItems: 'center'
+        }}>
+          <Image
+            src='/assets/accountBalance.png'
+            alt='first registration step'
+            width={350}
+            height={280}
+            style={{
+              objectFit: 'contain',
+              objectPosition: 'top',
+              justifySelf: 'end'
+            }}
+          />
+          <Box sx={{
+            display: 'grid',
+            rowGap: 2,
+            height: 'fit-content',
+            transform: 'translate(9px, -40px)'
+          }}>
+            <Chip
+              label='5'
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                color: 'white',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '30%',
+              }}
+            />
+            <Typography variant='h3'>
+              {formatMessage({ id: 'howItWorksStep5' })}
+            </Typography>
+            <Typography
+              variant='p1r'
+              maxWidth='25rem'
+            >
+              {formatMessage({ id: 'howItWorksStep5Description' })}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
       {/* Sixth section for payout methods */}
       <Box sx={{
         display: 'grid',
@@ -351,6 +599,7 @@ export default function Index() {
           </Button>
         </Box>
       </Box>
+
       {/* ninth section for faq */}
       <Box sx={{
         display: 'grid',
