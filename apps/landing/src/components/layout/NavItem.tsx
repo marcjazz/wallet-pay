@@ -23,6 +23,7 @@ export function NavItem({
                 '& a': {
                     textDecoration: 'none',
                     color: 'rgba(18, 25, 44, 0.6)',
+                    fontFamily: 'Poppins',
                 },
                 '&::before': {
                     position: 'absolute',

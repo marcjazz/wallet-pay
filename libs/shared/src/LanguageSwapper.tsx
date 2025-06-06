@@ -28,9 +28,13 @@ export function LanguageSwapper() {
                     border: 'none !important'
                 },
                 '& .MuiSelect-select': {
+                    fontFamily: 'Poppins',
                     color: '#2F3A45',
                     fontSize: 14,
                     fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    height: 'fit-content',
                 },
             }}
         >

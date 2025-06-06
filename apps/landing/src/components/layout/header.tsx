@@ -56,7 +56,7 @@ export default function Header() {
                         sx={{
                             variant: 'contained',
                         }}>
-                        <Typography variant="p2r">
+                        <Typography variant="p2r" fontFamily='Poppins'>
                             {formatMessage({ id: 'register' })}
                         </Typography>
                     </Button>
