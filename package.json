@@ -12,6 +12,8 @@
     "@cybrid/cybrid-api-bank-typescript": "^0.123.295",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
+    "@iconify/icons-fluent": "^1.2.38",
+    "@iconify/react": "^6.0.0",
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^5.16.7",
     "@mui/x-date-pickers": "^7.15.0",
