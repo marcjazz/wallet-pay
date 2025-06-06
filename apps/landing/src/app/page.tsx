@@ -1,16 +1,16 @@
 'use client';
 
+import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Chip, Typography } from '@mui/material';
-import { useIntl } from 'react-intl';
-import PageLayout from '../components/layout/pageLayout';
 import { useTheme } from '@xafpay/theme';
-import Image from 'next/image';
 import { IPaymentMethods } from '@xafpay/types';
-import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { QRCodeSVG } from 'qrcode.react';
+import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 import HeroIllustration from '../components/HeroIllustration';
+import PageLayout from '../components/layout/pageLayout';
 
 interface IFaq {
   question: string,
@@ -80,69 +80,7 @@ export default function Index() {
   ), [])
   return (
     <PageLayout>
-      {/* 
-      Hero page section
-      */}
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        padding: '48px 130px',
-        height: '90vh',
-        columnGap: '10rem',
-        alignItems: 'center',
-      }}>
-        <Box sx={{
-          display: 'grid',
-          textAlign: 'start',
-          rowGap: 4,
-          width: '50rem',
-          height: 'fit-content',
-          transform: 'translateY(-20px)',
-        }}>
-          <Typography
-            variant="p1m"
-            color={theme.palette.secondary.main}
-          >
-            {formatMessage({ id: 'adviceheroMessage' })}
-          </Typography>
-          <Typography variant='h1'>
-            {formatMessage({ id: 'heroMessage' })}
-          </Typography>
-          <Typography
-            variant="h2"
-            fontWeight='light'
-            width='43rem'
-          >
-            {formatMessage({ id: 'descriptionheroMessage' })}
-          </Typography>
-          <Box sx={{
-            display: 'flex',
-            gap: '1rem',
-          }}>
-            <Button
-              variant='outlined'
-              size='large'
-              sx={{
-                width: '18rem',
-                fontSize: '1.2rem',
-              }}
-            >
-              {formatMessage({ id: 'register' })}
-            </Button>
-            <Button
-              variant='contained'
-              size='large'
-              sx={{
-                width: '18rem',
-                fontSize: '1.2rem',
-              }}
-            >
-              {formatMessage({ id: 'heroActionBtn' })}
-            </Button>
-          </Box>
-        </Box>
-        <HeroIllustration />
-      </Box>
+      <HeroIllustration />
       {/* 
       Second section for remittance representation
       */}
