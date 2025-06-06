@@ -12,7 +12,7 @@ import CurrencyMenu from './currencyMeny';
 
 
 
-export default function HeroIllustration() {
+export default function Hero() {
   const { formatMessage, formatNumber } = useIntl();
   const theme = useTheme();
 
