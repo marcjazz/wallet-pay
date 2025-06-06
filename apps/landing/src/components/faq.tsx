@@ -5,6 +5,7 @@ import { IFaq } from "@xafpay/types";
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import rightIcon from '@iconify/icons-fluent/chevron-right-12-filled';
+import SectionTitle from "./sectionTitle";
 
 
 export default function FAQ() {
@@ -37,20 +38,18 @@ export default function FAQ() {
     ), [])
 
     return (
-        <Box sx={{
-            display: 'grid',
-            justifyContent: 'center',
-            alignContent: 'center',
-            rowGap: 5,
-            margin: 7
-        }}>
-            <Typography
-                variant="h1"
-                justifySelf="center"
-                color={theme.palette.primary.dark}
-            >
+        <Box
+            id="faq"
+            sx={{
+                display: 'grid',
+                justifyContent: 'center',
+                alignContent: 'center',
+                rowGap: 5,
+                marginBottom: 7
+            }}>
+            <SectionTitle color="#0E103A">
                 {formatMessage({ id: 'faq' })}
-            </Typography>
+            </SectionTitle>
             <Box
                 sx={{
                     maxWidth: '62.5rem',

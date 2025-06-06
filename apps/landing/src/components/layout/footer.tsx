@@ -178,7 +178,7 @@ export default function Footer() {
                         </IconButton>
                     ))}
                 </Box>
-                <Typography variant="h5" sx={{ fontWeight: 500 }}>
+                <Typography variant="h5" sx={{ fontWeight: 500, width: '80%' }}>
                     {formatMessage({ id: 'ContactUsMessage' })}
                 </Typography>
                 <Typography variant="p2r" sx={{ textAlign: 'center' }}>

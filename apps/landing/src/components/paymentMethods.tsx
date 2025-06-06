@@ -34,7 +34,7 @@ export default function PaymentMethods() {
         <Box sx={{
             display: 'grid',
             rowGap: 8,
-            margin: 7,
+            marginBottom: 7,
             width: '100%',
         }}>
             <SectionTitle color="#0E103A">

@@ -10,6 +10,7 @@ export default function HowItWorks() {
     const theme = useTheme();
     return (
         <Box
+            id="howItWorks"
             sx={{
                 display: 'grid',
                 justifyContent: 'center',

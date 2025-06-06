@@ -11,8 +11,8 @@ export default function Header() {
 
 
     const navItems: INavItem[] = [
-        { label: formatMessage({ id: 'howItWorks' }), href: '#' },
-        { label: 'FAQ', href: '#' },
+        { label: formatMessage({ id: 'howItWorksTitle' }), href: '#howItWorks' },
+        { label: 'FAQ', href: '#faq' },
     ];
     return (
         <Box sx={{
