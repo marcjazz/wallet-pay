@@ -12,6 +12,7 @@ import Hero from '../components/Hero';
 import PageLayout from '../components/layout/pageLayout';
 import TrustSection from '../components/trustSection';
 import LocationSection from '../components/locationSection';
+import Engagement from '../components/engagement';
 
 interface IFaq {
   question: string,
@@ -84,34 +85,7 @@ export default function Index() {
       <Hero />
       <LocationSection />
       <TrustSection />
-      {/* 
-      Fourth section for engagement
-      */}
-      <Box sx={{
-        display: 'grid',
-        textAlign: 'center',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: `url('/assets/mobileAccess.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        height: '430px',
-        color: 'white'
-      }}>
-        <Box sx={{
-          display: 'grid',
-          rowGap: 4,
-          maxWidth: '80rem'
-        }}>
-          <Typography variant="h1">
-            {formatMessage({ id: 'heroMessageEngagement' })}
-          </Typography>
-          <Typography variant="h3">
-            {formatMessage({ id: 'subtextMessageEngagement' })}
-          </Typography>
-        </Box>
-      </Box>
-
+      <Engagement />
       {/* Fifth section for  how it works*/}
       <Box sx={{
         display: 'grid',
