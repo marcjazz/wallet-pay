@@ -1,5 +1,7 @@
 import { AppLayout } from '../components/AppLayout';
 import '../../public/styles/global.css';
+import '../../public/styles/reset.css';
+import '../../public/styles/style.scss';
 
 
 export const metadata = {
