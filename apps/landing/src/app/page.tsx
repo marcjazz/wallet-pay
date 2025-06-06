@@ -18,6 +18,7 @@ import ContactUsSection from '../components/contactUsSection';
 import PaymentMethods from '../components/paymentMethods';
 import Cta from '../components/cta';
 import FAQ from '../components/faq';
+import Functionnalities from '../components/fonctionnality/functionnalities';
 
 interface IFaq {
   question: string,
@@ -90,6 +91,7 @@ export default function Index() {
       <LocationSection />
       <TrustSection />
       <Engagement />
+      <Functionnalities />
       <HowItWorks />
       <ContactUsSection />
       <PaymentMethods />

@@ -291,4 +291,16 @@ export const website = {
   OurTransactionFees: 'Our transaction fees',
   feesRate: '1% only',
   transferNow: 'Transfert Now',
+  ourFonctionnalities: 'Our fonctionnalities',
+  transactrionsHistory: 'Transactions history',
+  simpleRegistration: 'Simple registration',
+  registrationDescription:
+    'Start by creating an Xafpay account in just a few minutes. Fill in your basic details and choose the payment method that suits you best.',
+  roleChoose: 'Choose your role',
+  roleDescription:
+    'Start by creating an Xafpay account in just a few minutes. Fill in your basic details and choose the payment method that suits you best.',
+  transfertBetweenUser: 'User-to-User transfer',
+  securePayment: 'Secure payment',
+  recipientHistory: 'Recipient history',
+  faSecurity: 'Secured by 2FA',
 };

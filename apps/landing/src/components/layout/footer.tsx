@@ -61,7 +61,15 @@ export default function Footer() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
             }}>
-                <Typography variant="h1">
+                <Typography
+                    variant="h1"
+                    sx={{
+                        fonstFamily: 'Space Grotesk',
+                        fontSize: '48px',
+                        lineHeight: '120%',
+                        fontWeight: 700,
+                    }}
+                >
                     {formatMessage({ id: 'remittanceOnYourHands' })}
                 </Typography>
                 <QRCodeSVG value='https://xafpay.com' />
@@ -84,7 +92,12 @@ export default function Footer() {
                         width={166}
                         height={80}
                     />
-                    <Typography variant="caption" color='white'>@xafpay -
+                    <Typography
+                        variant="caption"
+                        color='white'
+                        fontFamily='Poppins'
+                    >
+                        @xafpay -
                         {dayjs('01-01-2023').format('YYYY')}
                     </Typography>
                 </Box>
@@ -93,13 +106,16 @@ export default function Footer() {
                     textAlign: 'left',
                     alignItems: 'start',
                 }}>
-                    <Typography variant="h2" marginBottom={1}>
+                    <Typography
+                        variant="h3"
+                        marginBottom={1}
+                    >
                         {formatMessage({ id: 'products' })}
                     </Typography>
-                    <Typography variant="p2r">
+                    <Typography variant="l2r">
                         {formatMessage({ id: 'xafshop' })}
                     </Typography>
-                    <Typography variant="p2r">
+                    <Typography variant="l2r">
                         {formatMessage({ id: 'xafpay' })}
                     </Typography>
                 </Box>
@@ -107,13 +123,13 @@ export default function Footer() {
                     display: 'grid',
                     textAlign: 'left',
                 }}>
-                    <Typography variant="h2" marginBottom={1}>
+                    <Typography variant="h3" marginBottom={1}>
                         {formatMessage({ id: 'getInTouch' })}
                     </Typography>
-                    <Typography variant="p2r">
+                    <Typography variant="l2r">
                         {formatMessage({ id: 'email' })}: <a href="mailto:contact@xafpay.com">contact@xafpay.com</a>
                     </Typography>
-                    <Typography variant="p2r">
+                    <Typography variant="l2r">
                         {formatMessage({ id: 'phone' })}: +1234567890
                     </Typography>
                 </Box>
@@ -123,16 +139,16 @@ export default function Footer() {
                     textAlign: 'left',
                     alignItems: 'end',
                 }}>
-                    <Typography variant="h2" marginBottom={1}>
+                    <Typography variant="h3" marginBottom={1}>
                         {formatMessage({ id: 'ressources' })}
                     </Typography>
-                    <Typography variant="p2r">
+                    <Typography variant="l2r">
                         <a href="#">{formatMessage({ id: 'login' })}</a>
                     </Typography>
-                    <Typography variant="p2r">
+                    <Typography variant="l2r">
                         <a href="#">{formatMessage({ id: 'register' })}</a>
                     </Typography>
-                    <Typography variant="p2r">
+                    <Typography variant="l2r">
                         <a href="#">{formatMessage({ id: 'privacyPolicy' })}</a>
                     </Typography>
                 </Box>
