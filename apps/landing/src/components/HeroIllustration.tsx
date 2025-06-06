@@ -116,35 +116,18 @@ export default function HeroIllustration() {
           >
             {formatMessage({ id: 'descriptionheroMessage' })}
           </Typography>
-          <Box sx={{
-            display: 'flex',
-            gap: '1rem',
-          }}>
-            <Button
-              variant='outlined'
-              size='large'
-              sx={{
-                width: '10rem',
-                fontSize: '14px',
-                fontFamily: 'Poppins',
-              }}
-              onClick={() => alert('Register')}
-            >
-              {formatMessage({ id: 'register' })}
-            </Button>
-            <Button
-              variant='contained'
-              size='large'
-              sx={{
-                width: '10rem',
-                fontSize: '14px',
-                fontFamily: 'Poppins',
-              }}
-              onClick={() => alert('Send money')}
-            >
-              {formatMessage({ id: 'heroActionBtn' })}
-            </Button>
-          </Box>
+          <Button
+            variant='contained'
+            size='large'
+            sx={{
+              width: '12rem',
+              fontSize: '14px',
+              fontFamily: 'Poppins',
+            }}
+            onClick={() => alert('Send money')}
+          >
+            {formatMessage({ id: 'heroActionBtn' })}
+          </Button>
         </Box>
 
         <Box sx={{

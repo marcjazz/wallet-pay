@@ -53,9 +53,9 @@ export default function Header() {
                 }}>
                     <LanguageSwapper />
                     <Button
-                        sx={{
-                            variant: 'contained',
-                        }}>
+                        variant='contained'
+                        onClick={() => alert('Login clicked')}
+                    >
                         <Typography variant="p2r" fontFamily='Poppins'>
                             {formatMessage({ id: 'register' })}
                         </Typography>
