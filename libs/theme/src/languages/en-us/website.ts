@@ -227,7 +227,7 @@ export const website = {
   SOUTH_WEST: 'South West',
   waitAminute: 'Wait a minute...',
   completeNow: 'Complete KYC now',
-  howItWorks: 'How it works',
+  howItWorksTitle: 'How it works',
   remittanceOnYourHands: 'Your money transfer solution at hand',
   ContactUsMessage:
     'If you would like to know more about the Xafpay application or if you have any other questions, please contact us via the application chat or by email at contact@xafpay.com.',

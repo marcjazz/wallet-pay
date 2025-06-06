@@ -68,6 +68,7 @@ export default function Hero() {
         height: '90vh',
         columnGap: '10rem',
         alignItems: 'center',
+        bgcolor: 'rgba(250, 250, 253, 1)'
       }}>
         <Box sx={{
           display: 'grid',

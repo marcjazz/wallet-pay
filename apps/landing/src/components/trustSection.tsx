@@ -31,6 +31,7 @@ export default function TrustSection() {
             justifyContent: 'center',
             marginBottom: '68px',
             rowGap: 8,
+            bgcolor: 'rgba(250, 250, 253, 1)'
         }}>
             <SectionTitle color='#0E103A'>
                 {formatMessage({ id: 'whyTrust' })}
