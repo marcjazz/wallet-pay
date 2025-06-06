@@ -11,6 +11,7 @@ import { useIntl } from 'react-intl';
 import Hero from '../components/Hero';
 import PageLayout from '../components/layout/pageLayout';
 import TrustSection from '../components/trustSection';
+import LocationSection from '../components/locationSection';
 
 interface IFaq {
   question: string,
@@ -81,65 +82,8 @@ export default function Index() {
   return (
     <PageLayout>
       <Hero />
+      <LocationSection />
       <TrustSection />
-      {/* 
-      Third section for Trusty
-      */}
-      <Box sx={{
-        display: 'grid',
-        textAlign: 'center',
-        justifyContent: 'center',
-        margin: '68px 0',
-        rowGap: 6,
-      }}>
-        <Typography
-          variant="h1"
-          color={theme.palette.primary.dark}
-        >
-          {formatMessage({ id: 'whyTrust' })}
-        </Typography>
-        <Box sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          columnGap: 15,
-        }}>
-          {whyTrustData.map((item, index) => (
-            <Box
-              key={index}
-              sx={{
-                border: '1px solid lightgray',
-                borderRadius: '10px',
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'grid',
-                  rowGap: 3,
-                  margin: 2,
-                }}>
-                <Image
-                  src="/assets/speed.png"
-                  alt="speed" width={150}
-                  height={100}
-                  style={{
-                    justifySelf: 'center'
-                  }}
-                />
-                <Typography variant="h3">
-                  {item.title}
-                </Typography>
-                <Typography
-                  variant="p1r"
-                  width={300}
-                >
-                  {item.description}
-                </Typography>
-              </Box>
-            </Box>
-          ))}
-        </Box>
-      </Box>
-
       {/* 
       Fourth section for engagement
       */}
