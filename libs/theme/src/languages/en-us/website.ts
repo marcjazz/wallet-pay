@@ -289,7 +289,7 @@ export const website = {
   whenYouSend: 'When you send',
   WillReceive: 'They will receive',
   OurTransactionFees: 'Our transaction fees',
-  feesRate: '1% only',
+  feesRate: '0%',
   transferNow: 'Transfert Now',
   ourFonctionnalities: 'Our fonctionnalities',
   transactrionsHistory: 'Transactions history',
