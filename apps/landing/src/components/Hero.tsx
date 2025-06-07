@@ -414,7 +414,6 @@ export default function Hero() {
               right: 90,
               width: 62,
               height: 62,
-              zIndex: -1,
             }}
           />
           <Avatar
@@ -426,7 +425,6 @@ export default function Hero() {
               left: 70,
               width: 62,
               height: 62,
-              zIndex: -1,
             }}
           />
           <Avatar
