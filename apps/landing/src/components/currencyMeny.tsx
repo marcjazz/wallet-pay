@@ -1,5 +1,5 @@
 import { Menu, MenuItem, MenuList, Skeleton, Typography } from '@mui/material';
-import { ICurrency } from '@xafpay/types';
+import { CurrencyEntity } from '@xafpay/types';
 
 export default function CurrencyMenu({
     anchorEl,
@@ -12,8 +12,8 @@ export default function CurrencyMenu({
     anchorEl: null | HTMLElement;
     open: boolean;
     handleClose: () => void;
-    selectItem: (val: string) => void;
-    supportedCurrencies: ICurrency[];
+    selectItem: (selectedCurrency: CurrencyEntity) => void;
+    supportedCurrencies: CurrencyEntity[];
     isLoading: boolean;
 }) {
     return (
@@ -36,17 +36,20 @@ export default function CurrencyMenu({
                         </MenuItem>
                     ))
                     : supportedCurrencies.map(
-                        ({ currency_acronym, currency_id }, index) => (
-                            <MenuItem
-                                key={index}
-                                onClick={() => {
-                                    selectItem(currency_id);
-                                    handleClose();
-                                }}
-                            >
-                                <Typography variant="p1m">{currency_acronym}</Typography>
-                            </MenuItem>
-                        )
+                        (currencyEl) => {
+                            return (
+                                <MenuItem
+                                    key={currencyEl.supported_currency_id}
+                                    onClick={() => {
+                                        selectItem(currencyEl);
+                                        handleClose();
+                                    }}
+                                >
+                                    <Typography variant="p1m">{currencyEl.currency}</Typography>
+                                </MenuItem>
+                            )
+                        }
+
                     )}
             </MenuList>
         </Menu>
