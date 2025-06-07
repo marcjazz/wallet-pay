@@ -35,7 +35,7 @@ export default function ContactUsSection() {
                     {formatMessage({ id: 'qrCodeEngagement' })}
                 </Typography>
                 <QRCodeSVG
-                    value='www.xafpay.com'
+                    value='https://xafpay.com'
                     style={{
                         width: '13rem',
                         height: '13rem'
