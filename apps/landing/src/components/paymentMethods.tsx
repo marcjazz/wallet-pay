@@ -52,8 +52,11 @@ export default function PaymentMethods() {
                         key={index}
                         src={link}
                         alt={alt}
-                        width={100}
-                        height={60}
+                        width={130}
+                        height={90}
+                        style={{
+                            objectFit: 'contain'
+                        }}
                     />
                 ))}
             </Box>
