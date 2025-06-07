@@ -5,9 +5,10 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { Avatar, Box, Button, Chip, Divider, TextField, Typography } from "@mui/material";
 import { useTheme } from "@xafpay/theme";
 import Image from "next/image";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useIntl } from "react-intl";
 import CurrencyMenu from './currencyMeny';
+import { CurrencyEntity } from '@xafpay/types';
 
 
 
@@ -16,26 +17,32 @@ export default function Hero() {
   const { formatMessage, formatNumber } = useIntl();
   const theme = useTheme();
 
-  const [amount, setAmount] = useState<number>();
+  const [amount, setAmount] = useState<number>(1);
   const [currencyAnchorEl, setCurrencyAnchorEl] = useState<null | HTMLElement>(
     null
   );
-  const [currencyId, setCurrencyId] = useState<string>('');
+  const [activeCurrency, setActiveCurrency] = useState<CurrencyEntity>();
+  const [supportedCurrencies, setSupportedCurrencies] = useState<CurrencyEntity[]>([]);
+  const [isSupportedCurrenciesLoading, setIsSupportedCurrenciesLoading] = useState<boolean>(false)
 
-  const supportedCurrencies = [
+  const supportedCurrenciesData: CurrencyEntity[] = [
     {
-      currency_id: 'USD',
-      currency_acronym: 'USD',
-      country: 'United States',
-      currency_name: 'United States Dollar',
-      conversion_rate: 1.0,
+      currency: 'USD',
+      supported_currency_id: 'USD',
+      is_active: true,
+      xaf_rate: 600.0,
+      last_updated: new Date().toDateString(),
+      created_at: new Date().toDateString(),
+      created_by: '',
     },
     {
-      currency_id: 'CAD',
-      currency_acronym: 'CAD',
-      country: 'Canada',
-      currency_name: 'Canadian Dollar',
-      conversion_rate: 1.25,
+      currency: 'CAD',
+      supported_currency_id: 'CAD',
+      is_active: true,
+      xaf_rate: 450.0,
+      last_updated: new Date().toDateString(),
+      created_at: new Date().toDateString(),
+      created_by: '',
     },
 
   ];
@@ -43,14 +50,16 @@ export default function Hero() {
     USD: '/assets/usa-flag.jpg',
     CAD: '/assets/canada-flag.png',
   }
-  function getActiveCurrency() {
-    const val = supportedCurrencies.find(
-      ({ currency_id: c_id }) => c_id === currencyId
-    );
-    if (val) return val.currency_acronym;
-    return '';
-  }
 
+  useEffect(() => {
+    // TODO: fetch supported currencies
+    setIsSupportedCurrenciesLoading(true);
+    setTimeout(() => {
+      setSupportedCurrencies(supportedCurrenciesData);
+      setActiveCurrency(supportedCurrenciesData[0])
+      setIsSupportedCurrenciesLoading(false);
+    }, 2000);
+  }, []);
   return (
     <>
       <CurrencyMenu
@@ -58,8 +67,8 @@ export default function Hero() {
         handleClose={() => setCurrencyAnchorEl(null)}
         open={!!currencyAnchorEl}
         supportedCurrencies={supportedCurrencies}
-        isLoading={false}
-        selectItem={(val) => setCurrencyId(val)}
+        isLoading={isSupportedCurrenciesLoading}
+        selectItem={setActiveCurrency}
       />
       <Box sx={{
         display: 'grid',
@@ -206,6 +215,7 @@ export default function Hero() {
                     setAmount(Number(e.target.value));
                   }}
                   value={amount}
+                  disabled={isSupportedCurrenciesLoading}
                 />
                 <Box sx={{
                   display: 'grid',
@@ -217,19 +227,12 @@ export default function Hero() {
                   onClick={(e) => setCurrencyAnchorEl(e.currentTarget)}
                 >
                   {
-                    currencyId ? (
+                    activeCurrency && (
                       <Image
-                        src={correspondingFlags[getActiveCurrency()]}
+                        src={correspondingFlags[activeCurrency.currency]}
                         width={24}
                         height={24}
-                        alt={`${currencyId} flag`}
-                      />
-                    ) : (
-                      <Image
-                        src="/assets/usa-flag.jpg"
-                        width={24}
-                        height={24}
-                        alt="usa flag"
+                        alt={`${activeCurrency} flag`}
                       />
                     )
                   }
@@ -237,12 +240,11 @@ export default function Hero() {
                     variant="p1m"
                     sx={{
                       fontFamily: 'Space Grotesk',
-                      fontWeight: 500,
                       fontSize: { tablet: '24px', mobile: '14px' },
                       lineHeight: '130%',
                     }}
                   >
-                    {getActiveCurrency() || 'USD'}
+                    {activeCurrency?.currency}
                   </Typography>
                   <Icon icon={down} />
                 </Box>
@@ -302,10 +304,10 @@ export default function Hero() {
                       fontFamily: 'Poppins',
                     }}
                   >
-                    {/* TODO: Replace this with the real value */}
-                    {formatNumber(
-                      Number(Number(62456.60).toFixed(2))
-                    )}
+                    {amount && activeCurrency ?
+                      formatNumber(
+                        Number((amount * activeCurrency.xaf_rate).toFixed(2))
+                      ) : '...'}
                   </Typography>
                   <Typography
                     sx={{
@@ -388,6 +390,7 @@ export default function Hero() {
                 width: '100%',
               }}
               onClick={() => alert('Transfer Now')}
+              disabled={isSupportedCurrenciesLoading || !activeCurrency}
             >
               {formatMessage({ id: 'transferNow' })}
             </Button>
