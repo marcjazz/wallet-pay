@@ -178,11 +178,12 @@ export default function Hero() {
               textAlign: 'start',
             }}>
               <Typography
-                variant="p2m"
+                variant="p3r"
                 sx={{
                   fontSize: { mobile: '10px', tablet: '12px' },
                   lineHeight: '160%',
                   color: '#12192C',
+                  fontFamily: 'Poppins'
                 }}
               >
                 {formatMessage({ id: 'whenYouSend' })}
@@ -275,11 +276,12 @@ export default function Hero() {
               textAlign: 'start',
             }}>
               <Typography
-                variant="p2m"
+                variant="p3r"
                 sx={{
                   fontSize: { mobile: '10px', tablet: '12px' },
                   lineHeight: '160%',
                   color: '#12192C',
+                  fontFamily: 'Poppins'
                 }}
               >
                 {formatMessage({ id: 'WillReceive' })}
