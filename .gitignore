@@ -48,3 +48,7 @@ Thumbs.db
 
 #keys
 *.pem
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+mcp.json
+settings.json

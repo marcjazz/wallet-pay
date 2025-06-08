@@ -2,14 +2,14 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import Mail from 'nodemailer/lib/mailer';
-import { mailerConstants } from './constant';
 import { validatePhoneNumber } from '../helpers/utils';
+import { PrismaService } from '../prisma/prisma.service';
+import { mailerConstants } from './constant';
+import { generatePayoutReceiptEmail } from './emails/payout-email';
 import {
   generateTransactionReceiptEmail,
   TransactionReceipt,
 } from './emails/transaction-email';
-import { generatePayoutReceiptEmail } from './emails/payout-email';
-import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class MailerService {
