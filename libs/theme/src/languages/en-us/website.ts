@@ -303,4 +303,5 @@ export const website = {
   securePayment: 'Secure payment',
   recipientHistory: 'Recipient history',
   faSecurity: 'Secured by 2FA',
+  passwordsDoNotMatch: 'Passwords do not match',
 };
