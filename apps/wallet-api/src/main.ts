@@ -5,15 +5,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { NextFunction, Request, Response } from 'express';
 
-import { AppModule } from './app/app.module';
 import path from 'path';
+import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: {
       origin:
         process.env.NODE_ENV === 'production'
-          ? /^https:\/\/(www\.)?xafpay\.com$/
+          ? /^https:\/\/(www\.|app\.)?xafpay\.com$/
           : /^http:\/\/localhost(:\d+)?$/,
       credentials: true,
     },
