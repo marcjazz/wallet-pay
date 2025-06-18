@@ -15,7 +15,7 @@
     "@cybrid/cybrid-api-bank-typescript": "^0.123.295",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
-    "@hey-api/client-fetch": "^0.13.1",
+    "@hey-api/client-fetch": "^0.10.0",
     "@iconify/icons-fluent": "^1.2.38",
     "@iconify/react": "^6.0.0",
     "@mui/icons-material": "^5.11.16",
