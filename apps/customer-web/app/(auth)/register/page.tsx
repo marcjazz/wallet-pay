@@ -27,6 +27,7 @@ export interface PersonalInfo {
 
 export interface SecurityInfo {
   password: string;
+  confirmPassword: string;
   username: string;
   country: Country;
   hasAcceptedTerms: boolean;
