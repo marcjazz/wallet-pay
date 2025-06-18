@@ -7,6 +7,7 @@ import {
   FormControlLabel,
   FormHelperText,
   FormLabel,
+  IconButton,
   InputAdornment,
   OutlinedInput,
   Typography,
@@ -24,6 +25,9 @@ import * as Yup from 'yup';
 import { Country } from '../../../api/types';
 import { SecurityInfo } from '../../../app/(auth)/register/page';
 import { preventRouteWhenSubmitting } from '../../shared/utilities';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { useState } from 'react';
 
 interface RegisterPartTwoProps {
   securityInfo?: SecurityInfo;
@@ -42,6 +46,7 @@ export default function RegisterPartTwo({
 
   const initialValues: SecurityInfo = {
     password: '',
+    confirmPassword: '',
     username: '',
     country: Country.USA,
     hasAcceptedTerms: false,
@@ -51,6 +56,11 @@ export default function RegisterPartTwo({
     password: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
       .min(3, formatMessage({ id: 'minPasswordCharacters' })),
+    confirmPassword: Yup.string()
+      .oneOf([
+        Yup.ref('password')],
+        formatMessage({ id: 'passwordsDoNotMatch' })
+      ),
     username: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
       .min(3, formatMessage({ id: 'minUsernameCharacters' })),
@@ -72,6 +82,7 @@ export default function RegisterPartTwo({
     },
   });
 
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   return (
     <Box
       component="form"
@@ -112,12 +123,50 @@ export default function RegisterPartTwo({
           </FormLabel>
           <OutlinedInput
             id="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             placeholder={formatMessage({ id: 'password' })}
             {...formik.getFieldProps('password')}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            }
           />
           <FormHelperText>
             {formik.touched.password && formik.errors.password}
+          </FormHelperText>
+        </FormControl>
+        <FormControl
+          required
+          error={Boolean(formik.touched.confirmPassword && formik.errors.confirmPassword)}
+          disabled={isSubmitting}
+        >
+          <FormLabel htmlFor="confirmPassword">
+            {formatMessage({ id: 'confirmPassword' })}
+          </FormLabel>
+          <OutlinedInput
+            id="confirmPassword"
+            type={showPassword ? 'text' : 'password'}
+            placeholder={formatMessage({ id: 'confirmPassword' })}
+            {...formik.getFieldProps('confirmPassword')}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            }
+          />
+          <FormHelperText>
+            {formik.touched.confirmPassword && formik.errors.confirmPassword}
           </FormHelperText>
         </FormControl>
 
