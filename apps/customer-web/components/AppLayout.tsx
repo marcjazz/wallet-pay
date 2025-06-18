@@ -17,6 +17,10 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
 
       const apiClient = ApiClient.getInstance(API_BASE_URL);
       if (!apiClient.getAuthToken()) {
+        if (pathname === '/register' ||
+          pathname === '/login') {
+          return;
+        }
         localStorage.setItem('redirectPath', pathname);
         push('/login');
       }
