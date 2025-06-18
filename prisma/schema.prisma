@@ -86,41 +86,45 @@ model CybridExternalAccount {
 }
 
 model CybridTransaction {
-  cybrid_transaction_id           String                  @id @default(cuid()) @db.VarChar(36)
-  cybrid_transaction_guid         String                  @unique @db.VarChar(45)
-  amount                          Float
-  currency                        CybridSupportedCurrency @default(USD)
-  initial_currency_amount         Float
-  initial_currency                CybridSupportedCurrency
-  conversion_rate                 Float?
-  fees                            Float
-  transaction_id                  String                  @db.VarChar(45)
-  transaction_type                CybridTransactionType
-  status                          CybridTransactionStatus
-  initiated_at                    DateTime                @default(now()) @db.Timestamp()
-  settled_at                      DateTime?               @db.Timestamp()
-  cybrid_transfer_settlement_guid String?                 @db.VarChar(45)
-  pawapay_payout_id               String                  @default(uuid()) @db.VarChar(36)
-  payout_at                       DateTime?               @db.Timestamp()
-  cybrid_account_id               String?
-  CybridAccount                   CybridAccount?          @relation("cybridaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount1")
-  initiated_by                    String
-  InitiatedBy                     CybridCustomer          @relation("cybridCustomerTocybridtransaction_created_by", fields: [initiated_by], references: [cybrid_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridCustomer1")
+  cybrid_transaction_id        String                  @id @default(cuid()) @db.VarChar(36)
+  cybrid_transaction_guid      String                  @unique @db.VarChar(45)
+  amount                       Float
+  currency                     CybridSupportedCurrency @default(USD)
+  initial_currency_amount      Float
+  initial_currency             CybridSupportedCurrency
+  conversion_rate              Float?
+  fees                         Float
+  transaction_id               String                  @db.VarChar(45)
+  transaction_type             CybridTransactionType
+  status                       CybridTransactionStatus
+  initiated_at                 DateTime                @default(now()) @db.Timestamp()
+  settled_at                   DateTime?               @db.Timestamp()
+  remittance_payout_ref        String?                 @db.VarChar(36)
+  payout_at                    DateTime?               @db.Timestamp()
+  cybrid_account_id            String?
+  CybridAccount                CybridAccount?          @relation("cybridaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount1")
+  initiated_by                 String?
+  InitiatedBy                  CybridCustomer?         @relation("cybridCustomerTocybridtransaction_created_by", fields: [initiated_by], references: [cybrid_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridCustomer1")
+  // withdrwal transaction id
+  withdrawal_transaction_id    String?                 @db.VarChar(45)
+  CybridTransaction            CybridTransaction?      @relation("cybridTransactionToCybridTransaction_withdrawal_transaction_id", fields: [withdrawal_transaction_id], references: [cybrid_transaction_id], onDelete: NoAction, onUpdate: NoAction)
   // convert
-  local_customer_id               String?
-  LocalCustomer                   LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
+  local_customer_id            String?
+  LocalCustomer                LocalCustomer?          @relation(fields: [local_customer_id], references: [local_customer_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_LocalCustomer1")
   // mobile money remittance
-  receiver_payout_info_id         String?
-  ReceiverPayoutInfo              CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counterparty_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
+  receiver_payout_info_id      String?
+  ReceiverPayoutInfo           CybridCounterparty?     @relation(fields: [receiver_payout_info_id], references: [cybrid_counterparty_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_PayoutInfo1")
   // bank deposit remittance
-  receiver_bank_payout_info_id    String?
-  ReceiverBankPayoutInfo          ReceiverBankPayoutInfo? @relation(fields: [receiver_bank_payout_info_id], references: [receiver_bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_BankInfo1")
+  receiver_bank_payout_info_id String?
+  ReceiverBankPayoutInfo       ReceiverBankPayoutInfo? @relation(fields: [receiver_bank_payout_info_id], references: [receiver_bank_payout_info_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_BankInfo1")
   // crypto convert
-  cybrid_crypto_account_id        String?
-  CryptoCybridAccount             CybridAccount?          @relation("cybridcryptoaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_crypto_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount2")
+  cybrid_crypto_account_id     String?
+  CryptoCybridAccount          CybridAccount?          @relation("cybridcryptoaccountTocybridtransaction_cybrid_account_id", fields: [cybrid_crypto_account_id], references: [cybrid_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridAccount2")
   // funding
-  cybrid_external_account_id      String?
-  CybridExternalAccount           CybridExternalAccount?  @relation(fields: [cybrid_external_account_id], references: [cybrid_external_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridExternalAccount1")
+  cybrid_external_account_id   String?
+  CybridExternalAccount        CybridExternalAccount?  @relation(fields: [cybrid_external_account_id], references: [cybrid_external_account_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_CybridTransaction_CybridExternalAccount1")
+
+  CybridTransactions CybridTransaction[] @relation("cybridTransactionToCybridTransaction_withdrawal_transaction_id")
 
   @@index([receiver_bank_payout_info_id], map: "fk_CybridTransaction_BankInfo1_idx")
   @@index([initiated_by], map: "fk_CybridTransaction_CybridAccount1_idx")
@@ -496,8 +500,10 @@ enum IdentityVerificationStatus {
 enum CybridTransactionStatus {
   STORING   @map("storing")
   REVIEWING @map("reviewing")
+  SETTLING  @map("settling")
   PENDING   @map("pending")
   COMPLETED @map("completed")
+  REVERTED  @map("reverted")
   FAILED    @map("failed")
 
   @@map("cybrid_transfer_status")

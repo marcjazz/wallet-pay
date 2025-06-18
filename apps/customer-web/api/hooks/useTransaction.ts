@@ -7,6 +7,7 @@ import {
   GetTransactionsQueryParams,
   TransactionService,
 } from '../services/TransactionService';
+import { TransactionStatus, TransactionType } from '../types';
 import {
   CybridTransactionEntity,
   InitiateFundingTransferDto,
@@ -23,7 +24,29 @@ const transactionService = new TransactionService(apiClient);
 export const useTransactions = (params?: GetTransactionsQueryParams) => {
   return useQuery<CybridTransactionEntity[], Error>({
     queryKey: ['transactions', params],
-    queryFn: () => transactionService.findTransactions(params),
+    queryFn: () => {
+      return transactionService
+        .findTransactions({
+          ...params,
+          transaction_types: [
+            TransactionType.FUNDING,
+            TransactionType.INSTANT_FUNDING,
+            TransactionType.REMITTANCE,
+          ],
+        })
+        .then((transactions) => {
+          return transactions.map((transaction) => {
+            return {
+              ...transaction,
+              // TODO: hardcoded because we endure the fees for now.
+              fees: 0,
+              status: transaction.payout_at
+                ? TransactionStatus.COMPLETED
+                : transaction.status,
+            };
+          });
+        });
+    },
     initialData: [],
     placeholderData: keepPreviousData, // Retains data during pagination or query updates.
   });
@@ -64,7 +87,17 @@ export const useInitiateRemittance = () => {
 export const useTransaction = (id: string) => {
   const tt = useQuery<CybridTransactionEntity, Error>({
     queryKey: ['transaction', id],
-    queryFn: () => transactionService.findTransactionById(id),
+    queryFn: () =>
+      transactionService.findTransactionById(id).then((transaction) => {
+        return {
+          ...transaction,
+          // TODO: hardcoded because we endure the fees for now.
+          fees: 0,
+          status: transaction.payout_at
+            ? TransactionStatus.COMPLETED
+            : transaction.status,
+        };
+      }),
   });
   const { isError, error } = tt;
   // TODO: Use alert in case of error. Will be replaced with proper notifications later.

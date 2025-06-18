@@ -9,6 +9,7 @@ import {
   IsString,
   IsStrongPassword,
   IsUrl,
+  IsUUID,
   validateSync,
 } from 'class-validator';
 
@@ -30,15 +31,6 @@ class EnvironmentVariables {
 
   @IsStrongPassword()
   JWT_SECRET: string;
-
-  @IsString()
-  POSTGRES_PASSWORD: string;
-
-  @IsString()
-  POSTGRES_USER: string;
-
-  @IsString()
-  POSTGRES_DB: string;
 
   @IsString()
   DATABASE_URL: string;
@@ -99,6 +91,18 @@ class EnvironmentVariables {
 
   @IsString()
   RATE_API_KEY: string;
+
+  @IsUrl()
+  PEEX_API_BASE_URL: string
+
+  @IsUUID()
+  PEEX_SECRETKEY: string
+
+  @IsString()
+  PEEX_USERNAME: string;
+  
+  @IsString()
+  PEEX_PASSWORD: string;
 }
 
 export function validate(config: Record<string, unknown>) {

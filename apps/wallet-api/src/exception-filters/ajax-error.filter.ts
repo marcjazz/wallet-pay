@@ -8,19 +8,22 @@ export class AjaxErrorFilter implements ExceptionFilter {
   catch(exception: AjaxError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
-    const status = exception.response.status;
+    const status = exception.status;
+    const error = exception.xhr.statusText;
+    const errorMessage = exception.response?.error_message ?? exception.message;
 
-    this.logger.error('Ajax Request URL:', {
-      url: exception.request.url,
-      body: exception.request.body,
-      response: exception.response,
-      headers: exception.request.headers,
-    });
+    this.logger.error(`Ajax Request URL:
+      method: ${exception.request.method}
+      body: ${exception.request.body ?? 'none'}
+      url: ${exception.request.url}
+      response: ${errorMessage}
+      error: ${error}
+    `);
 
     response.status(status).json({
+      error,
       statusCode: status,
-      error: exception.response.status,
-      message: exception.response.error_message,
+      message: errorMessage,
     });
   }
 }

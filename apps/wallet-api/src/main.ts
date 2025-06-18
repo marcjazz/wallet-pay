@@ -1,8 +1,3 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -18,8 +13,8 @@ async function bootstrap() {
     cors: {
       origin:
         process.env.NODE_ENV === 'production'
-          ? /^(?:[a-zA-Z0-9-]+\.)*xafpay\.com$/
-          : /^http:\/\/localhost/,
+          ? /^https:\/\/(www\.)?xafpay\.com$/
+          : /^http:\/\/localhost(:\d+)?$/,
       credentials: true,
     },
     rawBody: true,

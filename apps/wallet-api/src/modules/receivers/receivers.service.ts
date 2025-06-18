@@ -25,6 +25,10 @@ export class RecieversService {
     private readonly cybridService: CybridService
   ) {}
 
+  async getCustomers() {
+    return this.cybridService.getCustomers();
+  }
+
   async findAll(query: SearchQueryDto) {
     return this.prismaService.cybridCounterparty.findMany({
       where: {
@@ -67,7 +71,7 @@ export class RecieversService {
     const [first, last] = fullname.split(' ');
 
     // Validate receiver's phone number
-    if (validatePhoneNumber(phoneNumber) !== 0) {
+    if (validatePhoneNumber(phoneNumber) === -1) {
       throw new UnprocessableEntityException(
         'Phone number must be a valid Mobile money number'
       );

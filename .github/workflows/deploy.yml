@@ -28,7 +28,8 @@ jobs:
       - name: Build & Publish ${{ matrix.service.name }}
         uses: ./.github/actions/build
         with:
-          publish: ${{ github.ref == 'refs/heads/master' }}
+          publish: true
+          # publish: ${{ github.ref == 'refs/heads/master' }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: ${{ matrix.service.dockerfile }}
           docker-image-tags: |
@@ -38,7 +39,7 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     needs: build
-    if: github.ref == 'refs/heads/master'
+    # if: github.ref == 'refs/heads/master'
     permissions:
       contents: read # Allows reading repository content
       packages: read # Allows pull packages from GHCR
@@ -46,38 +47,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+              mkdir -p /home/${{ github.repository }} & cd /home/${{ github.repository }}
 
-      - name: Configure SSH key
-        run: |
-          # Write the SSH private key to a file
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" >key.pem
-
-          # Set correct permissions for the SSH key file
-          chmod 600 key.pem
-
-      - name: Setup Production Env
-        run: |
-          # Create .env file
-          echo "${{ secrets.ENV_FILE }}" >.env
-          echo "REGISTRY_USERNAME=${{ github.actor }}" >>.env
-          echo "REGISTRY_PASSWORD=${{ secrets.GITHUB_TOKEN }}" >>.env
-          chmod 600 .env
-          echo "Environment variables updated!"
-
-      - name: Pre-Deployment
-        run: |
-          # Ensure the target directory exists on the server before copying
-          echo "Ensuring the target directory exists..."
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p /home/xafpay/wallet"
-
-          # Copy compose.yml to the server
-          echo "Copying compose.yml to the server..."
-          scp -i key.pem -o StrictHostKeyChecking=no compose.yml .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/xafpay/wallet/
-
-      - name: Deploy Web & Api
-        env:
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          REGISTRY_USERNAME: ${{ github.actor }}
-          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: . ./deploy.sh
+              echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+              docker compose pull
+              docker compose up -d --remove-orphans

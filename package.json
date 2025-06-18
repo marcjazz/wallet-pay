@@ -2,6 +2,9 @@
   "name": "@wallet/source",
   "version": "0.0.0",
   "license": "MIT",
+  "prisma": {
+    "seed": "node ./prisma/seed/seed.js"
+  },
   "scripts": {
     "migrate": "prisma migrate dev",
     "migrate:test": "npx dotenv -e .env.test -- prisma migrate dev",
@@ -127,6 +130,7 @@
     "next": "^14.2.24",
     "nx": "18.3.5",
     "openapi-typescript": "^7.3.3",
+    "openapi-typescript-codegen": "^0.29.0",
     "prettier": "^2.6.2",
     "prisma": "^6.4.1",
     "react": "18.2.0",
@@ -136,11 +140,11 @@
     "react-toastify": "^10.0.5",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "sass": "^1.85.0",
+    "sass": "^1.87.0",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
-    "typescript": "5.4.5",
+    "typescript": "^5.8.3",
     "url-loader": "^4.1.1"
   }
 }

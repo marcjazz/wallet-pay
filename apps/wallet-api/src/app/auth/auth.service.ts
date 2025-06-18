@@ -122,14 +122,14 @@ export class AuthService {
                       fiatAccount.asset as $Enums.CybridSupportedCurrency,
                     cybrid_account_guid: fiatAccount.guid as string,
                     name: fiatAccount.name as string,
-                    balance: fiatAccount.platform_available as number,
+                    balance: (fiatAccount.platform_available ?? 0) / 100,
                   },
                   {
                     currency:
                       cryptoAccount.asset as $Enums.CybridSupportedCurrency,
                     name: cryptoAccount.name as string,
                     cybrid_account_guid: cryptoAccount.guid as string,
-                    balance: cryptoAccount.platform_available as number,
+                    balance: (cryptoAccount.platform_available ?? 0) / 1e6,
                   },
                 ],
                 skipDuplicates: true,
