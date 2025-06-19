@@ -242,55 +242,77 @@ export default function RecipientDetailsBottomSheet({
           </>
         ) : (
           <>
-            <FormControl
-              error={Boolean(
-                (touched as FormikTouched<MomoReceiver>).phone_number &&
+            <Box sx={{
+              display: 'grid',
+              rowGap: 1
+            }}>
+              <Typography
+                variant="p2r"
+                color='#63757f'
+              >
+                {formatMessage({ id: 'momoWarningNumber' })}
+              </Typography>
+              <FormControl
+                error={Boolean(
+                  (touched as FormikTouched<MomoReceiver>).phone_number &&
                   (errors as FormikErrors<MomoReceiver>).phone_number
-              )}
-              required
-              fullWidth
-            >
-              <FormLabel htmlFor="phone_number">
-                {formatMessage({ id: 'phoneNumber' })}
-              </FormLabel>
-              <OutlinedInput
-                id="phone_number"
-                {...formik.getFieldProps('phone_number')}
-                placeholder={formatMessage({ id: 'phoneNumber' })}
-                autoFocus
-                startAdornment={
-                  <InputAdornment position="start">+237</InputAdornment>
-                }
-                endAdornment={
-                  <InputAdornment position="end">
-                    {values.phone_number &&
-                      PhoneNetworkIcon(values.phone_number)}
-                  </InputAdornment>
-                }
-              />
-              <FormHelperText error>
-                {(touched as FormikTouched<MomoReceiver>).phone_number &&
-                  (errors as FormikErrors<MomoReceiver>).phone_number}
-              </FormHelperText>
-            </FormControl>
-            <FormControl
-              error={Boolean(touched.fullname && errors.fullname)}
-              required
-              fullWidth
-              disabled={!!selectedReceiver}
-            >
-              <FormLabel htmlFor="fullname">
-                {formatMessage({ id: 'fullname' })}
-              </FormLabel>
-              <OutlinedInput
-                id="fullname"
-                {...formik.getFieldProps('fullname')}
-                placeholder={formatMessage({ id: 'fullname' })}
-              />
-              <FormHelperText error>
-                {touched.fullname && errors.fullname}
-              </FormHelperText>
-            </FormControl>
+                )}
+                required
+                fullWidth
+              >
+                <FormLabel htmlFor="phone_number">
+                  {formatMessage({ id: 'phoneNumber' })}
+                </FormLabel>
+                <OutlinedInput
+                  id="phone_number"
+                  {...formik.getFieldProps('phone_number')}
+                  placeholder={formatMessage({ id: 'phoneNumber' })}
+                  autoFocus
+                  startAdornment={
+                    <InputAdornment position="start">+237</InputAdornment>
+                  }
+                  endAdornment={
+                    <InputAdornment position="end">
+                      {values.phone_number &&
+                        PhoneNetworkIcon(values.phone_number)}
+                    </InputAdornment>
+                  }
+                />
+                <FormHelperText error>
+                  {(touched as FormikTouched<MomoReceiver>).phone_number &&
+                    (errors as FormikErrors<MomoReceiver>).phone_number}
+                </FormHelperText>
+              </FormControl>
+            </Box>
+            <Box sx={{
+              display: 'grid',
+              rowGap: 1
+            }}>
+              <Typography
+                variant="p2r"
+                color='#63757f'
+              >
+                {formatMessage({ id: 'receiverNameWarning' })}
+              </Typography>
+              <FormControl
+                error={Boolean(touched.fullname && errors.fullname)}
+                required
+                fullWidth
+                disabled={!!selectedReceiver}
+              >
+                <FormLabel htmlFor="fullname">
+                  {formatMessage({ id: 'fullname' })}
+                </FormLabel>
+                <OutlinedInput
+                  id="fullname"
+                  {...formik.getFieldProps('fullname')}
+                  placeholder={formatMessage({ id: 'fullname' })}
+                />
+                <FormHelperText error>
+                  {touched.fullname && errors.fullname}
+                </FormHelperText>
+              </FormControl>
+            </Box>
 
             {!selectedReceiver && (
               <>
