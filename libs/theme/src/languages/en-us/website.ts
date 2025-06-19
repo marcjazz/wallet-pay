@@ -231,4 +231,5 @@ export const website = {
     'Ensure the receiver number is their correct number.There is no guarantee of refund fr transfers to incorrect mobile numbers',
   receiverNameWarning:
     "Please ensure your recipient's name entered here matches the name registered on their mobile money account. Any incorrect names could cause delays to your transfer.",
+  passwordsDoNotMatch: 'Passwords do not match',
 };
