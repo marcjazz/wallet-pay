@@ -84,7 +84,9 @@ export class AuthService {
       email: payload.email,
     });
     if (!isPilotActive)
-      throw new UnprocessableEntityException('You are not a pilot active!');
+      throw new UnprocessableEntityException(
+        'You are not a pilot active. Contact admins or try again later.',
+      );
 
     const {
       PersonHasRoles: [{ is_active, person_has_role_id }],
