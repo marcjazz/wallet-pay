@@ -214,7 +214,6 @@ model Person {
   email              String               @unique @db.VarChar(45)
   username           String               @unique @db.VarChar(45)
   is_verified        Boolean              @default(false) @db.Boolean
-  is_pilot_active    Boolean              @default(false) @db.Boolean
   phone_number       String               @db.VarChar(45)
   password           String               @db.VarChar(255)
   created_at         DateTime             @default(now()) @db.Timestamp()

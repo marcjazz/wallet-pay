@@ -95,7 +95,6 @@ export class AuthService {
       include: { PersonHasRoles: true },
       data: {
         ...payload,
-        ...(isPilotActive && { is_pilot_active: isPilotActive }),
         birthdate: new Date(payload.birthdate),
         password: bcrypt.hashSync(
           password,
@@ -358,8 +357,7 @@ export class AuthService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, is_active, created_at, person_id, is_pilot_active, ...person } =
-      user;
+    const { id, is_active, created_at, person_id, ...person } = user;
     await this.prismaService.person.update({
       data: {
         is_verified: true,
