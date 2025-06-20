@@ -55,7 +55,11 @@ export default function RegisterPartTwo({
   const validationSchema = Yup.object({
     password: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
-      .min(3, formatMessage({ id: 'minPasswordCharacters' })),
+      .min(8, formatMessage({ id: 'minPasswordCharacters' }))
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/,
+        formatMessage({ id: 'passwordRequirements' })
+      ),
     confirmPassword: Yup.string()
       .oneOf([
         Yup.ref('password')],
