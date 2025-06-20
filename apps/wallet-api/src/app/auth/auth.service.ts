@@ -22,7 +22,7 @@ import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
 import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
 import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
-
+import { isUserPilotActive } from '../../helpers/utils';
 @Injectable()
 export class AuthService {
   private static readonly ACCESS_TOKEN_TYPE: TokenType = 'access_token';
@@ -78,6 +78,15 @@ export class AuthService {
 
     const { fiatAccount, cryptoAccount, customer } =
       await this.cybridService.createCustomer('USD', payload.first_name);
+
+    const isPilotActive: boolean = isUserPilotActive({
+      name: `${payload.first_name} ${payload.last_name}`,
+      email: payload.email,
+    });
+    if (!isPilotActive)
+      throw new UnprocessableEntityException(
+        'You are not a pilot active. Contact admins or try again later.',
+      );
 
     const {
       PersonHasRoles: [{ is_active, person_has_role_id }],

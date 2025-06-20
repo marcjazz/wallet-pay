@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { useSignIn } from '../../../api/hooks/useAuth';
+import { errorHandling } from '../../shared/errorHandling';
 
 export default function Login() {
   const { formatMessage } = useIntl();
@@ -40,16 +41,15 @@ export default function Login() {
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: (values, { setFieldValue }) => {
+    onSubmit: (values, { resetForm }) => {
       signIn(values, {
         onSuccess: () => {
           push(localStorage.getItem('redirectPath') || '/');
           localStorage.removeItem('redirectPath');
         },
         onError: (error) => {
-          //TODO: USE alert in case of error. will be replaced with proper notifications later
-          alert(error.message);
-          setFieldValue('password', '');
+          errorHandling({ error, formatMessage, redirect: push });
+          resetForm();
         },
       });
     },

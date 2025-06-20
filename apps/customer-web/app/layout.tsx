@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { AppLayout } from '../components/AppLayout';
 import { ReactQueryProvider } from '../context/ReactQueryProvider';
 import '../public/styles/global.scss';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata = {
   title: 'XAFPAY',

@@ -23,6 +23,8 @@ import { useInitiateFunding } from '../../api/hooks/useTransaction';
 import { OTPUsage, VerificationStatus } from '../../api/types';
 import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import BottomSheet from '../shared/BottomSheet';
+import { errorHandling } from '../shared/errorHandling';
+import { toast } from 'react-toastify';
 
 interface DepositBottomSheetProps {
   isOpen: boolean;
@@ -79,8 +81,7 @@ export default function DepositBottomSheet({
             setIsOtpBottomSheetOpen(true);
           },
           onError: (error) => {
-            //TODO: USE alert in case of error. will be replaced with proper notifications later
-            alert(error.message);
+            errorHandling({ error, formatMessage });
           },
         }
       );
@@ -109,8 +110,7 @@ export default function DepositBottomSheet({
                   closeBottomSheet();
                 },
                 onError: (error) => {
-                  //TODO: USE alert in case of error. will be replaced with proper notifications later
-                  alert(error.message);
+                  errorHandling({ error, formatMessage });
                   setIsOtpBottomSheetOpen(false);
                 },
               }

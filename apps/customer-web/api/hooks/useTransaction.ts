@@ -13,6 +13,8 @@ import {
   InitiateFundingTransferDto,
   InitiateRemittanceTransferDto,
 } from '../types/TransactionTypes';
+import { errorHandling } from '../../components/shared/errorHandling';
+import { useIntl } from 'react-intl';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const transactionService = new TransactionService(apiClient);
@@ -85,6 +87,8 @@ export const useInitiateRemittance = () => {
  * @param id Unique ID of the transaction.
  */
 export const useTransaction = (id: string) => {
+  const { formatMessage } = useIntl();
+
   const tt = useQuery<CybridTransactionEntity, Error>({
     queryKey: ['transaction', id],
     queryFn: () =>
@@ -100,8 +104,8 @@ export const useTransaction = (id: string) => {
       }),
   });
   const { isError, error } = tt;
-  // TODO: Use alert in case of error. Will be replaced with proper notifications later.
-  if (isError) alert(error.message);
+
+  if (isError) errorHandling({ error, formatMessage });
 
   return tt;
 };

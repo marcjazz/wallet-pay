@@ -25,6 +25,7 @@ import NewExternalAccountBottomSheet from '../../components/external-accounts/Ne
 import Plaid from '../../components/external-accounts/Plaid';
 import Footer from '../../components/layout/footer/Footer';
 import { ExternalAccountVerificationStatus } from '../../types';
+import { errorHandling } from '../../components/shared/errorHandling';
 
 export interface ExternalAccount {
   cybrid_external_account_id: string;
@@ -183,8 +184,7 @@ export default function ExternalAccounts() {
                 {},
                 {
                   onSuccess: (data) => setPlaidLinkToken(data.plaid_link_token),
-                  //TODO: USE alert in case of error. will be replaced with proper notifications later
-                  onError: (error) => alert(error.message),
+                  onError: (error) => errorHandling({ error, formatMessage }),
                 }
               );
             }}

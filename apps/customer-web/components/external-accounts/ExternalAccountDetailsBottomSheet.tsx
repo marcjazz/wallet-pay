@@ -8,6 +8,7 @@ import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
 import BottomSheet from '../shared/BottomSheet';
 import { kycChipVariants } from './ExternalAccountCard';
+import { errorHandling } from '../shared/errorHandling';
 
 interface ExternalAccountDetailsBottomSheetProps {
   closeBottomSheet: () => void;
@@ -35,8 +36,7 @@ export default function ExternalAccountDetailsBottomSheet({
       },
       {
         onSuccess: () => refetchAccounts(),
-        // TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
+        onError: (error) => errorHandling({ error, formatMessage }),
       }
     );
   };

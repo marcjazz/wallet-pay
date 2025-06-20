@@ -15,6 +15,7 @@ import {
 import { AccountType, VerificationStatus } from '../../api/types';
 import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
+import { errorHandling } from '../shared/errorHandling';
 
 export const kycChipVariants: Record<
   VerificationStatus,
@@ -85,8 +86,7 @@ export default function ExternalAccountCard({
           onSuccess: () => {
             refetchExternalAccounts();
           },
-          // TODO: USE alert in case of error. will be replaced with proper notifications later
-          onError: (error) => alert(error.message),
+          onError: (error) => errorHandling({ error, formatMessage }),
         }
       );
     } else if (
