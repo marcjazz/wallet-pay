@@ -14,7 +14,7 @@ export const website = {
   profile: 'Profile',
   invalidEmail: 'Invalid email address',
   requiredField: 'Required field',
-  minPasswordCharacters: 'Password must be at least 3 characters long',
+  minPasswordCharacters: 'Password must be at least 8 characters long',
   enterEmail: 'Enter your email',
   email: 'Email',
   password: 'Password',
@@ -232,4 +232,14 @@ export const website = {
   receiverNameWarning:
     "Please ensure your recipient's name entered here matches the name registered on their mobile money account. Any incorrect names could cause delays to your transfer.",
   passwordsDoNotMatch: 'Passwords do not match',
+  otpSent: 'OTP sent',
+  TransactionInitiated: 'Transaction Initiated',
+  accountVerified: 'Account Verified',
+  logoutSuccess: 'Logout Success',
+  serverError: 'Server error. Try again later',
+  receiverCreated: 'Receiver created',
+  noFboAccounts: 'No FBO accounts found',
+  passwordRequirements:
+    'At least 1 lowercase, 1 uppercase, 1 digit, and one special character',
+  invalidOTP: 'Invalid OTP',
 };
