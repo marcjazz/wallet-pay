@@ -20,6 +20,7 @@ import { useCybridAccounts } from '../../../api/hooks/useAccounts';
 import { CurrencyEntity } from '../../../api/types';
 import { CybridAccountEntity } from '../../../api/types/AccountTypes';
 import ChangeCurrencyMenu from './ChangeCurrencyMenu';
+import { errorHandling } from '../../shared/errorHandling';
 
 export enum SupportedPayoutMethod {
   cash = 'cash_pickup',
@@ -87,10 +88,12 @@ export default function SendAmountStep({
   useEffect(() => {
     if (!areCurrenciesLoading) {
       if (accounts.length) setSendingAccount(accounts[0]);
-      //TODO: REPLACE WITH PROPER NOTIFICATION
-      else alert('No FBO accounts found');
+      else errorHandling({
+        error: new Error('noFboAccounts'),
+        formatMessage,
+      });
     }
-  }, [accounts, areCurrenciesLoading]);
+  }, [accounts, areCurrenciesLoading, formatMessage]);
 
   const validationSchema = Yup.object({
     sendingAmount: Yup.number()
@@ -350,18 +353,18 @@ export default function SendAmountStep({
                 value={
                   sendingAccount
                     ? formatNumber(
-                        Math.floor(
-                          formik.values.sendingAmount *
-                            (currencies?.find(
-                              (currency) =>
-                                currency.currency === sendingAccount.currency
-                            )?.xaf_rate ?? 1)
-                        ),
-                        {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }
-                      )
+                      Math.floor(
+                        formik.values.sendingAmount *
+                        (currencies?.find(
+                          (currency) =>
+                            currency.currency === sendingAccount.currency
+                        )?.xaf_rate ?? 1)
+                      ),
+                      {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }
+                    )
                     : 0
                 }
                 startAdornment={
@@ -387,11 +390,10 @@ export default function SendAmountStep({
                 {areCurrenciesLoading ? (
                   <Skeleton width="100px" />
                 ) : (
-                  `1${sendingAccount.currency} = ${
-                    currencies?.find(
-                      (currency) =>
-                        currency.currency === sendingAccount.currency
-                    )?.xaf_rate ?? 1
+                  `1${sendingAccount.currency} = ${currencies?.find(
+                    (currency) =>
+                      currency.currency === sendingAccount.currency
+                  )?.xaf_rate ?? 1
                   }XAF`
                 )}
               </Typography>
