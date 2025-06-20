@@ -22,6 +22,7 @@ import {
   ReceiverEntity,
 } from '../../../api/types';
 import BottomSheet from '../../shared/BottomSheet';
+import { errorHandling } from '../../shared/errorHandling';
 import { SupportedPayoutMethod } from '../amount/SendAmountStep';
 import { PhoneNetworkIcon } from './PhoneNetworkIcon';
 import { BankReceiver, MomoReceiver, Receiver } from './ReceiverStep';
@@ -151,8 +152,7 @@ export default function RecipientDetailsBottomSheet({
               resetForm();
             },
             onError: (error) => {
-              //TODO: USE alert in case of error. will be replaced with proper notifications later
-              alert(error.message);
+              errorHandling({ error, formatMessage });
             },
           }
         );

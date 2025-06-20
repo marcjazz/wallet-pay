@@ -47,9 +47,8 @@ export default function Login() {
           localStorage.removeItem('redirectPath');
         },
         onError: (error) => {
-          //TODO: USE alert in case of error. will be replaced with proper notifications later
-          alert(error.message);
-          setFieldValue('password', '');
+          errorHandling({ error, formatMessage, redirect: push });
+          resetForm();
         },
       });
     },

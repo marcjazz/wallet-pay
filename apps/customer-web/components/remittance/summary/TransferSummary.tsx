@@ -16,6 +16,7 @@ import OTPBottomSheet from '../../auth/forgot-password/OTPBottomSheet';
 import { AmountStepData } from '../amount/SendAmountStep';
 import RecipientSummaryCard from './RecipientSummaryCard';
 import SummaryLine from './SummaryLine';
+import { errorHandling } from '../../shared/errorHandling';
 
 interface TransferSummaryProps {
   amountStepData: AmountStepData;
@@ -55,8 +56,7 @@ export default function TransferSummary({
           setTransferOtpId(data.otp_id);
           setIsConfirmTransactionOtpOpen(true);
         },
-        //TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
+        onError: (error) => errorHandling({ error, formatMessage }),
       }
     );
   }
@@ -82,8 +82,7 @@ export default function TransferSummary({
       },
       {
         onSuccess: (data) => push(`remittance/${data.cybrid_transaction_id}`),
-        //TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
+        onError: (error) => errorHandling({ error, formatMessage }),
       }
     );
   }

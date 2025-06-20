@@ -7,6 +7,8 @@ import {
 } from 'react-plaid-link';
 import { useCreateExternalAccount } from '../../api/hooks/useAccounts';
 import { Currency } from '../../api/types';
+import { errorHandling } from '../shared/errorHandling';
+import { useIntl } from 'react-intl';
 
 export default function Plaid({
   plaidPublicToken,
@@ -16,6 +18,7 @@ export default function Plaid({
   handleSuccess: () => void;
 }) {
   const { mutate: createExternalAccount } = useCreateExternalAccount();
+  const { formatMessage } = useIntl();
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(
     (
@@ -32,12 +35,11 @@ export default function Plaid({
         },
         {
           onSuccess: () => handleSuccess(),
-          // TODO: USE alert in case of error. will be replaced with proper notifications later
-          onError: (error) => alert(error.message),
+          onError: (error) => errorHandling({ error, formatMessage }),
         }
       );
     },
-    [createExternalAccount, handleSuccess]
+    [createExternalAccount, formatMessage, handleSuccess]
   );
 
   // The usePlaidLink hook manages Plaid Link creation

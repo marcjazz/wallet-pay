@@ -14,6 +14,8 @@ import { useIntl } from 'react-intl';
 import { useLogOut } from '../../../api/hooks/useAuth';
 import { LeftDialogTransition } from '../../shared/dialog-transition';
 import MenuItem, { MenuItemProps } from './MenuItem';
+import { errorHandling } from '../../shared/errorHandling';
+import { toast } from 'react-toastify';
 
 type MenuItemGroup = Record<string, MenuItemProps[]>;
 
@@ -95,11 +97,11 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
         action: () =>
           logOut(undefined, {
             onSuccess: () => {
+              toast.success(formatMessage({ id: 'logoutSuccess' }));
               push('/login');
               localStorage.removeItem('redirectPath');
             },
-            // TODO: USE alert in case of error. will be replaced with proper notifications later
-            onError: (error) => alert(error.message),
+            onError: (error) => errorHandling({ error, formatMessage, redirect: push }),
           }),
       },
     ],

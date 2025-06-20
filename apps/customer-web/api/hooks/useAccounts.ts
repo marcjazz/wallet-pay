@@ -14,6 +14,8 @@ import {
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from '../types/AccountTypes';
+import { errorHandling } from '../../components/shared/errorHandling';
+import { useIntl } from 'react-intl';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const accountsService = new AccountService(apiClient);
@@ -22,14 +24,14 @@ const accountsService = new AccountService(apiClient);
  * Hook for fetching all Cybrid accounts.
  */
 export const useCybridAccounts = () => {
+  const { formatMessage } = useIntl();
   const tt = useQuery<CybridAccountEntity[], Error>({
     queryKey: ['cybridAccounts'],
     queryFn: () => accountsService.findAll(),
     initialData: [],
   });
   const { isError, error } = tt;
-  //TODO: USE alert in case of error. will be replaced with proper notifications later
-  if (isError) alert(error.message);
+  if (isError) errorHandling({ error, formatMessage });
   return tt;
 };
 
@@ -39,14 +41,14 @@ export const useCybridAccounts = () => {
 export const useExternalAccounts = (
   verificationStatus?: VerificationStatus
 ) => {
+  const { formatMessage } = useIntl();
   const tt = useQuery<ExternalBankAccountEntity[], Error>({
     queryKey: ['externalAccounts', verificationStatus],
     queryFn: () => accountsService.findAllExternals(verificationStatus),
     initialData: [],
   });
   const { isError, error } = tt;
-  //TODO: USE alert in case of error. will be replaced with proper notifications later
-  if (isError) alert(error.message);
+  if (isError) errorHandling({ error, formatMessage });
   return tt;
 };
 
