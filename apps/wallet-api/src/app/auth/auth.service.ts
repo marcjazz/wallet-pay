@@ -23,6 +23,7 @@ import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
 import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
 import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
 import { isUserPilotActive } from '../../helpers/utils';
+
 @Injectable()
 export class AuthService {
   private static readonly ACCESS_TOKEN_TYPE: TokenType = 'access_token';
@@ -83,10 +84,6 @@ export class AuthService {
       name: `${payload.first_name} ${payload.last_name}`,
       email: payload.email,
     });
-    if (!isPilotActive)
-      throw new UnprocessableEntityException(
-        'You are not a pilot active. Contact admins or try again later.',
-      );
 
     const {
       PersonHasRoles: [{ is_active, person_has_role_id }],
@@ -95,6 +92,7 @@ export class AuthService {
       include: { PersonHasRoles: true },
       data: {
         ...payload,
+        ...(isPilotActive && { is_pilot_active: isPilotActive }),
         birthdate: new Date(payload.birthdate),
         password: bcrypt.hashSync(
           password,
@@ -357,7 +355,8 @@ export class AuthService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, is_active, created_at, person_id, ...person } = user;
+    const { id, is_active, created_at, person_id, is_pilot_active, ...person } =
+      user;
     await this.prismaService.person.update({
       data: {
         is_verified: true,
