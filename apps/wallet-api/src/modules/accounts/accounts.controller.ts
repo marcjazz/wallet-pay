@@ -89,7 +89,15 @@ export class AccountsController {
       payload.external_bank_account_id
     ) {
       throw new UnprocessableEntityException(
-        `External bank account is not required for ${payload.account_type}`
+        `External bank account is not required for ${payload.account_type}`,
+      );
+    }
+
+    // check if the pilot user is into the pilot active list
+    // TODO: Remove this check when launch priod end
+    if (!req.user?.is_pilot_active) {
+      throw new UnprocessableEntityException(
+        'Sorry, your are not authorized to perform this action for the moment. Please contact support.',
       );
     }
 
