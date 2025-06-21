@@ -35,11 +35,17 @@ export function errorHandling({
     const message = error.response?.data?.message || error.message;
 
     if (status && statusHandler[status]) {
-      statusHandler[status](message);
-      // TODO: remove this after launch
-      if (message.includes('pilot active') && status === 422) {
+      // TODO: remove this check after launch
+      if (message.includes('contact support') && status === 422) {
         alert(message);
+        statusHandler[status](message);
+        return;
       }
+      if (message.includes('username') && status === 422) {
+        statusHandler[status]('usernameTaken');
+        return;
+      }
+      statusHandler[status](message);
     } else {
       toast.error(formatMessage({ id: message ?? 'serverError' }));
     }
