@@ -6,3 +6,9 @@ export type PayoutPayload = {
   senderLastName?: string;
   senderMobilePhone?: string;
 };
+
+export type SurverPerson = {
+  person_id: string;
+  email: string;
+  first_name: string;
+};
