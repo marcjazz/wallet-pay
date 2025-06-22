@@ -220,7 +220,7 @@ export default function RegisterPartTwo({
                     textDecoration: 'none',
                   }}
                   component="a"
-                  href="https://policy.xafshop.com"
+                  href="https://xafpay.com/termsAndcondition"
                   target="_blank"
                 >
                   {formatMessage({ id: 'our' })}
