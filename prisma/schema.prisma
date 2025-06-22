@@ -8,6 +8,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
 model ReceiverBankPayoutInfo {
   receiver_bank_payout_info_id String              @id @default(cuid()) @db.VarChar(36)
   holder_name                  String              @db.VarChar(45)
@@ -311,7 +315,7 @@ model CybridCounterparty {
   CybridTransactions         CybridTransaction[]
   StripeTransactions         StripeTransaction[]
 
-  @@unique([person_id, fullname, phone_number])
+  @@unique([person_id, phone_number])
   @@map("receiver_payout_info")
 }
 
