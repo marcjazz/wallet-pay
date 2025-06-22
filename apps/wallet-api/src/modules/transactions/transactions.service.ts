@@ -181,7 +181,7 @@ export class TransactionsService {
     }
 
     if (sourceAccountInfo.balance < payload.amount) {
-      throw new UnprocessableEntityException('Infussicient account balance');
+      throw new UnprocessableEntityException('Insufficient account balance');
     }
 
     const cybridCounterparty = await this.getCounterpartyFromReceiver(receiver);
@@ -441,7 +441,7 @@ export class TransactionsService {
     });
 
     this.logger.verbose(
-      `Sucessfully initiated ${transactions.length} remittance transactions settlement (Transfer Guid: ${transfer.guid})`
+      `Successfully initiated ${transactions.length} remittance transactions settlement (Transfer Guid: ${transfer.guid})`,
     );
   }
 
