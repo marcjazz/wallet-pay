@@ -10,6 +10,8 @@ import {
   generateTransactionReceiptEmail,
   TransactionReceipt,
 } from './emails/transaction-email';
+import { SurverPerson } from '../types/payout';
+import { generateSurveyEmail } from './emails/surver-email';
 
 @Injectable()
 export class MailerService {
@@ -18,7 +20,7 @@ export class MailerService {
   constructor(
     @InjectQueue(mailerConstants.QUEUE)
     private mailerQueue: Queue,
-    private prismaService: PrismaService
+    private prismaService: PrismaService,
   ) {}
 
   async sendMessage({
@@ -27,7 +29,7 @@ export class MailerService {
   }: Mail.Options) {
     this.logger.debug('Add text-mailer job to queue...');
 
-    await this.mailerQueue.add('text-mailer', { ...payload, from });
+    return await this.mailerQueue.add('text-mailer', { ...payload, from });
   }
 
   async sendReceiptEmail(emailObject: {
@@ -76,7 +78,7 @@ export class MailerService {
       amountSent: `${cybridTransaction.initial_currency_amount} ${cybridTransaction.initial_currency}`,
     };
 
-    await this.sendMessage({
+    const sendingEmail = await this.sendMessage({
       to: person.email,
       subject: emailObject.payoutAt
         ? `Payout Receipt (${transactionId})`
@@ -90,6 +92,39 @@ export class MailerService {
         : generateTransactionReceiptEmail(receiptData),
     });
 
+    // Initiate sending survey email when receipt mail has been send alreasy
+    if (sendingEmail) {
+      await this.sendSurveyEmail({
+        person_id: person.person_id,
+        email: person.email,
+        first_name: person.first_name,
+      });
+    }
+
     return { person, cybridCounterparty };
+  }
+
+  private async sendSurveyEmail({
+    person_id,
+    email,
+    first_name: name,
+  }: SurverPerson) {
+    const cybridTransactions =
+      await this.prismaService.cybridTransaction.findMany({
+        where: {
+          InitiatedBy: {
+            person_id,
+          },
+        },
+      });
+    if (cybridTransactions.length === 1) {
+      // send survey email
+      await this.sendMessage({
+        to: email,
+        subject: `Help Us Improve Xafpay – Share Your Feedback!`,
+        html: generateSurveyEmail(name),
+      });
+    }
+    return;
   }
 }
