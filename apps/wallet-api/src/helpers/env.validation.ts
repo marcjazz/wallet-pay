@@ -104,10 +104,6 @@ class EnvironmentVariables {
   @IsString()
   PEEX_PASSWORD: string;
 
-  @IsEmail({}, {
-    each: true,
-    message: 'Each item in PILOT_USER_EMAILS must be a valid email address.'
-  })
   PILOT_USER_EMAILS: string[]
 }
 
