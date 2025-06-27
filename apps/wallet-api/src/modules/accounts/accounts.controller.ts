@@ -93,14 +93,6 @@ export class AccountsController {
       );
     }
 
-    // check if the pilot user is into the pilot active list
-    // TODO: Remove this check when launch priod end
-    if (!req.user?.is_pilot_active) {
-      throw new UnprocessableEntityException(
-        'Sorry, your are not authorized to perform this action for the moment. Please contact support.',
-      );
-    }
-
     let identityVerification;
     if (payload.external_bank_account_id) {
       identityVerification =

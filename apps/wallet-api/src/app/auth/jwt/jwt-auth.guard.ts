@@ -41,13 +41,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       'otp/request',
     ].some((path) => request.url.includes(path));
 
+    // TODO: Remove this check when launch priod end
+    if (!user.is_pilot_user && !isAuthorizedRoute) {
+      throw new ForbiddenException('Platform not available to all yet!');
+    }
+
     const request = context.switchToHttp().getRequest<Request>();
     if (!user.is_verified && !isAuthorizedRoute) {
       throw new ForbiddenException('Unverified email!');
-    }
-
-    if (!user.is_pilot_user && !isAuthorizedRoute) {
-      throw new ForbiddenException('Platform not available to all yet!');
     }
 
     return user as TUser;
