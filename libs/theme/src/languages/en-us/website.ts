@@ -243,4 +243,5 @@ export const website = {
     'At least 1 lowercase, 1 uppercase, 1 digit, and one special character',
   invalidOTP: 'Invalid OTP',
   usernameTaken: 'Username already taken',
+  recipientExistAlready: 'recipient number exist already',
 };

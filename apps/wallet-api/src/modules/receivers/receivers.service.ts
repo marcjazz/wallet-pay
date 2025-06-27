@@ -78,6 +78,17 @@ export class RecieversService {
       );
     }
 
+    const isCounterpartyExists =
+      await this.prismaService.cybridCounterparty.findFirst({
+        where: {
+          AND: [{ phone_number: phoneNumber }, { person_id: personId }],
+        },
+      });
+
+    if (isCounterpartyExists) {
+      throw new UnprocessableEntityException('recipientExistAlready');
+    }
+
     // Validate receiver's account name
     // const { family_name, given_name } =
     //   await this.momoService.getAccountHolderBasicInfo(phoneNumber);
