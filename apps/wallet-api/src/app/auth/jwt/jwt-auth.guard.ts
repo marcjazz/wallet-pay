@@ -34,14 +34,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       throw err || new ForbiddenException('Invalid bearer token!');
     }
 
+    const isAuthorizedRoute = [
+      'auth',
+      'users',
+      'currencies',
+      'otp/request',
+    ].some((path) => request.url.includes(path));
+
     const request = context.switchToHttp().getRequest<Request>();
-    if (
-      !user.is_verified &&
-      !['auth', 'users', 'currencies', 'otp/request'].some((path) =>
-        request.url.includes(path)
-      )
-    ) {
+    if (!user.is_verified && !isAuthorizedRoute) {
       throw new ForbiddenException('Unverified email!');
+    }
+
+    if (!user.is_pilot_user && !isAuthorizedRoute) {
+      throw new ForbiddenException('Platform not available to all yet!');
     }
 
     return user as TUser;

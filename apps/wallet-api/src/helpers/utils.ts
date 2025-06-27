@@ -49,44 +49,17 @@ export function verificationStatusFrom({
  * @returns boolean
  *
  */
-export function isUserPilotActive({
-  name,
-  email,
-}: {
-  name: string;
-  email: string;
-}): boolean {
-  const pilotActiveUser: { name: string; email: string }[] = [
-    { name: 'Terence Njong', email: 'terencenjong@yahoo.com' },
-    { name: 'Gilbert Berka Mengnjo', email: 'Gilbert.mengnjo@gmail.com' },
-    { name: 'Zaumu Nelson', email: 'nelson.zaumu@gmail.com' },
-    { name: 'Austin Verla', email: 'austin79verla@gmail.com' },
-    { name: 'Lawrence Verla Shang', email: 'Shangverla@gmail.com' },
-    { name: 'Sandra Fru', email: 'sandra.fru@outlook.com' },
-    { name: 'Ngweka Queen', email: 'queen.cindy@yahoo.com' },
-    { name: 'Lontsi Walters', email: 'lontsiwalters57@gmail.com' },
-    { name: 'Chesi Derick', email: 'chesicrazy@yahoo.com' },
-    { name: 'Amba Bole', email: 'inice1995@gmail.com' },
-    { name: 'James Nyingcho', email: 'nyingchojames@yahoo.com' },
-    { name: 'Solange Ngingwan', email: 'mafondi@yahoo.com' },
-    { name: 'Lionel Che Ndingwan', email: 'lionelndingwan@gmail.com' },
-    { name: 'Geraldine Fru', email: 'gerafru75@yahoo.com' },
-    { name: 'Kodia Hope', email: 'kodiasteerforth@gmail.com' },
-  ];
+export function isUserPilotActive(email: string): boolean {
+  const pilotActiveUser = JSON.parse(
+    process.env.PILOT_USER_EMAILS ?? '[]'
+  ) as string[];
 
-  // Normalize both input and reference names for comparaison
-  const normalizeName = (fullName: string) => {
-    return fullName.toLowerCase().split(/\s+/).sort().join(' ');
-  };
-
-  return pilotActiveUser.some((user) => {
-    if (user.email.toLowerCase() === email.toLowerCase()) {
-      return true;
-    }
-
-    const normalizedFullName = normalizeName(user.name);
-    const normalizedInputName = normalizeName(name);
-
-    return normalizedFullName === normalizedInputName;
-  });
+  return pilotActiveUser.some((e) => e.toLowerCase() === email.toLowerCase());
 }
+
+/**
+ * Normalize both input and reference names for comparaison
+ * */
+export const normalizeName = (fullName: string) => {
+  return fullName.toLowerCase().split(/\s+/).sort().join(' ');
+};

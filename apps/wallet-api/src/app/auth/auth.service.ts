@@ -80,10 +80,7 @@ export class AuthService {
     const { fiatAccount, cryptoAccount, customer } =
       await this.cybridService.createCustomer('USD', payload.first_name);
 
-    const isPilotActive: boolean = isUserPilotActive({
-      name: `${payload.first_name} ${payload.last_name}`,
-      email: payload.email,
-    });
+    const isPilotUser: boolean = isUserPilotActive(payload.email);
 
     const {
       PersonHasRoles: [{ is_active, person_has_role_id }],
@@ -92,7 +89,7 @@ export class AuthService {
       include: { PersonHasRoles: true },
       data: {
         ...payload,
-        ...(isPilotActive && { is_pilot_active: isPilotActive }),
+        is_pilot_user: isPilotUser,
         birthdate: new Date(payload.birthdate),
         password: bcrypt.hashSync(
           password,
@@ -355,7 +352,7 @@ export class AuthService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, is_active, created_at, person_id, is_pilot_active, ...person } =
+    const { id, is_active, created_at, person_id, ...person } =
       user;
     await this.prismaService.person.update({
       data: {
