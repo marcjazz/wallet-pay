@@ -41,6 +41,9 @@ export function verificationStatusFrom({
     : (state.toLocaleUpperCase() as IdentityVerificationStatus);
 }
 
+const PILOT_USER_EMAILS: string[] =
+  JSON.parse(process.env.PILOT_USER_EMAILS ?? '[]') ?? [];
+
 /**
  * Validate if user is polite active or not.
  * Takes name and email and check if these exist on the given list
@@ -49,12 +52,8 @@ export function verificationStatusFrom({
  * @returns boolean
  *
  */
-export function isUserPilotActive(email: string): boolean {
-  const pilotActiveUser = JSON.parse(
-    process.env.PILOT_USER_EMAILS ?? '[]'
-  ) as string[];
-
-  return pilotActiveUser.some((e) => e.toLowerCase() === email.toLowerCase());
+export function isPilotUser(email: string): boolean {
+  return PILOT_USER_EMAILS.some((e) => e.toLowerCase() === email.toLowerCase());
 }
 
 /**

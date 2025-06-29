@@ -13,6 +13,8 @@ import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { generateAccountNumber } from '../../helpers/otp-generator';
+import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
+import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
 import { MailerService } from '../../mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OTPService } from '../two-fa/otp/otp.service';
@@ -20,9 +22,6 @@ import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { RoleEnum } from './auth.decorator';
 import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
-import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
-import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
-import { isUserPilotActive } from '../../helpers/utils';
 
 @Injectable()
 export class AuthService {
@@ -80,8 +79,6 @@ export class AuthService {
     const { fiatAccount, cryptoAccount, customer } =
       await this.cybridService.createCustomer('USD', payload.first_name);
 
-    const isPilotUser: boolean = isUserPilotActive(payload.email);
-
     const {
       PersonHasRoles: [{ is_active, person_has_role_id }],
       ...person
@@ -89,7 +86,6 @@ export class AuthService {
       include: { PersonHasRoles: true },
       data: {
         ...payload,
-        is_pilot_user: isPilotUser,
         birthdate: new Date(payload.birthdate),
         password: bcrypt.hashSync(
           password,
@@ -352,7 +348,7 @@ export class AuthService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, is_active, created_at, person_id, is_pilot_user, ...person } =
+    const { id, is_active, created_at, person_id, ...person } =
       user;
     await this.prismaService.person.update({
       data: {
