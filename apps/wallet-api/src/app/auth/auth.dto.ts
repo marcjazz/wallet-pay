@@ -48,10 +48,6 @@ export class SignUpDto extends SignInDto {
   country: CybridSupportedCountry;
 
   @IsString()
-  @ApiProperty()
-  username: string;
-
-  @IsString()
   @ApiProperty({
     description: 'User first name',
   })

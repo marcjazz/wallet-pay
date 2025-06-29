@@ -29,7 +29,6 @@ export async function createInitialAdminAcount({
     gender: PersonGender.MALE,
     password: hashPassword,
     phone_number: '+1 (703) 899-5276',
-    username: 'xafpay237',
     LocalCustomers: {
       create: {
         balance: 0,

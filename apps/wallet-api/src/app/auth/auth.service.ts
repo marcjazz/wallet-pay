@@ -46,7 +46,7 @@ export class AuthService {
     password: string
   ): Promise<Express.User | null> {
     const person = await this.prismaService.person.findFirst({
-      where: { OR: [{ email: username }, { username }] },
+      where: { OR: [{ email: username }] },
     });
     if (person && bcrypt.compareSync(password, person.password)) {
       const subdomain = new URL(request.headers.origin as string).host;
@@ -221,12 +221,12 @@ export class AuthService {
     const user = await this.prismaService.personHasRole.findFirst({
       include: { Person: true },
       where: {
-        Person: { OR: [{ email: username }, { username }] },
+        Person: { email: username },
       },
     });
 
     if (!user) {
-      throw new NotFoundException('No such email or username!');
+      throw new NotFoundException('No such email!');
     }
 
     const otp = await this.otpService.request(
@@ -352,7 +352,7 @@ export class AuthService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, is_active, created_at, person_id, ...person } =
+    const { id, is_active, created_at, person_id, is_pilot_user, ...person } =
       user;
     await this.prismaService.person.update({
       data: {

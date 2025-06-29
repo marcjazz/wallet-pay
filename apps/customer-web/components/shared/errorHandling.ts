@@ -41,10 +41,6 @@ export function errorHandling({
         statusHandler[status](message);
         return;
       }
-      if (message.includes('username') && status === 422) {
-        statusHandler[status]('usernameTaken');
-        return;
-      }
       statusHandler[status](message);
     } else {
       toast.error(formatMessage({ id: message ?? 'serverError' }));
