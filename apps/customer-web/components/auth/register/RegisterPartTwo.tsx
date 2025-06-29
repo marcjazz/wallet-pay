@@ -64,9 +64,6 @@ export default function RegisterPartTwo({
         Yup.ref('password')],
         formatMessage({ id: 'passwordsDoNotMatch' })
       ),
-    username: Yup.string()
-      .required(formatMessage({ id: 'requiredField' }))
-      .min(3, formatMessage({ id: 'minUsernameCharacters' })),
     country: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
       .oneOf(Object.values(Country)),
@@ -98,24 +95,6 @@ export default function RegisterPartTwo({
           rowGap: 1,
         }}
       >
-        <FormControl
-          required
-          error={Boolean(formik.touched.username && formik.errors.username)}
-          disabled={isSubmitting}
-        >
-          <FormLabel htmlFor="username">
-            {formatMessage({ id: 'username' })}
-          </FormLabel>
-          <OutlinedInput
-            id="username"
-            placeholder={formatMessage({ id: 'username' })}
-            {...formik.getFieldProps('username')}
-            autoFocus
-          />
-          <FormHelperText>
-            {formik.touched.username && formik.errors.username}
-          </FormHelperText>
-        </FormControl>
         <FormControl
           required
           error={Boolean(formik.touched.password && formik.errors.password)}
