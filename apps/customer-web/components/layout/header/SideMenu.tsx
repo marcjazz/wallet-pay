@@ -81,13 +81,13 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
       {
         title: formatMessage({ id: 'termsAndConditions' }),
         icon: <ExternalLinkIcon size={22} />,
-        action: () => open('https://policy.xafshop.com', '_blank'),
+        action: () => open('https://xafpay.com/termsAndcondition', '_blank'),
       },
       {
         title: formatMessage({ id: 'partnerTermsAndConditions' }),
         icon: <ExternalLinkIcon size={22} />,
         action: () =>
-          open('https://www.cybrid.xyz/en/privacy-policy', '_blank'),
+          open('https://xafpay.com/privacyPolicy', '_blank'),
       },
     ],
     '4': [
