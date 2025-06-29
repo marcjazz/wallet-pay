@@ -26,7 +26,6 @@ describe('/auth', () => {
   it('POST /sign-up', async () => {
     await testAuthenticationEndpoints(`/auth/sign-up`, {
       country: 'USA',
-      username: 'marcjazz',
       first_name: 'Marco',
       last_name: 'Kuidja',
       email: 'marco.kuidja@xafpay.com',

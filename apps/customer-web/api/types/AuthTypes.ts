@@ -12,8 +12,6 @@ export interface SignUpDto {
   password: string;
   /** Country code. */
   country: 'USA' | 'CANADA';
-  /** Unique username. */
-  username: string;
   /** User's first name. */
   first_name: string;
   /** User's last name. */

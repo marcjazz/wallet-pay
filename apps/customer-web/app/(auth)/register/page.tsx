@@ -29,7 +29,6 @@ export interface PersonalInfo {
 export interface SecurityInfo {
   password: string;
   confirmPassword: string;
-  username: string;
   country: Country;
   hasAcceptedTerms: boolean;
 }
@@ -85,7 +84,6 @@ export default function Register() {
         last_name: personalInfo.lastName,
         password: data.password,
         phone_number: `+1${personalInfo.USNumber}`,
-        username: data.username,
         gender: personalInfo.gender,
         preferred_language: 'EN_US',
       },

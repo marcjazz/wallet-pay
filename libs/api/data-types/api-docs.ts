@@ -186,119 +186,135 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        SignInDto: {
-            /** @description Valid user email */
-            email: string;
-            /** @description Strong password */
-            password: string;
-        };
-        AuthTokensDto: Record<string, never>;
-        SignUpDto: {
-            /** @description Valid user email */
-            email: string;
-            /** @description Strong password */
-            password: string;
-            /** @enum {string} */
-            country: "USA" | "CANADA";
-            username: string;
-            /** @description User first name */
-            first_name: string;
-            /** @description User last name */
-            last_name: string;
-            /** @description Valid user phone number */
-            phone_number: string;
-            /**
-             * Format: date-time
-             * @description User date of birth
-             */
-            birthdate: string;
-            /**
-             * @description User gender
-             * @example MALE
-             * @enum {string}
-             */
-            gender: "MALE" | "FEMALE" | "OTHER";
-            /**
-             * @default EN_US
-             * @enum {string}
-             */
-            preferred_language: "EN_US" | "FR";
-        };
-        ForgotPasswordDto: {
-            /** @description Valid user email */
-            email: string;
-        };
-        OTPEntity: {
-            otp_id: string;
-            /** @enum {string} */
-            usage: "verify_email" | "reset_password";
-            is_verified: boolean;
-            /** Format: date-time */
-            expires_at: string;
-            updated_at: Record<string, never>;
-            /** Format: date-time */
-            created_at: string;
-            person_has_role_id: string;
-        };
-        ResetPasswordDto: {
-            otp_id: string;
-            otp_code: string;
-            password: string;
-        };
-        UserEntity: {
-            /** @description Valid user email */
-            email: string;
-            /** @description Strong password */
-            password: string;
-            username: string;
-            /** @description User first name */
-            first_name: string;
-            /** @description User last name */
-            last_name: string;
-            /** @description Valid user phone number */
-            phone_number: string;
-            /**
-             * Format: date-time
-             * @description User date of birth
-             */
-            birthdate: string;
-            /**
-             * @description User gender
-             * @example MALE
-             * @enum {string}
-             */
-            gender: "MALE" | "FEMALE" | "OTHER";
-            /**
-             * @default EN_US
-             * @enum {string}
-             */
-            preferred_language: "EN_US" | "FR";
-            user_id: string;
-            /** Format: date-time */
-            created_at: string;
-        };
-        CybridAccountEntity: {
-            cybrid_account_id: string;
-            name: string;
-            balance: number;
-            /** @enum {string} */
-            state: " storing" | "waiting" | "pending" | "reviewing" | "expired" | "completed";
-            /** @enum {string} */
-            kyc_state: " storing" | "waiting" | "pending" | "reviewing" | "expired" | "completed";
-        };
-        IdentityVerificationEntity: {
-            identity_verification_guid: string;
-            customer_guid: string;
-            /** @enum {string} */
-            state: " storing" | "waiting" | "pending" | "reviewing" | "expired" | "completed";
-        };
+  schemas: {
+    SignInDto: {
+      /** @description Valid user email */
+      email: string;
+      /** @description Strong password */
+      password: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    AuthTokensDto: Record<string, never>;
+    SignUpDto: {
+      /** @description Valid user email */
+      email: string;
+      /** @description Strong password */
+      password: string;
+      /** @enum {string} */
+      country: 'USA' | 'CANADA';
+      /** @description User first name */
+      first_name: string;
+      /** @description User last name */
+      last_name: string;
+      /** @description Valid user phone number */
+      phone_number: string;
+      /**
+       * Format: date-time
+       * @description User date of birth
+       */
+      birthdate: string;
+      /**
+       * @description User gender
+       * @example MALE
+       * @enum {string}
+       */
+      gender: 'MALE' | 'FEMALE' | 'OTHER';
+      /**
+       * @default EN_US
+       * @enum {string}
+       */
+      preferred_language: 'EN_US' | 'FR';
+    };
+    ForgotPasswordDto: {
+      /** @description Valid user email */
+      email: string;
+    };
+    OTPEntity: {
+      otp_id: string;
+      /** @enum {string} */
+      usage: 'verify_email' | 'reset_password';
+      is_verified: boolean;
+      /** Format: date-time */
+      expires_at: string;
+      updated_at: Record<string, never>;
+      /** Format: date-time */
+      created_at: string;
+      person_has_role_id: string;
+    };
+    ResetPasswordDto: {
+      otp_id: string;
+      otp_code: string;
+      password: string;
+    };
+    UserEntity: {
+      /** @description Valid user email */
+      email: string;
+      /** @description Strong password */
+      password: string;
+      /** @description User first name */
+      first_name: string;
+      /** @description User last name */
+      last_name: string;
+      /** @description Valid user phone number */
+      phone_number: string;
+      /**
+       * Format: date-time
+       * @description User date of birth
+       */
+      birthdate: string;
+      /**
+       * @description User gender
+       * @example MALE
+       * @enum {string}
+       */
+      gender: 'MALE' | 'FEMALE' | 'OTHER';
+      /**
+       * @default EN_US
+       * @enum {string}
+       */
+      preferred_language: 'EN_US' | 'FR';
+      user_id: string;
+      /** Format: date-time */
+      created_at: string;
+    };
+    CybridAccountEntity: {
+      cybrid_account_id: string;
+      name: string;
+      balance: number;
+      /** @enum {string} */
+      state:
+        | ' storing'
+        | 'waiting'
+        | 'pending'
+        | 'reviewing'
+        | 'expired'
+        | 'completed';
+      /** @enum {string} */
+      kyc_state:
+        | ' storing'
+        | 'waiting'
+        | 'pending'
+        | 'reviewing'
+        | 'expired'
+        | 'completed';
+    };
+    IdentityVerificationEntity: {
+      identity_verification_guid: string;
+      customer_guid: string;
+      /** @enum {string} */
+      state:
+        | ' storing'
+        | 'waiting'
+        | 'pending'
+        | 'reviewing'
+        | 'expired'
+        | 'completed';
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {

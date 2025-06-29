@@ -47,7 +47,6 @@ export default function RegisterPartTwo({
   const initialValues: SecurityInfo = {
     password: '',
     confirmPassword: '',
-    username: '',
     country: Country.USA,
     hasAcceptedTerms: false,
   };

@@ -46,7 +46,7 @@ export class AuthService {
     password: string
   ): Promise<Express.User | null> {
     const person = await this.prismaService.person.findFirst({
-      where: { OR: [{ email: username }, { username }] },
+      where: { OR: [{ email: username }] },
     });
     if (person && bcrypt.compareSync(password, person.password)) {
       const subdomain = new URL(request.headers.origin as string).host;
@@ -221,7 +221,7 @@ export class AuthService {
     const user = await this.prismaService.personHasRole.findFirst({
       include: { Person: true },
       where: {
-        Person: { OR: [{ email: username }, { username }] },
+        Person: { OR: [{ email: username }] },
       },
     });
 
