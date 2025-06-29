@@ -352,7 +352,7 @@ export class AuthService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, is_active, created_at, person_id, ...person } =
+    const { id, is_active, created_at, person_id, is_pilot_user, ...person } =
       user;
     await this.prismaService.person.update({
       data: {
