@@ -226,7 +226,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('No such email or username!');
+      throw new NotFoundException('No such email!');
     }
 
     const otp = await this.otpService.request(

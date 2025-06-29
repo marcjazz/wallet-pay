@@ -55,11 +55,9 @@ export const website = {
   createAccount: 'Create Account',
   back: 'Back',
   country: 'Country',
-  username: 'Username',
   invalidUSNumber: 'Invalid US number',
   alreadyHaveAnAccount: 'Already have an account? ',
   invalidCountry: 'Invalid country',
-  minUsernameCharacters: 'Username must be at least 3 characters long',
   next: 'Next',
   deposit: 'Deposit',
   withdraw: 'Withdraw',
@@ -242,6 +240,5 @@ export const website = {
   passwordRequirements:
     'At least 1 lowercase, 1 uppercase, 1 digit, and one special character',
   invalidOTP: 'Invalid OTP',
-  usernameTaken: 'Username already taken',
   recipientExistAlready: 'recipient number exist already',
 };
