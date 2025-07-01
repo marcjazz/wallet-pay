@@ -35,10 +35,13 @@ export function errorHandling({
     const message = error.response?.data?.message || error.message;
 
     if (status && statusHandler[status]) {
-      // TODO: remove this check after launch
+      // TODO: remove these checks after launch
       if (message.includes('contact support') && status === 422) {
         alert(message);
         statusHandler[status](message);
+        return;
+      }
+      if (message.includes('Platform not available') && status === 403) {
         return;
       }
       statusHandler[status](message);

@@ -1,6 +1,9 @@
 'use client';
 
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
+import { useIntl } from 'react-intl';
+import { errorHandling } from '../../components/shared/errorHandling';
 import { API_BASE_URL } from '../constants';
 import { AccountService } from '../services/AccountService';
 import { ApiClient } from '../services/ApiClient';
@@ -31,7 +34,16 @@ export const useCybridAccounts = () => {
     initialData: [],
   });
   const { isError, error } = tt;
-  if (isError) errorHandling({ error, formatMessage });
+  if (isError) {
+    if (
+      isAxiosError(error) &&
+      error.response?.status === 403 &&
+      error.response.data?.message?.includes('Platform not available')
+    )
+      alert(error.response.data.message);
+
+    errorHandling({ error, formatMessage });
+  }
   return tt;
 };
 
