@@ -66,7 +66,7 @@ export default function SendAmountStep({
     { title: string; action: () => void }
   > = {
     [SupportedPaymentMethod.fiat]: {
-      title: formatMessage({ id: 'fiat' }),
+      title: formatMessage({ id: 'bank' }),
       action: () => setSelectedPaymentMethod(SupportedPaymentMethod.fiat),
     },
     [SupportedPaymentMethod.card]: {
