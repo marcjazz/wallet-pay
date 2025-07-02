@@ -46,7 +46,7 @@ export class AuthService {
     password: string
   ): Promise<Express.User | null> {
     const person = await this.prismaService.person.findFirst({
-      where: { OR: [{ email: username }] },
+      where: { email: username.trim().toLowerCase() },
     });
     if (person && bcrypt.compareSync(password, person.password)) {
       const subdomain = new URL(request.headers.origin as string).host;
