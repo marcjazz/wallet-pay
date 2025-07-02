@@ -17,6 +17,7 @@ import {
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from '../types/AccountTypes';
+import { toast } from 'react-toastify';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const accountsService = new AccountService(apiClient);
@@ -38,7 +39,7 @@ export const useCybridAccounts = () => {
       error.response?.status === 403 &&
       error.response.data?.message?.includes('Platform not available')
     )
-      alert(error.response.data.message);
+      toast.warning(error.response.data.message);
 
     errorHandling({ error, formatMessage });
   }
