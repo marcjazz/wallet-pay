@@ -17,8 +17,6 @@ import {
   VerifyCybridAccountDto,
   WorkflowEntity,
 } from '../types/AccountTypes';
-import { errorHandling } from '../../components/shared/errorHandling';
-import { useIntl } from 'react-intl';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const accountsService = new AccountService(apiClient);
