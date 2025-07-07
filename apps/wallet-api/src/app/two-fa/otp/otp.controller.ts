@@ -44,7 +44,7 @@ export class OTPController {
     return new OTPEntity({ ...otp, usage: otp.usage as TwoFAUsage });
   }
 
-  @SkipAuth()
+  @SkipAuth(false)
   @Patch(':otp_id/resend')
   @ApiCreatedResponse({ type: OTPEntity })
   async resendOTP(@Req() req: Request, @Param('otp_id') otpId: string) {
