@@ -77,8 +77,7 @@ export default function RegisterPartOne({
     initialValues: personalInfo ?? initialValues,
     validationSchema,
     enableReinitialize: true,
-    onSubmit: ({ email, ...values }) =>
-      handleNext({ ...values, email: email.trim().toLowerCase() })
+    onSubmit: (values) =>handleNext(values)
   });
 
   return (
