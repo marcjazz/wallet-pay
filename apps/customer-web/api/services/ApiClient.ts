@@ -31,10 +31,22 @@ export class ApiClient {
     this.client.interceptors.request.use(async (config) => {
       if (this.authToken) {
         const { issued_at, expires_in } = this.authToken;
-        const isTokenExpired = Date.now() >= issued_at + expires_in;
+        const now = Date.now();
+
+        const isTokenExpired = now > issued_at + expires_in;
+        const isTokenCriticalTimeout =
+          now > issued_at + expires_in - 5 * 60 * 1000 && !isTokenExpired;
+
+        if (isTokenCriticalTimeout && !config.url?.includes('auth')) {
+          // If the token is about to expire, refresh it
+          this.authToken = await this.handleTokenRefresh();
+        }
 
         if (isTokenExpired && !config.url?.includes('auth')) {
-          this.authToken = await this.handleTokenRefresh();
+          // If the token is expired, redirect to login
+          this.clearAuthToken();
+          location.href = '/login';
+          throw new Error('Token expired, redirecting to login');
         }
 
         config.headers.Authorization = `Bearer ${this.authToken.access_token}`;
