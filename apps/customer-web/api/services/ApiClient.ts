@@ -35,8 +35,7 @@ export class ApiClient {
 
         const isTokenExpired = now > issued_at + expires_in;
         const isTokenCriticalTimeout =
-          now > issued_at + expires_in - 5 * 60 * 1000 &&
-          now <= issued_at + expires_in;
+          now > issued_at + expires_in - 5 * 60 * 1000 && !isTokenExpired;
 
         if (isTokenCriticalTimeout && !config.url?.includes('auth')) {
           // If the token is about to expire, refresh it
