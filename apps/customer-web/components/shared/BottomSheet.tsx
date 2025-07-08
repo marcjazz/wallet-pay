@@ -46,8 +46,8 @@ export default function BottomSheet({
       {...rest}
       draggable
       disableEscapeKeyDown
-      onClose={(event, reason) => {
-        if (reason !== 'backdropClick') closeBottomSheet();
+      onClose={() => {
+        !disableSwipeToClose && closeBottomSheet();
       }}
       TransitionComponent={BottomSheetTransition}
       sx={{
