@@ -5,6 +5,8 @@ import { API_BASE_URL } from '../constants';
 import { ApiClient } from '../services/ApiClient';
 import { ReceiverService } from '../services/ReceiverService';
 import { CreateReceiverDto, ReceiverEntity } from '../types';
+import { useIntl } from 'react-intl';
+import { errorHandling } from '../../components/shared/errorHandling';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const receiverService = new ReceiverService(apiClient);
@@ -13,6 +15,8 @@ const receiverService = new ReceiverService(apiClient);
  * Hook for fetching receivers.
  */
 export const useReceivers = (search?: string) => {
+  const { formatMessage } = useIntl();
+
   const tt = useQuery<ReceiverEntity[], Error>({
     queryKey: ['receivers'],
     queryFn: () => receiverService.findReceivers(search),
@@ -20,8 +24,7 @@ export const useReceivers = (search?: string) => {
     initialData: [],
   });
   const { isError, error } = tt;
-  //TODO: USE alert in case of error. will be replaced with proper notifications later
-  if (isError) alert(error.message);
+  if (isError) errorHandling({ error, formatMessage });
   return tt;
 };
 
@@ -29,14 +32,16 @@ export const useReceivers = (search?: string) => {
  * Hook for fetching a specific receiver by its ID.
  */
 export const useReceiver = (id: string) => {
+  const { formatMessage } = useIntl();
+
   const tt = useQuery<ReceiverEntity, Error>({
     queryKey: ['receiver', id],
     enabled: !!id,
     queryFn: () => receiverService.findReceiverById(id),
   });
   const { isError, error } = tt;
-  //TODO: USE alert in case of error. will be replaced with proper notifications later
-  if (isError) alert(error.message);
+  if (isError) errorHandling({ error, formatMessage });
+
   return tt;
 };
 
@@ -50,7 +55,6 @@ export const useCreateReceiver = () => {
       receiverService.createReceiver(receiverData),
   });
   const { isError, error } = tt;
-  //TODO: USE alert in case of error. will be replaced with proper notifications later
-  if (isError) alert(error.message);
+  if (isError) console.error(error);
   return tt;
 };

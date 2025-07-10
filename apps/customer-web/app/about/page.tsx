@@ -1,6 +1,4 @@
-import React from 'react'
-
-export default function Index() {
+export default async function Index() {
   return (
     <div>Index</div>
   )

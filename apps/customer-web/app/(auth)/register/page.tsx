@@ -10,6 +10,7 @@ import { Country, Gender } from '../../../api/types/EnumTypes';
 import OTPBottomSheet from '../../../components/auth/forgot-password/OTPBottomSheet';
 import RegisterPartOne from '../../../components/auth/register/RegisterPartOne';
 import RegisterPartTwo from '../../../components/auth/register/RegisterPartTwo';
+import { errorHandling } from '../../../components/shared/errorHandling';
 
 enum Step {
   personal = 1,
@@ -27,7 +28,7 @@ export interface PersonalInfo {
 
 export interface SecurityInfo {
   password: string;
-  username: string;
+  confirmPassword: string;
   country: Country;
   hasAcceptedTerms: boolean;
 }
@@ -83,7 +84,6 @@ export default function Register() {
         last_name: personalInfo.lastName,
         password: data.password,
         phone_number: `+1${personalInfo.USNumber}`,
-        username: data.username,
         gender: personalInfo.gender,
         preferred_language: 'EN_US',
       },
@@ -92,8 +92,7 @@ export default function Register() {
           setOtpId(data.otp_id);
           setIsConfirmEmailBottomSheetOpen(true);
         },
-        //TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
+        onError: (error) => errorHandling({ error, formatMessage, redirect: push }),
       }
     );
     setSecurityInfo(data);
@@ -124,8 +123,7 @@ export default function Register() {
       { code: otp },
       {
         onSuccess: () => push('/'),
-        //TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
+        onError: (error) => errorHandling({ error, formatMessage, redirect: push }),
       }
     );
   }

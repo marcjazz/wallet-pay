@@ -13,6 +13,8 @@ import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { generateAccountNumber } from '../../helpers/otp-generator';
+import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
+import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
 import { MailerService } from '../../mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OTPService } from '../two-fa/otp/otp.service';
@@ -20,8 +22,6 @@ import { TwoFAUsage } from '../two-fa/two-fa.interface';
 import { RoleEnum } from './auth.decorator';
 import { AuthTokensDto, ResetPasswordDto, SignUpDto } from './auth.dto';
 import { IJWTPayload, TokenType } from './jwt/jwt.strategy';
-import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
-import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
 
 @Injectable()
 export class AuthService {
@@ -45,7 +45,7 @@ export class AuthService {
     password: string
   ): Promise<Express.User | null> {
     const person = await this.prismaService.person.findFirst({
-      where: { OR: [{ email: username }, { username }] },
+      where: { email: username.trim().toLowerCase() },
     });
     if (person && bcrypt.compareSync(password, person.password)) {
       const subdomain = new URL(request.headers.origin as string).host;
@@ -122,14 +122,14 @@ export class AuthService {
                       fiatAccount.asset as $Enums.CybridSupportedCurrency,
                     cybrid_account_guid: fiatAccount.guid as string,
                     name: fiatAccount.name as string,
-                    balance: fiatAccount.platform_available as number,
+                    balance: (fiatAccount.platform_available ?? 0) / 100,
                   },
                   {
                     currency:
                       cryptoAccount.asset as $Enums.CybridSupportedCurrency,
                     name: cryptoAccount.name as string,
                     cybrid_account_guid: cryptoAccount.guid as string,
-                    balance: cryptoAccount.platform_available as number,
+                    balance: (cryptoAccount.platform_available ?? 0) / 1e6,
                   },
                 ],
                 skipDuplicates: true,
@@ -217,12 +217,12 @@ export class AuthService {
     const user = await this.prismaService.personHasRole.findFirst({
       include: { Person: true },
       where: {
-        Person: { OR: [{ email: username }, { username }] },
+        Person: { email: username },
       },
     });
 
     if (!user) {
-      throw new NotFoundException('No such email or username!');
+      throw new NotFoundException('No such email!');
     }
 
     const otp = await this.otpService.request(
@@ -348,7 +348,8 @@ export class AuthService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, is_active, created_at, person_id, ...person } = user;
+    const { id, is_active, created_at, person_id, ...person } =
+      user;
     await this.prismaService.person.update({
       data: {
         is_verified: true,

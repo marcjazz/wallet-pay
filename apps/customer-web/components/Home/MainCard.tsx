@@ -23,6 +23,7 @@ import {
 import { useCurrencies } from '../../api/hooks/useCurrency';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { CybridAccountEntity } from '../../api/types/AccountTypes';
+import { errorHandling } from '../shared/errorHandling';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
 
@@ -101,8 +102,7 @@ export default function MainCard() {
                 : undefined
             );
           },
-          // TODO: USE alert in case of error. will be replaced with proper notifications later
-          onError: (error) => alert(error.message),
+          onError: (error) => errorHandling({ error, formatMessage }),
         }
       );
     } else if (identityVerification?.persona_hosted_link) {
@@ -277,12 +277,17 @@ export default function MainCard() {
                 }
               >
                 {formatMessage({
-                  id: !activeAccount.verification_status
-                    ? 'verifyNow'
-                    : activeAccount.verification_status ===
-                      VerificationStatus.WAITING
-                    ? 'completeNow'
-                    : 'waitAminute',
+                  id:
+                    !activeAccount.verification_status ||
+                    activeAccount.verification_status ===
+                      VerificationStatus.FAILED ||
+                    activeAccount.verification_status ===
+                      VerificationStatus.EXPIRED
+                      ? 'verifyNow'
+                      : activeAccount.verification_status ===
+                        VerificationStatus.WAITING
+                      ? 'completeNow'
+                      : 'waitAminute',
                 })}
               </Button>
             ))}

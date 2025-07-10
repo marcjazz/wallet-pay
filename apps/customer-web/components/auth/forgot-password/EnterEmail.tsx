@@ -19,6 +19,7 @@ import { Mail as MailIcon } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { useForgotPassword } from '../../../api/hooks/useAuth';
+import { errorHandling } from '../../shared/errorHandling';
 
 export default function EnterEmail() {
   const { formatMessage } = useIntl();
@@ -45,8 +46,7 @@ export default function EnterEmail() {
         { email: values.email },
         {
           onSuccess: (data) => push(`/reset-password?otp_id=${data.otp_id}`),
-          //TODO: USE alert in case of error. will be replaced with proper notifications later
-          onError: (error) => alert(error.message),
+          onError: (error) => errorHandling({ error, formatMessage, redirect: push }),
         }
       );
     },

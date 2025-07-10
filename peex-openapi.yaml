@@ -1,0 +1,364 @@
+openapi: 3.0.3
+info:
+  title: Peex Platform API
+  version: "1.0"
+  description: API documentation for interacting with the Peex payment platform.
+
+servers:
+  - url: https://sandbox.peexit.com/api/v1
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: SECRETKEY
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    PartnerInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        adress:
+          type: string
+        web_site:
+          type: string
+        description:
+          type: string
+        callback_url:
+          type: string
+        solde:
+          type: number
+        orange_fees:
+          type: number
+        mtn_fees:
+          type: number
+        is_activated:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PhoneVerification:
+      type: object
+      properties:
+        phone:
+          type: string
+        valid:
+          type: boolean
+        mno:
+          type: string
+        local_format:
+          type: string
+        international_format:
+          type: string
+        country_prefix:
+          type: string
+        country_code:
+          type: string
+        country_name:
+          type: string
+
+    PaymentRequestResponse:
+      type: object
+      properties:
+        request:
+          type: object
+          properties:
+            id:
+              type: integer
+            amount:
+              type: number
+            status:
+              type: string
+            from_currency:
+              type: string
+              nullable: true
+            to_currency:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            payment_proof:
+              type: string
+              nullable: true
+            identifier_by:
+              type: string
+            track_id:
+              type: string
+            type:
+              type: string
+            payment_proof_image:
+              type: string
+
+    ClientPaymentRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        amount:
+          type: number
+        status:
+          type: string
+        from_currency:
+          type: string
+          nullable: true
+        to_currency:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        payment_proof:
+          type: string
+        identifier_by:
+          type: string
+        track_id:
+          type: string
+        message:
+          type: string
+        bank_name:
+          type: string
+          nullable: true
+        bank_address:
+          type: string
+          nullable: true
+        bank_iban:
+          type: string
+          nullable: true
+        bank_swift:
+          type: string
+          nullable: true
+        type:
+          type: string
+        payment_proof_image:
+          type: string
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /clients/me:
+    get:
+      summary: Retrieve partner information
+      # tags: [Clients]
+      operationId: getPartnerInfo
+      responses:
+        '200':
+          description: Partner information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerInfo'
+        '401':
+          description: Unauthorized – invalid or missing SECRETKEY
+
+  /clients/verify_phoneNumber:
+    post:
+      summary: Verify a phone number
+      operationId: verifyPhoneNumber
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mobile_phone
+              properties:
+                mobile_phone:
+                  type: string
+      responses:
+        '200':
+          description: Phone verification response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneVerification'
+        '401':
+          description: Unauthorized – invalid or missing SECRETKEY
+
+  /clients/request_payment:
+    post:
+      summary: Request a mobile payment
+      operationId: requestMobilePayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - from_currency
+                - aml_cft
+                - sender_first_name
+                - sender_last_name
+                - sender_mobile_phone
+                - sender_country
+                - first_name
+                - last_name
+                - to_country
+                - purpose
+                - fund_origin
+                - track_id
+              properties:
+                email:
+                  type: string
+                  format: email
+                mobile_phone:
+                  type: string
+                amount:
+                  type: number
+                  format: float
+                from_currency:
+                  type: string
+                to_currency:
+                  type: string
+                  default: XAF
+                fxrate:
+                  type: number
+                  format: float
+                aml_cft:
+                  type: boolean
+                sender_first_name:
+                  type: string
+                sender_last_name:
+                  type: string
+                sender_email:
+                  type: string
+                sender_mobile_phone:
+                  type: string
+                sender_country:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                to_country:
+                  type: string
+                purpose:
+                  type: string
+                fund_origin:
+                  type: string
+                track_id:
+                  type: string
+      responses:
+        '200':
+          description: Payment request response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequestResponse'
+        '404':
+          description: User not found
+        '422':
+          description: aml_cft not set to true
+
+  /clients/request_bank_payment:
+    post:
+      summary: Request a bank payment
+      operationId: requestBankPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bank_name
+                - bank_address
+                - bank_iban
+                - bank_swift
+                - amount
+                - from_currency
+                - to_country
+                - purpose
+                - fund_origin
+              properties:
+                bank_name:
+                  type: string
+                bank_address:
+                  type: string
+                bank_iban:
+                  type: string
+                bank_swift:
+                  type: string
+                track_id:
+                  type: string
+                email:
+                  type: string
+                mobile_phone:
+                  type: string
+                amount:
+                  type: number
+                  format: float
+                from_currency:
+                  type: string
+                to_currency:
+                  type: string
+                  default: XAF
+                fxrate:
+                  type: number
+                  format: float
+                aml_cft:
+                  type: boolean
+                sender_first_name:
+                  type: string
+                sender_last_name:
+                  type: string
+                sender_email:
+                  type: string
+                sender_mobile_phone:
+                  type: string
+                sender_country:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                to_country:
+                  type: string
+                purpose:
+                  type: string
+                fund_origin:
+                  type: string
+      responses:
+        '200':
+          description: Bank payment requested successfully
+        '422':
+          description: aml_cft not set to true
+
+  /clients/all_requests:
+    get:
+      summary: Get all client requests
+      operationId: getAllPaymentRequests
+      parameters:
+        - name: track_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Array of payment requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientPaymentRequest'

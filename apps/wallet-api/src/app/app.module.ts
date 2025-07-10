@@ -87,11 +87,11 @@ import { AjaxErrorFilter } from '../exception-filters/ajax-error.filter';
     },
     {
       provide: APP_FILTER,
-      useClass: AjaxErrorFilter,
+      useClass: HttpExceptionFilter,
     },
     {
       provide: APP_FILTER,
-      useClass: HttpExceptionFilter,
+      useClass: AjaxErrorFilter,
     },
     {
       provide: APP_FILTER,

@@ -18,12 +18,12 @@ export async function insertDefaultCurrencyRates(adminId) {
       {
         created_by: adminId,
         currency: CybridSupportedCurrency.USD,
-        xaf_rate: 601.57,
+        xaf_rate: 601,
       },
       {
         created_by: adminId,
         currency: CybridSupportedCurrency.CAD,
-        xaf_rate: 418.12,
+        xaf_rate: 418,
       },
     ],
     skipDuplicates: true,

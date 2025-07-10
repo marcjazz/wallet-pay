@@ -52,7 +52,7 @@ export default function RecipientCard({
           color: theme.palette.primary.contrastText,
         }}
       >
-        {getUsernameInitials(receiver.fullname)}
+        {getUsernameInitials(receiver.fullname,1)}
       </Avatar>
       <Box sx={{ display: 'grid', rowGap: 0.5, justifyItems: 'start' }}>
         <Typography variant="l1b" color="black">

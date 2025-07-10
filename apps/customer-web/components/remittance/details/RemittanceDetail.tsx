@@ -10,7 +10,6 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { useExternalAccounts } from '../../../api/hooks/useAccounts';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
@@ -23,6 +22,7 @@ import {
   X,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { useExternalAccounts } from '../../../api/hooks/useAccounts';
 import { useReceiver } from '../../../api/hooks/useReciever';
 import {
   CybridTransactionEntity,
@@ -61,6 +61,10 @@ export default function RemittanceDetail({
     FAILED: {
       image: <AlertCircle color={theme.palette.error.main} size="76" />,
       title: formatMessage({ id: 'failed' }),
+    },
+    SETTLING: {
+      image: <RefreshCcw color="black" size="76" />,
+      title: formatMessage({ id: 'pending' }),
     },
     PENDING: {
       image: <RefreshCcw color="black" size="76" />,

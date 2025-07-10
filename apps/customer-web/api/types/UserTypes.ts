@@ -1,4 +1,4 @@
-import { Gender, Language } from "./EnumTypes";
+import { Gender, Language } from './EnumTypes';
 
 /**
  * Entity representing a user.
@@ -8,8 +8,6 @@ export interface UserEntity {
   email: string;
   /** User's password. */
   password: string;
-  /** Unique username for the user. */
-  username: string;
   /** User's first name. */
   first_name: string;
   /** User's last name. */

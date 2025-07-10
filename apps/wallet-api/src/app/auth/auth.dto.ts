@@ -22,9 +22,11 @@ import {
   IsUUID,
   Length,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class SignInDto {
   @IsEmail()
+  @Transform(({ value }) => value.trim().toLowerCase())
   @ApiProperty({
     description: 'Valid user email',
   })
@@ -46,10 +48,6 @@ export class SignUpDto extends SignInDto {
   @IsEnum(CybridSupportedCountry)
   @ApiProperty({ enum: CybridSupportedCountry })
   country: CybridSupportedCountry;
-
-  @IsString()
-  @ApiProperty()
-  username: string;
 
   @IsString()
   @ApiProperty({

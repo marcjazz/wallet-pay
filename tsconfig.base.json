@@ -15,9 +15,11 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@xafpay/api/*": ["./apps/wallet-api/src/*"],
+      "@xafpay/shared": ["libs/shared/src/index.ts"],
       "@xafpay/api-data-types": ["libs/api/data-types/src/index.ts"],
-      "@xafpay/theme": ["libs/theme/src/index.ts"]
+      "@xafpay/api/*": ["./apps/wallet-api/src/*"],
+      "@xafpay/theme": ["libs/theme/src/index.ts"],
+      "@xafpay/types": ["libs/types/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

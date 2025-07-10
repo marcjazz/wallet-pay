@@ -77,7 +77,7 @@ export default function RegisterPartOne({
     initialValues: personalInfo ?? initialValues,
     validationSchema,
     enableReinitialize: true,
-    onSubmit: (values) => handleNext(values),
+    onSubmit: (values) =>handleNext(values)
   });
 
   return (

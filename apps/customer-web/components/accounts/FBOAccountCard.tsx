@@ -9,6 +9,7 @@ import { CybridAccountEntity } from '../../api/types/AccountTypes';
 import { ExternalAccountVerificationStatus } from '../../types';
 import { kycChipVariants } from '../external-accounts/ExternalAccountCard';
 import FBOAccountDetailsBottomSheet from './FBOAccountDetailsBottomSheet';
+import { errorHandling } from '../shared/errorHandling';
 
 interface FBOAccountCardProps {
   account: CybridAccountEntity;
@@ -33,8 +34,7 @@ export default function FBOAccountCard({
       },
       {
         onSuccess: () => refetchAccounts(),
-        // TODO: USE alert in case of error. will be replaced with proper notifications later
-        onError: (error) => alert(error.message),
+        onError: (error) => errorHandling({ error, formatMessage }),
       }
     );
   };

@@ -20,6 +20,7 @@ import { useCybridAccounts } from '../../../api/hooks/useAccounts';
 import { CurrencyEntity } from '../../../api/types';
 import { CybridAccountEntity } from '../../../api/types/AccountTypes';
 import ChangeCurrencyMenu from './ChangeCurrencyMenu';
+import { errorHandling } from '../../shared/errorHandling';
 
 export enum SupportedPayoutMethod {
   cash = 'cash_pickup',
@@ -65,7 +66,7 @@ export default function SendAmountStep({
     { title: string; action: () => void }
   > = {
     [SupportedPaymentMethod.fiat]: {
-      title: formatMessage({ id: 'fiat' }),
+      title: formatMessage({ id: 'bank' }),
       action: () => setSelectedPaymentMethod(SupportedPaymentMethod.fiat),
     },
     [SupportedPaymentMethod.card]: {
@@ -85,12 +86,14 @@ export default function SendAmountStep({
   const { data: accounts, isFetching: isLoadingAccounts } = useCybridAccounts();
 
   useEffect(() => {
-    if (!areCurrenciesLoading) {
+    if (!isLoadingAccounts) {
       if (accounts.length) setSendingAccount(accounts[0]);
-      //TODO: REPLACE WITH PROPER NOTIFICATION
-      else alert('No FBO accounts found');
+      else errorHandling({
+        error: new Error('noFboAccounts'),
+        formatMessage,
+      });
     }
-  }, [accounts, areCurrenciesLoading]);
+  }, [accounts, isLoadingAccounts, formatMessage]);
 
   const validationSchema = Yup.object({
     sendingAmount: Yup.number()
@@ -98,27 +101,8 @@ export default function SendAmountStep({
       .positive(formatMessage({ id: 'invalidAmount' }))
       .integer(formatMessage({ id: 'cannotBeFraction' }))
       .max(MAX_SENDING_AMOUNT, formatMessage({ id: 'maxRemitAmount' }))
-      .min(MIN_SENDING_AMOUNT, formatMessage({ id: 'minRemitAmount' })),
-    // .test(
-    //   'max-available-balance',
-    //   formatMessage({
-    //     id: sendingAccount ? 'maxBalanceExceeded' : 'noFboAccount',
-    //   }),
-    //   function (value) {
-    //     if (!sendingAccount) return false;
-    //     if (value > sendingAccount.balance) {
-    //       return false;
-    //     }
-    //     return true;
-    //   }
-    // ),
+      .min(MIN_SENDING_AMOUNT, formatMessage({ id: 'minRemitAmount' }))
   });
-
-  const [isPayoutMethodBottomSheetOpen, setIsPayoutMethodBottomSheetOpen] =
-    useState(!!amountStepData.payoutMethod);
-  const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<
-    SupportedPayoutMethod | undefined
-  >(amountStepData.payoutMethod);
 
   const initialValues = {
     sendingAmount: amountStepData.sendingAmount || 100,
@@ -130,17 +114,11 @@ export default function SendAmountStep({
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
       onNext();
-      // setSelectedPayoutMethod(SupportedPayoutMethod.mobile);
-      // setIsPayoutMethodBottomSheetOpen(true);
     },
   });
   const { errors, touched } = formik;
 
   function onNext() {
-    // if (!selectedPayoutMethod) {
-    //   alert('Please select a payout method');
-    //   return;
-    // }
     if (!sendingAccount) {
       alert('Please select a sending account');
       return;
@@ -150,7 +128,6 @@ export default function SendAmountStep({
       sendingAccount,
       payoutMethod: SupportedPayoutMethod.mobile,
     });
-    setIsPayoutMethodBottomSheetOpen(false);
   }
 
   return (
@@ -350,18 +327,18 @@ export default function SendAmountStep({
                 value={
                   sendingAccount
                     ? formatNumber(
-                        Math.floor(
-                          formik.values.sendingAmount *
-                            (currencies?.find(
-                              (currency) =>
-                                currency.currency === sendingAccount.currency
-                            )?.xaf_rate ?? 1)
-                        ),
-                        {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }
-                      )
+                      Math.floor(
+                        formik.values.sendingAmount *
+                        (currencies?.find(
+                          (currency) =>
+                            currency.currency === sendingAccount.currency
+                        )?.xaf_rate ?? 1)
+                      ),
+                      {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }
+                    )
                     : 0
                 }
                 startAdornment={
@@ -387,11 +364,10 @@ export default function SendAmountStep({
                 {areCurrenciesLoading ? (
                   <Skeleton width="100px" />
                 ) : (
-                  `1${sendingAccount.currency} = ${
-                    currencies?.find(
-                      (currency) =>
-                        currency.currency === sendingAccount.currency
-                    )?.xaf_rate ?? 1
+                  `1${sendingAccount.currency} = ${currencies?.find(
+                    (currency) =>
+                      currency.currency === sendingAccount.currency
+                  )?.xaf_rate ?? 1
                   }XAF`
                 )}
               </Typography>

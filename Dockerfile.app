@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine3.21 AS base
 
 LABEL maintainer="Lorrain Tchakoumi <lorraintchakoumi@gmail.com>"
 LABEL org.opencontainers.image.description="NextJs frontend for the XafPay Wallet"
@@ -28,6 +28,7 @@ COPY ./nx.json ./
 COPY /libs/theme ./libs/theme
 COPY ./apps/customer-web ./apps/customer-web
 
+ENV NX_CLOUD=0
 ENV NODE_ENV=production
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
@@ -35,7 +36,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build project
-RUN NX_CLOUD=0 npx nx run customer-web:build:production
+RUN npx nx reset && \
+    npx nx run customer-web:build:production --skip-nx-cache --verbose
 
 # Production image, copy all the files and run next
 FROM base AS runner

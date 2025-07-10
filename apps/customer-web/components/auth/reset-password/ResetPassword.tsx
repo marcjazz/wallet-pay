@@ -23,6 +23,7 @@ import * as Yup from 'yup';
 import {
   useResetPassword
 } from '../../../api/hooks/useAuth';
+import { errorHandling } from '../../shared/errorHandling';
 
 export default function ResetPassword() {
   const { formatMessage } = useIntl();
@@ -72,8 +73,7 @@ export default function ResetPassword() {
             resetForm();
             push('/login');
           },
-          //TODO: USE alert in case of error. will be replaced with proper notifications later
-          onError: (error) => alert(error.message),
+          onError: (error) => errorHandling({ error, formatMessage, redirect: push }),
         }
       );
     },

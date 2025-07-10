@@ -4,22 +4,20 @@ import {
   Box,
   Button,
   CircularProgress,
-  Divider,
   FormControl,
   FormHelperText,
   FormLabel,
   OutlinedInput,
-  Typography,
+  Typography
 } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { useSignIn } from '../../../api/hooks/useAuth';
-import styles from './login.module.css';
+import { errorHandling } from '../../shared/errorHandling';
 
 export default function Login() {
   const { formatMessage } = useIntl();
@@ -43,16 +41,15 @@ export default function Login() {
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: (values, { setFieldValue }) => {
+    onSubmit: (values, { resetForm }) => {
       signIn(values, {
         onSuccess: () => {
           push(localStorage.getItem('redirectPath') || '/');
           localStorage.removeItem('redirectPath');
         },
         onError: (error) => {
-          //TODO: USE alert in case of error. will be replaced with proper notifications later
-          alert(error.message);
-          setFieldValue('password', '');
+          errorHandling({ error, formatMessage, redirect: push });
+          resetForm();
         },
       });
     },
@@ -60,10 +57,6 @@ export default function Login() {
   const { errors, touched } = formik;
   const theme = useTheme();
 
-  function handleGoogleLogin() {
-    //TODO: CALL API HERE TO LOGIN WITH GOOGLE
-    console.log('Google login');
-  }
 
   const preventRouteWhenSubmitting = (event: React.MouseEvent) => {
     if (isSubmitting) {
@@ -91,41 +84,6 @@ export default function Login() {
       </Box>
 
       <Box sx={{ display: 'grid', rowGap: 4.5 }}>
-        <Button
-          onClick={handleGoogleLogin}
-          variant="outlined"
-          size="medium"
-          color="inherit"
-          disabled={isSubmitting}
-          startIcon={
-            <Image
-              src="/assets/google.svg"
-              alt="google"
-              height={24}
-              width={24}
-              loading="lazy"
-              style={{ transition: 'filter 0.3s ease, opacity 0.3s ease' }}
-              className={isSubmitting ? styles.disabledIcon : ''}
-            />
-          }
-        >
-          {formatMessage({ id: 'continueWithGoogle' })}
-        </Button>
-
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
-            columnGap: 1,
-            alignItems: 'center',
-          }}
-        >
-          <Divider />
-          <Typography variant="l1r" sx={{ color: theme.palette.grey[200] }}>
-            {formatMessage({ id: 'or' })}
-          </Typography>
-          <Divider />
-        </Box>
 
         <Box
           component="form"

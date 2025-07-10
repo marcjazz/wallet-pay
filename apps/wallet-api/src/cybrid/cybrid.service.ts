@@ -13,6 +13,8 @@ import {
   IdentityVerificationBankModel,
   IdentityVerificationsBankApi,
   IdentityVerificationWithDetailsBankModel,
+  ListTradesRequest,
+  ListTransfersRequest,
   PostAccountBankModelTypeEnum,
   PostCounterpartyBankModel,
   PostCustomerBankModelTypeEnum,
@@ -31,8 +33,10 @@ import {
   QuoteBankModel,
   QuotesBankApi,
   TradeBankModel,
+  TradeListBankModel,
   TradesBankApi,
   TransferBankModel,
+  TransferListBankModel,
   TransfersBankApi,
   WorkflowBankModel,
   WorkflowsBankApi,
@@ -366,6 +370,18 @@ export class CybridService {
     );
   }
 
+  async getTrades(queries: ListTradesRequest) {
+    const tradesBankApi = await this.cybridConfig.getInstance(TradesBankApi, [
+      'trades:read',
+    ]);
+
+    const tradesObservable = tradesBankApi.listTrades(queries);
+
+    return new Promise<TradeListBankModel>((next, error) =>
+      tradesObservable.subscribe({ next, error })
+    );
+  }
+
   async getTransfer(customerGuid: string, transferGuid: string) {
     const transfersBankApi = await this.cybridConfig.getInstance(
       TransfersBankApi,
@@ -378,6 +394,19 @@ export class CybridService {
     });
 
     return new Promise<TransferBankModel>((next, error) =>
+      transfersObservable.subscribe({ next, error })
+    );
+  }
+
+  async getTransfers(queries: ListTransfersRequest) {
+    const transfersBankApi = await this.cybridConfig.getInstance(
+      TransfersBankApi,
+      ['transfers:read']
+    );
+
+    const transfersObservable = transfersBankApi.listTransfers(queries);
+
+    return new Promise<TransferListBankModel>((next, error) =>
       transfersObservable.subscribe({ next, error })
     );
   }
@@ -448,9 +477,9 @@ export class CybridService {
       },
     });
 
-    return new Promise<TransferBankModel>((next) =>
+    return new Promise<TransferBankModel>((next, error) =>
       quotesBankObservable.subscribe({
-        error: (error) => this.logger.error(error),
+        error,
         next: async (quote) => {
           const transfersBankApi = await this.cybridConfig.getInstance(
             TransfersBankApi,
@@ -466,10 +495,7 @@ export class CybridService {
             },
           });
 
-          transfersObservable.subscribe({
-            error: (error) => this.logger.error(error),
-            next,
-          });
+          transfersObservable.subscribe({ error, next });
         },
       })
     );

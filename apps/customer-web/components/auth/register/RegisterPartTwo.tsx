@@ -7,6 +7,7 @@ import {
   FormControlLabel,
   FormHelperText,
   FormLabel,
+  IconButton,
   InputAdornment,
   OutlinedInput,
   Typography,
@@ -24,6 +25,9 @@ import * as Yup from 'yup';
 import { Country } from '../../../api/types';
 import { SecurityInfo } from '../../../app/(auth)/register/page';
 import { preventRouteWhenSubmitting } from '../../shared/utilities';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { useState } from 'react';
 
 interface RegisterPartTwoProps {
   securityInfo?: SecurityInfo;
@@ -42,7 +46,7 @@ export default function RegisterPartTwo({
 
   const initialValues: SecurityInfo = {
     password: '',
-    username: '',
+    confirmPassword: '',
     country: Country.USA,
     hasAcceptedTerms: false,
   };
@@ -50,10 +54,16 @@ export default function RegisterPartTwo({
   const validationSchema = Yup.object({
     password: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
-      .min(3, formatMessage({ id: 'minPasswordCharacters' })),
-    username: Yup.string()
-      .required(formatMessage({ id: 'requiredField' }))
-      .min(3, formatMessage({ id: 'minUsernameCharacters' })),
+      .min(8, formatMessage({ id: 'minPasswordCharacters' }))
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/,
+        formatMessage({ id: 'passwordRequirements' })
+      ),
+    confirmPassword: Yup.string()
+      .oneOf([
+        Yup.ref('password')],
+        formatMessage({ id: 'passwordsDoNotMatch' })
+      ),
     country: Yup.string()
       .required(formatMessage({ id: 'requiredField' }))
       .oneOf(Object.values(Country)),
@@ -72,6 +82,7 @@ export default function RegisterPartTwo({
     },
   });
 
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   return (
     <Box
       component="form"
@@ -86,24 +97,6 @@ export default function RegisterPartTwo({
       >
         <FormControl
           required
-          error={Boolean(formik.touched.username && formik.errors.username)}
-          disabled={isSubmitting}
-        >
-          <FormLabel htmlFor="username">
-            {formatMessage({ id: 'username' })}
-          </FormLabel>
-          <OutlinedInput
-            id="username"
-            placeholder={formatMessage({ id: 'username' })}
-            {...formik.getFieldProps('username')}
-            autoFocus
-          />
-          <FormHelperText>
-            {formik.touched.username && formik.errors.username}
-          </FormHelperText>
-        </FormControl>
-        <FormControl
-          required
           error={Boolean(formik.touched.password && formik.errors.password)}
           disabled={isSubmitting}
         >
@@ -112,12 +105,50 @@ export default function RegisterPartTwo({
           </FormLabel>
           <OutlinedInput
             id="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             placeholder={formatMessage({ id: 'password' })}
             {...formik.getFieldProps('password')}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            }
           />
           <FormHelperText>
             {formik.touched.password && formik.errors.password}
+          </FormHelperText>
+        </FormControl>
+        <FormControl
+          required
+          error={Boolean(formik.touched.confirmPassword && formik.errors.confirmPassword)}
+          disabled={isSubmitting}
+        >
+          <FormLabel htmlFor="confirmPassword">
+            {formatMessage({ id: 'confirmPassword' })}
+          </FormLabel>
+          <OutlinedInput
+            id="confirmPassword"
+            type={showPassword ? 'text' : 'password'}
+            placeholder={formatMessage({ id: 'confirmPassword' })}
+            {...formik.getFieldProps('confirmPassword')}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            }
+          />
+          <FormHelperText>
+            {formik.touched.confirmPassword && formik.errors.confirmPassword}
           </FormHelperText>
         </FormControl>
 
@@ -167,7 +198,7 @@ export default function RegisterPartTwo({
                     textDecoration: 'none',
                   }}
                   component="a"
-                  href="https://policy.xafshop.com"
+                  href="https://xafpay.com/termsAndcondition"
                   target="_blank"
                 >
                   {formatMessage({ id: 'our' })}

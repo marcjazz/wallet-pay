@@ -71,6 +71,7 @@ export class CybridConfig {
       'quotes:execute',
       'transfers:execute',
       'transfers:read',
+      'trades:read'
     ];
 
     let token: string;

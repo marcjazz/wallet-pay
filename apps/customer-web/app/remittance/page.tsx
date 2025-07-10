@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
@@ -40,6 +40,14 @@ export default function Transactions() {
   ).length;
   const MIN_STEP = 1;
 
+  const params = useSearchParams();
+  // Extract query parameters for amount and currency
+  // If not provided, default to 100 for amount and 'USD' for currency
+  const queryParams = {
+    amount: Number(params.get('amount')) || 100,
+    currency: params.get('currency') || 'USD',
+  };
+
   const { formatMessage } = useIntl();
   const { data: currencies, isFetching: areCurrenciesLoading } =
     useCurrencies();
@@ -69,7 +77,7 @@ export default function Transactions() {
 
   const [amountStepData, setAmountStepData] = useState<Partial<AmountStepData>>(
     {
-      sendingAmount: 100,
+      sendingAmount: queryParams.amount,
       sendingAccount: undefined,
       payoutMethod: undefined,
     }

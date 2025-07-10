@@ -89,7 +89,7 @@ export class AccountsController {
       payload.external_bank_account_id
     ) {
       throw new UnprocessableEntityException(
-        `External bank account is not required for ${payload.account_type}`
+        `External bank account is not required for ${payload.account_type}`,
       );
     }
 

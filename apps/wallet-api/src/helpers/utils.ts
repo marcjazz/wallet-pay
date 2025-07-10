@@ -13,10 +13,10 @@ export function roundNumber(val: number): number {
 export function validatePhoneNumber(phoneNumber: string) {
   const testCase = phoneNumber.replace('+', '');
   const mtnRegexp = new RegExp(
-    /^[1-9]{1,3}6(((7|8)[0-9]{7}$)|(5[1-4][0-9]{6}$))/
+    /^([1-9]{1,3})?6(((7|8)[0-9]{7}$)|(5[1-4][0-9]{6}$))/
   );
   const orangeRegexp = new RegExp(
-    /^[1-9]{1,3}6(((9)[0-9]{7}$)|(5[5-9][0-9]{6}$))/
+    /^([1-9]{1,3})?6(((9)[0-9]{7}$)|(5[5-9][0-9]{6}$))/
   );
   if (mtnRegexp.test(testCase)) return 0;
   else if (orangeRegexp.test(testCase)) return 1;
@@ -40,3 +40,25 @@ export function verificationStatusFrom({
     ? 'STORING'
     : (state.toLocaleUpperCase() as IdentityVerificationStatus);
 }
+
+const PILOT_USER_EMAILS: string[] =
+  JSON.parse(process.env.PILOT_USER_EMAILS ?? '[]') ?? [];
+
+/**
+ * Validate if user is polite active or not.
+ * Takes name and email and check if these exist on the given list
+ * @param name  full name of user
+ * @param email email of user
+ * @returns boolean
+ *
+ */
+export function isPilotUser(email: string): boolean {
+  return PILOT_USER_EMAILS.some((e) => e.toLowerCase() === email.toLowerCase());
+}
+
+/**
+ * Normalize both input and reference names for comparaison
+ * */
+export const normalizeName = (fullName: string) => {
+  return fullName.toLowerCase().split(/\s+/).sort().join(' ');
+};
