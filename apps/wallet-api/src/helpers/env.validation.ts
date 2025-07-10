@@ -104,6 +104,9 @@ class EnvironmentVariables {
   @IsString()
   PEEX_PASSWORD: string;
 
+  @IsNumber()
+  RATE_BONUS_PERCENTAGE: number;
+
   PILOT_USER_EMAILS: string[]
 }
 
