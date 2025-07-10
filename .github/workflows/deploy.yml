@@ -8,11 +8,13 @@ on:
         required: false
         default: 'master'
   pull_request:
-    branches: &deploy_branches
+    branches:
       - master
       - release/v**
   push: 
-    branches: *deploy_branches
+    branches:
+      - master
+      - release/v**
 
 jobs:
   build:
