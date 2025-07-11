@@ -16,8 +16,17 @@ export function errorHandling({
     409: (message) => toast.error(formatMessage({ id: message ?? 'conflict' })),
     500: (message) => toast.error(formatMessage({ id: 'serverError' })),
     404: (message) => toast.error(formatMessage({ id: message ?? 'notFound' })),
-    403: (message) =>
-      toast.error(formatMessage({ id: message ?? 'forbidden' })),
+    403: (message) => {
+      if (message?.includes('Platform not available')) {
+        toast.warning(formatMessage({ id: message ?? 'forbidden' }), {
+          toastId: message,
+        });
+        return;
+      }
+      toast.error(formatMessage({ id: message ?? 'forbidden' }), {
+        toastId: message,
+      });
+    },
     400: (message) =>
       toast.error(formatMessage({ id: message ?? 'badRequest' })),
     422: (message) =>
@@ -35,13 +44,8 @@ export function errorHandling({
     const message = error.response?.data?.message || error.message;
 
     if (status && statusHandler[status]) {
-      // TODO: remove these checks after launch
-      if (message.includes('contact support') && status === 422) {
-        alert(message);
+      if (status === 403 && !toast.isActive(message)) {
         statusHandler[status](message);
-        return;
-      }
-      if (message.includes('Platform not available') && status === 403) {
         return;
       }
       statusHandler[status](message);
