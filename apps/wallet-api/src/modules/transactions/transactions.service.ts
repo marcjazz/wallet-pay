@@ -352,7 +352,7 @@ export class TransactionsService {
     return cybridCounterparty;
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_DAY_AT_NOON)
   async settleRemittanceTransations() {
     this.logger.verbose(`Settling remittance transactions...`);
 
@@ -441,7 +441,7 @@ export class TransactionsService {
     });
 
     this.logger.verbose(
-      `Successfully initiated ${transactions.length} remittance transactions settlement (Transfer Guid: ${transfer.guid})`,
+      `Successfully initiated ${transactions.length} remittance transactions settlement (Transfer Guid: ${transfer.guid})`
     );
   }
 

@@ -50,7 +50,7 @@ export class CurrenciesService {
     return currencies.map(mapCurrency);
   }
 
-  @Cron(CronExpression.EVERY_6_HOURS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async syncCurrencies() {
     this.logger.log('Fetching currencies from fastforex.com...');
     try {
@@ -250,15 +250,16 @@ export class CurrenciesService {
    * @returns an array of converted `Rate` where `Rate` is an object of two properties `code` and `value`
    */
   private async convertRates(rates: Rates): Promise<Rate[]> {
-    // const { bonus_percentage } =
-    //   await this.prismaService.platformSetting.findFirst();
-    const bonus_percentage = 0;
+    const bonus_percentage = this.configService.get<number>(
+      'RATE_BONUS_PERCENTAGE',
+      0.02
+    );
     return Object.keys(rates).map((code) => {
       const value = rates[code];
       const rate = Number(1 / value);
       return {
         code,
-        value: roundNumber(rate + (bonus_percentage * rate) / 100),
+        value: roundNumber(rate + bonus_percentage * rate),
       };
     });
   }

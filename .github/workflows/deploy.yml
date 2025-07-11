@@ -1,7 +1,17 @@
 name: CD
 
 on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: false
+        default: 'master'
   pull_request:
+    branches:
+      - master
+      - release/v**
+  push: 
     branches:
       - master
       - release/v**
@@ -29,7 +39,7 @@ jobs:
       - name: Build & Publish ${{ matrix.service.name }}
         uses: ./.github/actions/build
         with:
-          publish: ${{ github.ref == 'refs/heads/master' }}
+          publish: ${{ github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: ${{ matrix.service.dockerfile }}
           docker-image-tags: |
@@ -39,7 +49,7 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     needs: build
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read # Allows reading repository content
       packages: read # Allows pull packages from GHCR
