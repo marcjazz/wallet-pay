@@ -25,6 +25,7 @@ export function errorHandling({
       }
       toast.error(formatMessage({ id: message ?? 'forbidden' }), {
         toastId: message,
+        autoClose: false,
       });
     },
     400: (message) =>

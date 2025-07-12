@@ -15,26 +15,31 @@ import {
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
   useCybridAccounts,
   useGetIdentityVerification,
   useVerifyAccount,
 } from '../../api/hooks/useAccounts';
+import { useVerifyEmail } from '../../api/hooks/useAuth';
 import { useCurrencies } from '../../api/hooks/useCurrency';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { CybridAccountEntity } from '../../api/types/AccountTypes';
+import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import { errorHandling } from '../shared/errorHandling';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
-import axios from 'axios';
-import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
-import { useVerifyEmail } from '../../api/hooks/useAuth';
-import { toast } from 'react-toastify';
 
 // TODO: LOOK AT DELETING THIS INTERFACE AND CHANGE INSTANCES TO Currency from api types
 export enum CurrencyEnum {
   USD = 'USD',
   CAD = 'CAD',
+}
+
+interface IEmailVerificationState {
+  isBottomSheetOpen: boolean;
+  otpId?: string;
 }
 
 export default function MainCard() {
@@ -130,33 +135,58 @@ export default function MainCard() {
     }
   }, [identityVerification]);
 
-  // Check if email is verified
-  const [isEmailNotVerified, setIsEmailNotVerified] = useState<boolean>(false);
-  const [isConfirmEmailBottomSheetOpen, setIsConfirmEmailBottomSheetOpen] =
-    useState<boolean>(false);
+  const [emailVerificationState, setEmailVerificationState] =
+    useState<IEmailVerificationState>({
+      isBottomSheetOpen: false,
+    });
+
+  useEffect(() => {
+    if (
+      error &&
+      axios.isAxiosError(error) &&
+      error.response?.status === 403 &&
+      error.response.data?.message?.includes('Unverified email!')
+    ) {
+      try {
+        const authToken = localStorage.getItem('authToken');
+        const otpId = authToken ? JSON.parse(authToken).otp_id : undefined;
+
+        setEmailVerificationState({
+          isBottomSheetOpen: true,
+          otpId: otpId,
+        });
+      } catch (e) {
+        console.error('Error parsing authToken from localStorage:', e);
+      }
+    }
+  }, [error]);
 
   // set up verify email bottom sheet if the user has an unverified email
-  if (
-    error &&
-    axios.isAxiosError(error) &&
-    error.response?.status === 403 &&
-    error.response.data?.message?.includes('Unverified email!') &&
-    !isEmailNotVerified
-  ) {
-    setIsEmailNotVerified(true);
-  }
-
   const { mutate: verifyEmail, isPending: isVerifyingEmail } = useVerifyEmail();
   function submitOTP(otp?: string) {
-    if (!otp) return setIsConfirmEmailBottomSheetOpen(true);
+    if (!otp)
+      return setEmailVerificationState((prev) => ({
+        ...prev,
+        isBottomSheetOpen: false,
+      }));
+
     verifyEmail(
       { code: otp },
       {
         onSuccess: () => {
           toast.success(formatMessage({ id: 'emailVerified' }));
-          setIsConfirmEmailBottomSheetOpen(true);
+          setEmailVerificationState({
+            isBottomSheetOpen: false,
+          });
+          refetchAccounts();
         },
-        onError: (error) => errorHandling({ error, formatMessage }),
+        onError: (error) => {
+          errorHandling({ error, formatMessage });
+          setEmailVerificationState((prev) => ({
+            ...prev,
+            isBottomSheetOpen: true,
+          }));
+        },
       }
     );
   }
@@ -164,8 +194,8 @@ export default function MainCard() {
   return (
     <>
       <OTPBottomSheet
-        otpId={JSON.parse(localStorage.getItem('authToken') || '""').otp_id}
-        isOpen={isEmailNotVerified && !isConfirmEmailBottomSheetOpen}
+        otpId={emailVerificationState.otpId}
+        isOpen={emailVerificationState.isBottomSheetOpen}
         isSubmitting={isVerifyingEmail}
         closeBottomSheet={submitOTP}
         confirmText={formatMessage({ id: 'confirmEmail' })}
