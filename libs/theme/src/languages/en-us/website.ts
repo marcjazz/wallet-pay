@@ -144,7 +144,7 @@ export const website = {
   confirmTransaction: 'Confirm Transaction',
   confirmTransactionDescription:
     'Enter the one-time password sent to your email address to confirm the transaction',
-  resendIn: 'Resend in',
+  expiredIn: 'Expired in',
   resendEmail: 'Resend Email',
   manageFiatAccounts: 'Manage fiat accounts',
   noExternalAccounts: 'No external accounts',
