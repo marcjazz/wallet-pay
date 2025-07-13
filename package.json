@@ -6,9 +6,13 @@
     "seed": "node ./prisma/seed/seed.js"
   },
   "scripts": {
-    "migrate": "prisma migrate dev",
-    "migrate:test": "npx dotenv -e .env.test -- prisma migrate dev",
-    "migrate-reset": "npx dotenv -e .env.test -- npx prisma migrate reset --force"
+    "customer-web:start-dev": "nx run customer-web:serve:development",
+    "wallet-api:start-dev": "nx run wallet-api:serve:development",
+    "customer-web:start-prod": "nx run customer-web:serve:production",
+    "wallet-api:start-prod": "nx run wallet-api:serve:production",
+    "customer-web:build": "nx run customer-web:build:production",
+    "wallet-api:build": "nx run wallet-api:build:production",
+    "customer-web:export": "nx run customer-web:export"
   },
   "private": true,
   "dependencies": {
@@ -35,6 +39,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@nx/next": "18.3.5",
     "@prisma/client": "^6.4.1",
+    "@sentry/nextjs": "^9.38.0",
     "@tchakoumi/handy-components": "^0.0.1",
     "@wallet/source": "file:",
     "axios": "^1.8.3",
@@ -68,6 +73,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "sharp": "^0.33.5",
+    "sonner": "^2.0.6",
     "tslib": "^2.3.0",
     "xhr2": "^0.2.1",
     "yup": "^1.4.0"
@@ -141,7 +147,7 @@
     "react-toastify": "^10.0.5",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "sass": "^1.87.0",
+    "sass": "^1.89.2",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",

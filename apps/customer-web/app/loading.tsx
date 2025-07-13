@@ -1,6 +1,8 @@
 import { Box, Typography } from '@mui/material';
-import Lottie from 'react-lottie';
-import * as animatedLogo from '../../public/lottie/logo.json';
+import dynamic from 'next/dynamic';
+import * as animatedLogo from '../public/lottie/logo.json';
+
+const Lottie = dynamic(() => import('react-lottie').then(mod => mod.default), { ssr: false });
 
 export default function SplashScreen() {
   const defaultOptions = {

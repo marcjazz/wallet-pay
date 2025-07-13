@@ -1,9 +1,15 @@
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
+import './global.scss';
 import { AppLayout } from '../components/AppLayout';
 import { ReactQueryProvider } from '../context/ReactQueryProvider';
-import '../public/styles/global.scss';
-import 'react-toastify/dist/ReactToastify.css';
+import { DM_Sans, Darker_Grotesque } from 'next/font/google';
+
+const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
+const darkerGrotesque = Darker_Grotesque({
+  subsets: ['latin'],
+  variable: '--font-darker-grotesque',
+});
 
 export const metadata = {
   title: 'XAFPAY',
@@ -18,9 +24,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${dmSans.variable} ${darkerGrotesque.variable}`}>
         <ReactQueryProvider>
-          <AppLayout>{children}</AppLayout>
+          <ErrorBoundary
+            fallback={<p>An error occurred</p>}
+            onError={Sentry.captureException}
+          >
+            <AppLayout>{children}</AppLayout>
+          </ErrorBoundary>
         </ReactQueryProvider>
       </body>
     </html>

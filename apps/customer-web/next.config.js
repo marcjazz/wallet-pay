@@ -2,6 +2,7 @@
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { composePlugins, withNx } = require('@nx/next');
+const { withSentryConfig } = require('@sentry/nextjs');
 
 /**
  * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
@@ -29,4 +30,14 @@ const plugins = [
   withNx,
 ];
 
-module.exports = composePlugins(...plugins)(nextConfig);
+module.exports = composePlugins(...plugins)(
+  withSentryConfig(nextConfig, {
+    org: 'xafpay',
+    project: 'xafpay-customer-web',
+    // Pass the auth token
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    // Upload a larger set of source maps for prettier stack traces (increases build time)
+    widenClientFileUpload: true,
+    tunnelRoute: true
+  })
+);
