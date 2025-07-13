@@ -69,7 +69,7 @@ export default function OTPBottomSheet({
       { otp_id: otpId },
       {
         onSuccess(otp) {
-          const countdown = new Date(otp.expires_at).getTime() - Date.now();
+          const countdown = (new Date(otp.expires_at).getTime() - Date.now()) / 1000;
           setCountdown(countdown);
           setIsCountingDown(true);
           const interval = setInterval(() => {
