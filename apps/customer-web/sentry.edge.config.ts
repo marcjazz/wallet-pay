@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
-  dsn: 'https://YOUR_SENTRY_DSN', // Replace with your own DSN from Sentry.io
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   tracesSampleRate: 1.0, // Performance monitoring settings
   sendDefaultPii: true, // Send personally identifiable information
 });

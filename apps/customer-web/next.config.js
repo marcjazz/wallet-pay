@@ -32,12 +32,12 @@ const plugins = [
 
 module.exports = composePlugins(...plugins)(
   withSentryConfig(nextConfig, {
-    org: 'xafpay',
-    project: 'xafpay-customer-web',
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
     // Pass the auth token
     authToken: process.env.SENTRY_AUTH_TOKEN,
     // Upload a larger set of source maps for prettier stack traces (increases build time)
     widenClientFileUpload: true,
-    tunnelRoute: true
+    tunnelRoute: true,
   })
 );

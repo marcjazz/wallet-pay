@@ -1,21 +1,9 @@
-import { Box, Typography } from '@mui/material';
-import dynamic from 'next/dynamic';
-import * as animatedLogo from '../public/lottie/logo.json';
+import Image from 'next/image';
 
-const Lottie = dynamic(() => import('react-lottie').then(mod => mod.default), { ssr: false });
-
-export default function SplashScreen() {
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: animatedLogo,
-    rendererSettings: {
-      preserveAspectRatio: 'xMidYMid slice',
-    },
-  };
+export default function LoadingScreen() {
   return (
-    <Box
-      sx={{
+    <div
+      style={{
         background: 'url(/assets/splash_bg.png)',
         height: '100%',
         width: '100%',
@@ -25,20 +13,28 @@ export default function SplashScreen() {
         position: 'relative',
       }}
     >
-      <Lottie options={defaultOptions} height={140} width={140} />
-      <Typography
-        variant="l2r"
-        sx={{
+      <Image
+        src="/assets/logo.gif"
+        alt="Logo"
+        width={140}
+        height={140}
+        style={{ display: 'block' }}
+        unoptimized
+      />
+      <div
+        style={{
           color: '#415058',
           textAlign: 'center',
           position: 'absolute',
           bottom: '53px',
           fontFamily: 'DM Sans',
           opacity: 0.75,
+          fontSize: '1.125rem',
+          width: '100%',
         }}
       >
         By GLOM
-      </Typography>
-    </Box>
+      </div>
+    </div>
   );
 }

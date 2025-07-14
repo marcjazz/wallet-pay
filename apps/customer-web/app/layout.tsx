@@ -26,12 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${dmSans.variable} ${darkerGrotesque.variable}`}>
         <ReactQueryProvider>
-          <ErrorBoundary
-            fallback={<p>An error occurred</p>}
-            onError={Sentry.captureException}
-          >
-            <AppLayout>{children}</AppLayout>
-          </ErrorBoundary>
+          <AppLayout>{children}</AppLayout>
         </ReactQueryProvider>
       </body>
     </html>
