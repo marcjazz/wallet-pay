@@ -242,4 +242,5 @@ export const website = {
   invalidOTP: 'Invalid OTP',
   recipientExistAlready: 'recipient number exist already',
   emailVerified: 'Email verified successfully!',
+  manageExternalAccounts: 'Manage external accounts',
 };
