@@ -42,6 +42,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       'users',
       'currencies',
       'otp/request',
+      'resend'
     ].some((path) => request.url.includes(path));
 
     if (!user.is_verified && !isAuthorizedRoute) {

@@ -11,11 +11,11 @@ import {
   LogOut as LogOutIcon,
 } from 'react-feather';
 import { useIntl } from 'react-intl';
+import { toast } from 'sonner';
 import { useLogOut } from '../../../api/hooks/useAuth';
 import { LeftDialogTransition } from '../../shared/dialog-transition';
-import MenuItem, { MenuItemProps } from './MenuItem';
 import { errorHandling } from '../../shared/errorHandling';
-import { toast } from 'react-toastify';
+import MenuItem, { MenuItemProps } from './MenuItem';
 
 type MenuItemGroup = Record<string, MenuItemProps[]>;
 

@@ -60,7 +60,7 @@ export default function OTPBottomSheet({
   });
   const { errors, touched } = formik;
 
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState<number>(20);
   const [isCountingDown, setIsCountingDown] = useState(false);
 
   const { mutate: resendOTP, isPending: isResendingOtp } = useResendOTP();
@@ -69,7 +69,7 @@ export default function OTPBottomSheet({
       { otp_id: otpId },
       {
         onSuccess(otp) {
-          const countdown = new Date(otp.expires_at).getTime() - Date.now();
+          const countdown = (new Date(otp.expires_at).getTime() - Date.now()) / 1000;
           setCountdown(countdown);
           setIsCountingDown(true);
           const interval = setInterval(() => {
@@ -142,7 +142,7 @@ export default function OTPBottomSheet({
                 }}
               >
                 {isCountingDown
-                  ? `${formatMessage({ id: 'resendIn' })} (${countdown}s)`
+                  ? `${formatMessage({ id: 'expiredIn' })} (${countdown}s)`
                   : formatMessage({ id: 'resendEmail' })}
               </Button>
             )}

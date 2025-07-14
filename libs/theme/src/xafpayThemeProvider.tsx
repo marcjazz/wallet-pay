@@ -4,7 +4,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { IntlProvider } from 'react-intl';
-import { Bounce, ToastContainer } from 'react-toastify';
+import { Toaster } from 'sonner';
 import LanguageContextProvider, {
   useLanguage,
 } from './contexts/language/LanguageContextProvider';
@@ -18,7 +18,7 @@ import frMessages from './languages/fr';
 import { useTheme } from './theme';
 
 const TempApp = ({ children }: { children: React.ReactNode }) => {
-  const { modeDispatch } = useMode();
+  const { activeMode, modeDispatch } = useMode();
   const { activeLanguage } = useLanguage();
   const activeMessages = activeLanguage === 'En' ? enMessages : frMessages;
   // const supportedLocales: Record<LanguageType, string> = {
@@ -44,11 +44,11 @@ const TempApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <IntlProvider
       messages={activeMessages}
-      // TODO:
       locale={activeLocale}
       defaultLocale="en-US"
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Toaster theme={activeMode} closeButton />
         <UserContextProvider>
           <ThemeProvider theme={useTheme()}>{children}</ThemeProvider>
         </UserContextProvider>
@@ -75,16 +75,6 @@ export function XafpayThemeProvider({
       <LanguageContextProvider>
         <ModeContextProvider>
           <>
-            <ToastContainer
-              position="top-right"
-              autoClose={5000}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              transition={Bounce}
-            />
             <CssBaseline />
             <TempApp>{children}</TempApp>
           </>
