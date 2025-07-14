@@ -24,7 +24,6 @@ import { OTPUsage, VerificationStatus } from '../../api/types';
 import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import BottomSheet from '../shared/BottomSheet';
 import { errorHandling } from '../shared/errorHandling';
-import { toast } from 'react-toastify';
 
 interface DepositBottomSheetProps {
   isOpen: boolean;
