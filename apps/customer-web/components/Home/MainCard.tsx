@@ -50,7 +50,7 @@ export default function MainCard() {
     data: accounts,
     isLoading: isActiveAccountLoading,
     refetch: refetchAccounts,
-    error,
+    isVerified,
   } = useCybridAccounts();
 
   useEffect(() => {
@@ -141,12 +141,7 @@ export default function MainCard() {
     });
 
   useEffect(() => {
-    if (
-      error &&
-      axios.isAxiosError(error) &&
-      error.response?.status === 403 &&
-      error.response.data?.message?.includes('Unverified email!')
-    ) {
+    if (!isVerified) {
       try {
         const authToken = localStorage.getItem('authToken');
         const otpId = authToken ? JSON.parse(authToken).otp_id : undefined;
@@ -159,7 +154,7 @@ export default function MainCard() {
         console.error('Error parsing authToken from localStorage:', e);
       }
     }
-  }, [error]);
+  }, [isVerified]);
 
   // set up verify email bottom sheet if the user has an unverified email
   const { mutate: verifyEmail, isPending: isVerifyingEmail } = useVerifyEmail();

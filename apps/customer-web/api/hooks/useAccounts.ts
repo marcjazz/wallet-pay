@@ -16,6 +16,7 @@ import {
   WorkflowEntity,
 } from '../types/AccountTypes';
 import { VerificationStatus } from '../types/EnumTypes';
+import axios from 'axios';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const accountsService = new AccountService(apiClient);
@@ -32,9 +33,19 @@ export const useCybridAccounts = () => {
   });
   const { isError, error } = tt;
 
+  let isVerified = true;
+  if (
+    error &&
+    axios.isAxiosError(error) &&
+    error.response?.status === 403 &&
+    error.response.data?.message?.includes('Unverified email!')
+  ) {
+    isVerified = false;
+  }
+
   if (isError) errorHandling({ error, formatMessage });
 
-  return tt;
+  return { ...tt, isVerified };
 };
 
 /**
