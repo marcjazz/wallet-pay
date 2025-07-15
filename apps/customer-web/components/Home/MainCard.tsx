@@ -15,18 +15,14 @@ import {
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 
-import axios from 'axios';
-import { toast } from 'react-toastify';
 import {
   useCybridAccounts,
   useGetIdentityVerification,
   useVerifyAccount,
 } from '../../api/hooks/useAccounts';
-import { useVerifyEmail } from '../../api/hooks/useAuth';
 import { useCurrencies } from '../../api/hooks/useCurrency';
 import { AccountType, VerificationStatus } from '../../api/types';
 import { CybridAccountEntity } from '../../api/types/AccountTypes';
-import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import { errorHandling } from '../shared/errorHandling';
 import AccountMenu from './AccountMenu';
 import DepositBottomSheet from './DepositBottomSheet';
@@ -37,11 +33,6 @@ export enum CurrencyEnum {
   CAD = 'CAD',
 }
 
-interface IEmailVerificationState {
-  isBottomSheetOpen: boolean;
-  otpId?: string;
-}
-
 export default function MainCard() {
   const { formatNumber, formatMessage } = useIntl();
   const { push } = useRouter();
@@ -50,7 +41,6 @@ export default function MainCard() {
     data: accounts,
     isLoading: isActiveAccountLoading,
     refetch: refetchAccounts,
-    isVerified,
   } = useCybridAccounts();
 
   useEffect(() => {
@@ -135,68 +125,8 @@ export default function MainCard() {
     }
   }, [identityVerification]);
 
-  const [emailVerificationState, setEmailVerificationState] =
-    useState<IEmailVerificationState>({
-      isBottomSheetOpen: false,
-    });
-
-  useEffect(() => {
-    if (!isVerified) {
-      try {
-        const authToken = localStorage.getItem('authToken');
-        const otpId = authToken ? JSON.parse(authToken).otp_id : undefined;
-
-        setEmailVerificationState({
-          isBottomSheetOpen: true,
-          otpId: otpId,
-        });
-      } catch (e) {
-        console.error('Error parsing authToken from localStorage:', e);
-      }
-    }
-  }, [isVerified]);
-
-  // set up verify email bottom sheet if the user has an unverified email
-  const { mutate: verifyEmail, isPending: isVerifyingEmail } = useVerifyEmail();
-  function submitOTP(otp?: string) {
-    if (!otp)
-      return setEmailVerificationState((prev) => ({
-        ...prev,
-        isBottomSheetOpen: false,
-      }));
-
-    verifyEmail(
-      { code: otp },
-      {
-        onSuccess: () => {
-          toast.success(formatMessage({ id: 'emailVerified' }));
-          setEmailVerificationState({
-            isBottomSheetOpen: false,
-          });
-          refetchAccounts();
-        },
-        onError: (error) => {
-          errorHandling({ error, formatMessage });
-          setEmailVerificationState((prev) => ({
-            ...prev,
-            isBottomSheetOpen: true,
-          }));
-        },
-      }
-    );
-  }
-
   return (
     <>
-      <OTPBottomSheet
-        otpId={emailVerificationState.otpId}
-        isOpen={emailVerificationState.isBottomSheetOpen}
-        isSubmitting={isVerifyingEmail}
-        closeBottomSheet={submitOTP}
-        confirmText={formatMessage({ id: 'confirmEmail' })}
-        description={formatMessage({ id: 'confirmEmailDescription' })}
-        title={formatMessage({ id: 'confirmEmail' })}
-      />
       <DepositBottomSheet
         isOpen={isDepositBottomSheetOpen}
         closeBottomSheet={() => {

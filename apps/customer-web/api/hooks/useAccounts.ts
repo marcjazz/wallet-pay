@@ -2,7 +2,6 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useIntl } from 'react-intl';
-import { toast } from 'sonner';
 import { errorHandling } from '../../components/shared/errorHandling';
 import { API_BASE_URL } from '../constants';
 import { AccountService } from '../services/AccountService';
@@ -17,7 +16,6 @@ import {
   WorkflowEntity,
 } from '../types/AccountTypes';
 import { VerificationStatus } from '../types/EnumTypes';
-import axios from 'axios';
 
 const apiClient = ApiClient.getInstance(API_BASE_URL);
 const accountsService = new AccountService(apiClient);
@@ -26,27 +24,11 @@ const accountsService = new AccountService(apiClient);
  * Hook for fetching all Cybrid accounts.
  */
 export const useCybridAccounts = () => {
-  const { formatMessage } = useIntl();
-  const tt = useQuery<CybridAccountEntity[], Error>({
+  return useQuery<CybridAccountEntity[], Error>({
     queryKey: ['cybridAccounts'],
     queryFn: () => accountsService.findAll(),
     initialData: [],
   });
-  const { isError, error } = tt;
-
-  let isVerified = true;
-  if (
-    error &&
-    axios.isAxiosError(error) &&
-    error.response?.status === 403 &&
-    error.response.data?.message?.includes('Unverified email!')
-  ) {
-    isVerified = false;
-  }
-
-  if (isError) errorHandling({ error, formatMessage });
-
-  return { ...tt, isVerified };
 };
 
 /**

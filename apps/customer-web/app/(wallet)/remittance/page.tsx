@@ -5,20 +5,20 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { useCurrencies } from '../../api/hooks/useCurrency';
-import { ReceiverEntity } from '../../api/types';
-import { CurrencyEnum } from '../../components/Home/MainCard';
-import Footer from '../../components/layout/footer/Footer';
+import { useCurrencies } from '../../../api/hooks/useCurrency';
+import { ReceiverEntity } from '../../../api/types';
+import { CurrencyEnum } from '../../../components/Home/MainCard';
+import Footer from '../../../components/layout/footer/Footer';
 import SendAmountStep, {
   AmountStepData,
   SupportedPayoutMethod,
-} from '../../components/remittance/amount/SendAmountStep';
+} from '../../../components/remittance/amount/SendAmountStep';
 import ReceiverStep, {
   Receiver,
-} from '../../components/remittance/receiver/ReceiverStep';
-import RemittanceStepper from '../../components/remittance/RemittanceStepper';
-import TransferSummary from '../../components/remittance/summary/TransferSummary';
-import { RemittanceStep, TransactionStatus } from '../../types';
+} from '../../../components/remittance/receiver/ReceiverStep';
+import RemittanceStepper from '../../../components/remittance/RemittanceStepper';
+import TransferSummary from '../../../components/remittance/summary/TransferSummary';
+import { RemittanceStep, TransactionStatus } from '../../../types';
 
 export interface RemittanceTransaction {
   cybrid_transaction_id: string;

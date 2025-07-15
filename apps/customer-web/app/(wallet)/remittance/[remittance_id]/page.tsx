@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useTransaction } from '../../../api/hooks/useTransaction';
-import RemittanceDetail from '../../../components/remittance/details/RemittanceDetail';
+import { useTransaction } from '../../../../api/hooks/useTransaction';
+import RemittanceDetail from '../../../../components/remittance/details/RemittanceDetail';
 
 export default function RemittanceDetails() {
   const params = useParams();
