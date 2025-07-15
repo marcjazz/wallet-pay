@@ -140,6 +140,11 @@ export default function OTPBottomSheet({
                     color: 'black',
                   },
                 }}
+                endIcon={
+                  isResendingOtp && (
+                    <CircularProgress size={15} thickness={23} />
+                  )
+                }
               >
                 {isCountingDown
                   ? `${formatMessage({ id: 'expiredIn' })} (${countdown}s)`
