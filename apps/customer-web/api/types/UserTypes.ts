@@ -24,4 +24,5 @@ export interface UserEntity {
   user_id: string;
   /** Timestamp when the user was created. */
   created_at: string;
+  is_verified: boolean;
 }

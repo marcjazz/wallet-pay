@@ -1,12 +1,13 @@
 'use client';
 
 import { Box, IconButton, Switch, Tooltip, Typography } from '@mui/material';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft } from 'react-feather';
+import { ChevronLeft, Hash, Smartphone } from 'react-feather';
 import { useIntl } from 'react-intl';
-import Footer from '../../components/layout/footer/Footer';
+import Footer from '../../../components/layout/footer/Footer';
 
-export default function PreferredLanguage() {
+export default function ExternalAccounts() {
   const { formatMessage } = useIntl();
   const { push } = useRouter();
 
@@ -48,22 +49,23 @@ export default function PreferredLanguage() {
           </Tooltip>
 
           <Typography variant="h3">
-            {formatMessage({ id: 'preferredLanguage' })}
+            {formatMessage({ id: 'verificationMethods' })}
           </Typography>
         </Box>
         <Box sx={{ display: 'grid', rowGap: 1, alignSelf: 'start' }}>
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
+              gridTemplateColumns: 'auto auto 1fr',
               columnGap: 2,
               alignItems: 'center',
               justifyItems: 'end',
               padding: 1,
             }}
           >
-            <Typography variant="p1m" color="primary">
-              {formatMessage({ id: 'english' })}
+            <Hash size={22} />
+            <Typography variant="p1m">
+              {formatMessage({ id: 'otpViaEmail' })}
             </Typography>
             <Switch
               defaultChecked
@@ -81,15 +83,16 @@ export default function PreferredLanguage() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
+              gridTemplateColumns: 'auto auto 1fr',
               columnGap: 2,
               alignItems: 'center',
               justifyItems: 'end',
               padding: 1,
             }}
           >
+            <Smartphone />
             <Typography variant="p1m">
-              {formatMessage({ id: 'french' })}
+              {formatMessage({ id: 'authenticatorApp' })}
             </Typography>
             <Typography variant="p1m" color="#BABDBE">
               {formatMessage({ id: 'comingSoon' })}
@@ -99,15 +102,21 @@ export default function PreferredLanguage() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
+              gridTemplateColumns: 'auto auto 1fr',
               columnGap: 2,
               alignItems: 'center',
               justifyItems: 'end',
               padding: 1,
             }}
           >
+            <Image
+              src="/assets/fingerprint.svg"
+              alt="biometric"
+              width={22}
+              height={22}
+            />{' '}
             <Typography variant="p1m">
-              {formatMessage({ id: 'german' })}
+              {formatMessage({ id: 'biometrics' })}
             </Typography>
             <Typography variant="p1m" color="#BABDBE">
               {formatMessage({ id: 'comingSoon' })}

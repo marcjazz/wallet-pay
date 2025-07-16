@@ -30,7 +30,8 @@ async function main() {
         ),
       };
 
-      return createInitialAdminAcount(admin);
+      const adminId = await createInitialAdminAcount(admin);
+      return insertDefaultCurrencyRates(adminId);
     case 'test':
       /** data for your test environment */
       break;

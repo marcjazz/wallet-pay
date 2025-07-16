@@ -241,4 +241,7 @@ export const website = {
     'At least 1 lowercase, 1 uppercase, 1 digit, and one special character',
   invalidOTP: 'Invalid OTP',
   recipientExistAlready: 'recipient number exist already',
+  emailVerified: 'Email verified successfully!',
+  manageExternalAccounts: 'Manage external accounts',
+  invalidGender: "Invalid gender"
 };
