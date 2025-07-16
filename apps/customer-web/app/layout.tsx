@@ -1,6 +1,6 @@
+import '../styles/global.css';
 export const dynamic = 'force-dynamic';
 
-import './global.scss';
 import { AppLayout } from '../components/AppLayout';
 import { ReactQueryProvider } from '../context/ReactQueryProvider';
 import { DM_Sans, Darker_Grotesque } from 'next/font/google';

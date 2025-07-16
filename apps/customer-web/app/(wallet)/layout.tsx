@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { toast } from 'sonner';
@@ -19,7 +20,7 @@ export default function WalletLayout({
   children: React.ReactNode;
 }) {
   const { formatMessage } = useIntl();
-  const { data: user } = useUserProfile();
+  const { data: user, isFetched } = useUserProfile();
 
   const [emailVerificationState, setEmailVerificationState] =
     useState<IEmailVerificationState>({
@@ -27,7 +28,7 @@ export default function WalletLayout({
     });
 
   useEffect(() => {
-    if (!user?.is_verified) {
+    if (isFetched && !user?.is_verified) {
       const apiClient = ApiClient.getInstance(API_BASE_URL);
       const authToken = apiClient.getAuthToken();
       setEmailVerificationState({
@@ -35,7 +36,7 @@ export default function WalletLayout({
         otpId: authToken?.otp_id,
       });
     }
-  }, [user?.is_verified]);
+  }, [isFetched, user?.is_verified]);
 
   // set up verify email bottom sheet if the user has an unverified email
   const { mutate: verifyEmail, isPending: isVerifyingEmail } = useVerifyEmail();

@@ -243,4 +243,5 @@ export const website = {
   recipientExistAlready: 'recipient number exist already',
   emailVerified: 'Email verified successfully!',
   manageExternalAccounts: 'Manage external accounts',
+  invalidGender: "Invalid gender"
 };

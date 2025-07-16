@@ -170,7 +170,7 @@ export default function OTPBottomSheet({
           <Button
             type="submit"
             size="medium"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isResendingOtp}
             endIcon={
               isSubmitting && <CircularProgress size={20} thickness={23} />
             }
@@ -180,7 +180,7 @@ export default function OTPBottomSheet({
           <Button
             size="small"
             variant="text"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isResendingOtp}
             onClick={() => closeBottomSheet()}
           >
             {formatMessage({ id: 'cancel' })}
