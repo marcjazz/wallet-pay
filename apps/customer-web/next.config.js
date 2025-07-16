@@ -30,14 +30,13 @@ const plugins = [
   withNx,
 ];
 
-module.exports = composePlugins(...plugins)(
-  withSentryConfig(nextConfig, {
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
-    // Pass the auth token
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    // Upload a larger set of source maps for prettier stack traces (increases build time)
-    widenClientFileUpload: true,
-    tunnelRoute: true,
-  })
-);
+const nextWithSentryConfig = withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Pass the auth token
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+  tunnelRoute: true,
+});
+module.exports = composePlugins(...plugins)(nextWithSentryConfig);

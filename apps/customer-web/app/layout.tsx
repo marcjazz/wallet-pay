@@ -1,4 +1,4 @@
-import '../styles/global.css';
+import './global.css';
 export const dynamic = 'force-dynamic';
 
 import { AppLayout } from '../components/AppLayout';
