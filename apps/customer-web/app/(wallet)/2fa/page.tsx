@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Hash, Smartphone } from 'react-feather';
 import { useIntl } from 'react-intl';
-import Footer from '../../components/layout/footer/Footer';
+import Footer from '../../../components/layout/footer/Footer';
 
 export default function ExternalAccounts() {
   const { formatMessage } = useIntl();

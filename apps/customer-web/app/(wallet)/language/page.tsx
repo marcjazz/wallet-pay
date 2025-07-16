@@ -4,7 +4,7 @@ import { Box, IconButton, Switch, Tooltip, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
-import Footer from '../../components/layout/footer/Footer';
+import Footer from '../../../components/layout/footer/Footer';
 
 export default function PreferredLanguage() {
   const { formatMessage } = useIntl();
