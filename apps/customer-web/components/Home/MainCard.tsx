@@ -49,8 +49,8 @@ export default function MainCard() {
     }
   }, [accounts]);
 
-  const { data: currencies, isLoading: areCurrenciesLoading } = useCurrencies();
   const [activeAccount, setActiveAccount] = useState<CybridAccountEntity>();
+  const { data: currencies, isLoading: areCurrenciesLoading } = useCurrencies();
 
   const majorActions = [
     {

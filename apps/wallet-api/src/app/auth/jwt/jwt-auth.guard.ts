@@ -45,13 +45,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       'resend'
     ].some((path) => request.url.includes(path));
 
+    if (!user.is_verified && !isAuthorizedRoute) {
+      throw new ForbiddenException('Unverified email!');
+    }
+
     // TODO: Remove this check when launch priod end
     if (!isPilotUser(user.email) && !isAuthorizedRoute) {
       throw new ForbiddenException('Platform not available to all yet!');
-    }
-
-    if (!user.is_verified && !isAuthorizedRoute) {
-      throw new ForbiddenException('Unverified email!');
     }
 
     return user as TUser;

@@ -1,9 +1,7 @@
 'use client';
 
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { useIntl } from 'react-intl';
-import { toast } from 'sonner';
 import { errorHandling } from '../../components/shared/errorHandling';
 import { API_BASE_URL } from '../constants';
 import { AccountService } from '../services/AccountService';
@@ -26,24 +24,11 @@ const accountsService = new AccountService(apiClient);
  * Hook for fetching all Cybrid accounts.
  */
 export const useCybridAccounts = () => {
-  const { formatMessage } = useIntl();
-  const tt = useQuery<CybridAccountEntity[], Error>({
+  return useQuery<CybridAccountEntity[], Error>({
     queryKey: ['cybridAccounts'],
     queryFn: () => accountsService.findAll(),
     initialData: [],
   });
-  const { isError, error } = tt;
-  if (isError) {
-    if (
-      isAxiosError(error) &&
-      error.response?.status === 403 &&
-      error.response.data?.message?.includes('Platform not available')
-    )
-      toast.warning(error.response.data.message);
-
-    errorHandling({ error, formatMessage });
-  }
-  return tt;
 };
 
 /**

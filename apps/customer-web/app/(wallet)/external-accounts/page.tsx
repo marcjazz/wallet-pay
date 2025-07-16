@@ -16,16 +16,16 @@ import { useIntl } from 'react-intl';
 import {
   useCreateWorkflow,
   useExternalAccounts,
-} from '../../api/hooks/useAccounts';
-import { ExternalBankAccountEntity } from '../../api/types/AccountTypes';
-import { CurrencyEnum } from '../../components/Home/MainCard';
-import ExternalAccountCard from '../../components/external-accounts/ExternalAccountCard';
-import ExternalAccountDetailsBottomSheet from '../../components/external-accounts/ExternalAccountDetailsBottomSheet';
-import NewExternalAccountBottomSheet from '../../components/external-accounts/NewExternalAccountBottomSheet';
-import Plaid from '../../components/external-accounts/Plaid';
-import Footer from '../../components/layout/footer/Footer';
-import { ExternalAccountVerificationStatus } from '../../types';
-import { errorHandling } from '../../components/shared/errorHandling';
+} from '../../../api/hooks/useAccounts';
+import { ExternalBankAccountEntity } from '../../../api/types/AccountTypes';
+import { CurrencyEnum } from '../../../components/Home/MainCard';
+import ExternalAccountCard from '../../../components/external-accounts/ExternalAccountCard';
+import ExternalAccountDetailsBottomSheet from '../../../components/external-accounts/ExternalAccountDetailsBottomSheet';
+import NewExternalAccountBottomSheet from '../../../components/external-accounts/NewExternalAccountBottomSheet';
+import Plaid from '../../../components/external-accounts/Plaid';
+import Footer from '../../../components/layout/footer/Footer';
+import { ExternalAccountVerificationStatus } from '../../../types';
+import { errorHandling } from '../../../components/shared/errorHandling';
 
 export interface ExternalAccount {
   cybrid_external_account_id: string;

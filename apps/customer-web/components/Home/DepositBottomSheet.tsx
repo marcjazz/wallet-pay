@@ -11,7 +11,9 @@ import {
   Select,
   Typography,
 } from '@mui/material';
+import { useTheme } from '@xafpay/theme';
 import { useFormik } from 'formik';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronDown } from 'react-feather';
@@ -24,6 +26,8 @@ import { OTPUsage, VerificationStatus } from '../../api/types';
 import OTPBottomSheet from '../auth/forgot-password/OTPBottomSheet';
 import BottomSheet from '../shared/BottomSheet';
 import { errorHandling } from '../shared/errorHandling';
+import { preventRouteWhenSubmitting } from '../shared/utilities';
+
 
 interface DepositBottomSheetProps {
   isOpen: boolean;
@@ -35,6 +39,7 @@ export default function DepositBottomSheet({
 }: DepositBottomSheetProps) {
   const { push } = useRouter();
   const { formatMessage } = useIntl();
+  const theme = useTheme();
 
   const { data: externalAccounts, isFetching: isLoadingExternalAccounts } =
     useExternalAccounts(VerificationStatus.PASSED);
@@ -205,45 +210,69 @@ export default function DepositBottomSheet({
                 </FormHelperText>
               </FormControl>
 
-              <FormControl
-                error={Boolean(
-                  touched.selectedAccount && errors.selectedAccount
-                )}
-                required
-                disabled={
-                  isSubmitting || isRequestingOtp || isLoadingExternalAccounts
-                }
+              <Box
+                sx={{
+                  display: 'grid',
+                  rowGap: 1,
+                }}
               >
-                <FormLabel htmlFor="cybrid-account">
-                  {formatMessage({ id: 'selectAccount' })}
-                </FormLabel>
-                <Select
-                  id="cybrid-account"
-                  IconComponent={ChevronDown}
-                  sx={{
-                    '& .MuiSelect-icon': {
-                      top: 'inherit',
-                    },
-                  }}
-                  {...formik.getFieldProps('selectedAccount')}
-                  autoFocus
+                <FormControl
+                  error={Boolean(
+                    touched.selectedAccount && errors.selectedAccount
+                  )}
+                  required
+                  disabled={
+                    isSubmitting || isRequestingOtp || isLoadingExternalAccounts
+                  }
                 >
-                  {externalAccounts.map((account) => (
-                    <MenuItem
-                      key={account.cybrid_external_account_id}
-                      value={account.cybrid_external_account_id}
-                    >
-                      {`${`********${account.mask}`.replace(
-                        /(.{4})(?=.)/g,
-                        '$1 '
-                      )} (${account.name})`}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText error>
-                  {touched.selectedAccount && errors.selectedAccount}
-                </FormHelperText>
-              </FormControl>
+                  <FormLabel htmlFor="cybrid-account">
+                    {formatMessage({ id: 'selectAccount' })}
+                  </FormLabel>
+                  <Select
+                    id="cybrid-account"
+                    IconComponent={ChevronDown}
+                    sx={{
+                      '& .MuiSelect-icon': {
+                        top: 'inherit',
+                      },
+                    }}
+                    {...formik.getFieldProps('selectedAccount')}
+                    autoFocus
+                  >
+                    {externalAccounts.map((account) => (
+                      <MenuItem
+                        key={account.cybrid_external_account_id}
+                        value={account.cybrid_external_account_id}
+                      >
+                        {`${`********${account.mask}`.replace(
+                          /(.{4})(?=.)/g,
+                          '$1 '
+                        )} (${account.name})`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText error>
+                    {touched.selectedAccount && errors.selectedAccount}
+                  </FormHelperText>
+                </FormControl>
+                <Typography
+                  variant="p3r"
+                  sx={{
+                    color: theme.palette.primary.main,
+                    paddingRight: '6px',
+                    textDecoration: 'none',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    justifySelf: 'end',
+                  }}
+                  component={Link}
+                  href="/external-accounts"
+                  onClick={(event) =>
+                    preventRouteWhenSubmitting(event, isSubmitting)
+                  }
+                >
+                  {formatMessage({ id: 'manageExternalAccounts' })}
+                </Typography>
+              </Box>
             </Box>
 
             <Button

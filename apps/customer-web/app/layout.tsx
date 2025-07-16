@@ -1,15 +1,8 @@
+import './global.css';
 export const dynamic = 'force-dynamic';
 
-import './global.scss';
 import { AppLayout } from '../components/AppLayout';
 import { ReactQueryProvider } from '../context/ReactQueryProvider';
-import { DM_Sans, Darker_Grotesque } from 'next/font/google';
-
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
-const darkerGrotesque = Darker_Grotesque({
-  subsets: ['latin'],
-  variable: '--font-darker-grotesque',
-});
 
 export const metadata = {
   title: 'XAFPAY',
@@ -24,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${darkerGrotesque.variable}`}>
+      <body>
         <ReactQueryProvider>
           <AppLayout>{children}</AppLayout>
         </ReactQueryProvider>

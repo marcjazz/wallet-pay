@@ -4,9 +4,9 @@ import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'react-feather';
 import { useIntl } from 'react-intl';
-import { useCybridAccounts } from '../../api/hooks/useAccounts';
-import FBOAccountCard from '../../components/accounts/FBOAccountCard';
-import Footer from '../../components/layout/footer/Footer';
+import { useCybridAccounts } from '../../../api/hooks/useAccounts';
+import FBOAccountCard from '../../../components/accounts/FBOAccountCard';
+import Footer from '../../../components/layout/footer/Footer';
 
 export default function FBOAccounts() {
   const { formatMessage } = useIntl();
