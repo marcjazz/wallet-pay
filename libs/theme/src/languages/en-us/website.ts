@@ -72,7 +72,7 @@ export const website = {
   clickToSwipe: 'Click to swipe',
   enterAmount: 'Enter amount',
   invalidAmount: 'Invalid amount',
-  cannotBeFraction: 'Amount cannot be a fraction',
+  maxTwoDecimalPlaces: 'Amount cannot have more than 2 decimal places',
   minAmount: 'Minimum amount is 10',
   externalAccountRequired: 'External account is required',
   invalidAccount: 'Invalid account',
@@ -243,12 +243,11 @@ export const website = {
   recipientExistAlready: 'recipient number exist already',
   emailVerified: 'Email verified successfully!',
   manageExternalAccounts: 'Manage external accounts',
-  invalidGender: "Invalid gender",
+  invalidGender: 'Invalid gender',
   // Profile page translations
   overview: 'Overview',
   editInformation: 'Edit Information',
   username: 'Username',
-  dateOfBirth: 'Date of Birth',
   enterPhoneNumber: 'Enter phone number',
   enterFirstName: 'Enter first name',
   enterLastName: 'Enter last name',
@@ -256,11 +255,12 @@ export const website = {
   invalidBirthdate: 'Invalid date of birth',
   minCharacters: 'Must be at least {count} characters',
   maxCharacters: 'Must be at most {count} characters',
-  fieldLockedCybridVerified: 'This field cannot be edited after account verification',
+  fieldLockedCybridVerified:
+    'This field cannot be edited after account verification',
   usernameReadOnly: 'Username is automatically generated from your name',
   saveChanges: 'Save Changes',
   saving: 'Saving...',
   profileUpdatedSuccessfully: 'Profile updated successfully!',
   errorLoadingProfile: 'Error loading profile',
-  tryAgainLater: 'Please try again later'
+  tryAgainLater: 'Please try again later',
 };
