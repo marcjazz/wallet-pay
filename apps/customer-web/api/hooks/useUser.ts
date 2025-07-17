@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_BASE_URL } from '../constants';
 import { ApiClient } from '../services/ApiClient';
 import { UserService } from '../services/UserService';
@@ -23,13 +23,11 @@ export const useUserProfile = () =>
  */
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation<UserEntity, Error, UpdateProfileDto>({
-    mutationKey: ['updateProfile'],
-    mutationFn: (payload) => userService.updateProfile(payload),
-    onSuccess: (updatedUser) => {
-      // Update the cached user profile
-      queryClient.setQueryData(['userProfile'], updatedUser);
+    mutationFn: (data) => userService.updateProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
     },
   });
 };

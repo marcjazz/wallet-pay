@@ -11,7 +11,7 @@ export class UserService {
     return this.apiClient.get<UserEntity>('/api/v1/users/profile');
   }
 
-  async updateProfile(payload: UpdateProfileDto): Promise<UserEntity> {
-    return this.apiClient.patch<UserEntity>('/api/v1/users/profile', payload);
+  async updateProfile(data: UpdateProfileDto): Promise<UserEntity> {
+    return this.apiClient.patch<UserEntity>('/api/v1/users/profile', data);
   }
 }
