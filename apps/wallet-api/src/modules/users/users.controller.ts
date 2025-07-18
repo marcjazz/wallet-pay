@@ -30,12 +30,12 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user profile' })
   @ApiOkResponse({ type: UserEntity, description: 'User profile retrieved successfully' })
   getProfile(@Req() req: Request) {
-    if (!req.user) {
+    const user = req.user;
+    if (!user) {
       throw new UnauthorizedException('User not connected!');
     }
 
-    const { id: user_id, ...user } = req.user;
-    return new UserEntity({ ...user, user_id });
+    return new UserEntity({ ...user, user_id: user.id });
   }
 
   @Patch('profile')
@@ -64,7 +64,8 @@ export class UsersController {
     @Req() req: Request,
     @Body() updateProfileDto: UpdateProfileDto
   ) {
-    if (!req.user) {
+    const user = req.user;
+    if (!user) {
       throw new UnauthorizedException('User not connected!');
     }
 
@@ -74,9 +75,11 @@ export class UsersController {
     );
 
     const { person_id, ...userWithoutPersonId } = updatedPerson;
-    return new UserEntity({ 
-      ...userWithoutPersonId, 
-      user_id: req.user.id 
+    return new UserEntity({
+      ...userWithoutPersonId,
+      user_id: user.id,
+      person_id,
+      is_active: user.is_active,
     });
   }
 }

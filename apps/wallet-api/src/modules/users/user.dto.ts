@@ -2,7 +2,6 @@ import {
   ApiHideProperty,
   ApiProperty,
   OmitType,
-  PartialType,
   PickType,
 } from '@nestjs/swagger';
 import { Exclude, Transform } from 'class-transformer';
