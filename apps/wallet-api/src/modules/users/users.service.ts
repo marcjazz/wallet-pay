@@ -46,7 +46,7 @@ export class UsersService {
 
       if (attemptedRestrictedFields.length > 0) {
         throw new ForbiddenException(
-          `Cannot update ${attemptedRestrictedFields.join(', ')}: Account is cybrid verified`
+          `Cannot update birth data: Account is cybrid verified`
         );
       }
     }
