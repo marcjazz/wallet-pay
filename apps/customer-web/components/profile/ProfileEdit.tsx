@@ -63,13 +63,8 @@ function ReadOnlyField({ label, value, helperText }: ReadOnlyFieldProps) {
 export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
   const { formatMessage } = useIntl();
   const theme = useTheme();
-  const { mutate: updateProfile, isPending: isUpdating } = useUpdateProfile();
-
-  // Helper function to format date for input
-  const formatDateForInput = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
-  };
+  const { mutate: updateProfile, isPending: isUpdateProfilPending } =
+    useUpdateProfile();
 
   // Validation schema
   const validationSchema = Yup.object({
@@ -92,13 +87,21 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
       .required(formatMessage({ id: 'requiredField' })),
   });
 
-  const formik = useFormik({
+  const {
+    values,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    isValid
+  } = useFormik({
     initialValues: {
       email: user.email,
       phone_number: user.phone_number,
       first_name: user.first_name,
       last_name: user.last_name,
-      birthdate: formatDateForInput(user.birthdate),
+      birthdate: new Date(user.birthdate).toISOString().split('T')[0]
     },
     validationSchema,
     onSubmit: (values) => {
@@ -126,35 +129,38 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
     },
   });
 
-  const { values, errors, touched, handleChange, handleBlur, handleSubmit } = formik;
-
   return (
     <Box
       sx={{
         padding: '16px',
         backgroundColor: 'white',
-        minHeight: 'calc(100vh - 200px)',
+        display: 'grid',
+        rowGap: '32px'
       }}
     >
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
+      <Typography variant="p1m" sx={{ color: 'rgba(177, 172, 165, 1)' }}>
+        {formatMessage({ id: 'editInformations' })}
+      </Typography>
+      <Box component="form" onSubmit={handleSubmit}>
+        <Grid container direction="column" spacing={2}>
           {/* Always editable fields */}
           <Grid item xs={12} sm={6}>
             <FormControl
               fullWidth
               error={!!(touched.email && errors.email)}
-              disabled={isUpdating}
+              disabled={isUpdateProfilPending}
             >
               <FormLabel
+                htmlFor="email"
                 sx={{
                   color: theme.palette.text.primary,
-                  marginBottom: '8px',
-                  fontSize: '14px',
+                  fontSize: '14px'
                 }}
               >
                 {formatMessage({ id: 'email' })} *
               </FormLabel>
               <OutlinedInput
+                id="email"
                 name="email"
                 type="email"
                 value={values.email}
@@ -173,13 +179,13 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             <FormControl
               fullWidth
               error={!!(touched.phone_number && errors.phone_number)}
-              disabled={isUpdating}
+              disabled={isUpdateProfilPending}
             >
               <FormLabel
+                htmlFor="phone_number"
                 sx={{
                   color: theme.palette.text.primary,
-                  marginBottom: '8px',
-                  fontSize: '14px',
+                  fontSize: '14px'
                 }}
               >
                 {formatMessage({ id: 'phoneNumber' })} *
@@ -211,13 +217,13 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               <FormControl
                 fullWidth
                 error={!!(touched.first_name && errors.first_name)}
-                disabled={isUpdating}
+                disabled={isUpdateProfilPending}
               >
                 <FormLabel
+                  htmlFor="first_name"
                   sx={{
                     color: theme.palette.text.primary,
-                    marginBottom: '8px',
-                    fontSize: '14px',
+                    fontSize: '14px'
                   }}
                 >
                   {formatMessage({ id: 'firstName' })} *
@@ -248,13 +254,13 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               <FormControl
                 fullWidth
                 error={!!(touched.last_name && errors.last_name)}
-                disabled={isUpdating}
+                disabled={isUpdateProfilPending}
               >
                 <FormLabel
+                  htmlFor="last_name"
                   sx={{
                     color: theme.palette.text.primary,
-                    marginBottom: '8px',
-                    fontSize: '14px',
+                    fontSize: '14px'
                   }}
                 >
                   {formatMessage({ id: 'lastName' })} *
@@ -289,13 +295,13 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               <FormControl
                 fullWidth
                 error={!!(touched.birthdate && errors.birthdate)}
-                disabled={isUpdating}
+                disabled={isUpdateProfilPending}
               >
                 <FormLabel
+                  htmlFor="birthdate"
                   sx={{
                     color: theme.palette.text.primary,
-                    marginBottom: '8px',
-                    fontSize: '14px',
+                    fontSize: '14px'
                   }}
                 >
                   {formatMessage({ id: 'dateOfBirth' })} *
@@ -314,15 +320,6 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               </FormControl>
             )}
           </Grid>
-
-          {/* Username - always read-only */}
-          <Grid item xs={12} sm={6}>
-            <ReadOnlyField
-              label={formatMessage({ id: 'username' })}
-              value={`${user.first_name} ${user.last_name}`}
-              helperText={formatMessage({ id: 'usernameReadOnly' })}
-            />
-          </Grid>
         </Grid>
 
         {/* Save button */}
@@ -331,16 +328,20 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             type="submit"
             variant="contained"
             fullWidth
-            disabled={isUpdating || !formik.isValid}
+            disabled={isUpdateProfilPending || !isValid}
             sx={{
               height: '48px',
               textTransform: 'none',
               fontSize: '16px',
               fontWeight: 600,
             }}
-            endIcon={isUpdating && <CircularProgress size={20} />}
+            endIcon={
+              isUpdateProfilPending && (
+                <CircularProgress size={20} thickness={23} />
+              )
+            }
           >
-            {isUpdating 
+            {isUpdateProfilPending
               ? formatMessage({ id: 'saving' })
               : formatMessage({ id: 'saveChanges' })
             }
