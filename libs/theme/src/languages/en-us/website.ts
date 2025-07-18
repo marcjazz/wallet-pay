@@ -263,4 +263,6 @@ export const website = {
   profileUpdatedSuccessfully: 'Profile updated successfully!',
   errorLoadingProfile: 'Error loading profile',
   tryAgainLater: 'Please try again later',
+  personalInformations: 'Personal Informations',
+  editInformations: 'Edit Informations'
 };

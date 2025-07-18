@@ -102,4 +102,35 @@ export class UsersService {
       return updatedPerson;
     });
   }
+
+  /**
+   * Returns whether the user with the given ID has been verified by Cybrid.
+   * @param userId The ID of the user to check.
+   * @throws {NotFoundException} If the user or cybrid customer is not found.
+   * @returns true if the user is verified, false otherwise.
+   */
+  async getProfile(userId: string) {
+    // Get current user data
+    const userWithRole = await this.prismaService.personHasRole.findUnique({
+      where: { person_has_role_id: userId },
+      include: { Person: true }
+    });
+
+    if (!userWithRole) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { Person: currentPerson } = userWithRole;
+
+    // Check cybrid verification status
+    const cybridCustomer = await this.prismaService.cybridCustomer.findFirst({
+      where: { person_id: currentPerson.person_id }
+    });
+
+    if (!cybridCustomer) {
+      throw new NotFoundException('Cybrid customer not found');
+    }
+
+    return cybridCustomer.verification_status === 'PASSED';
+  }
 }

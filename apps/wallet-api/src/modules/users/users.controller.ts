@@ -28,14 +28,24 @@ export class UsersController {
 
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile' })
-  @ApiOkResponse({ type: UserEntity, description: 'User profile retrieved successfully' })
-  getProfile(@Req() req: Request) {
+  @ApiOkResponse({
+    type: UserEntity,
+    description: 'User profile retrieved successfully'
+  })
+  async getProfile(@Req() req: Request) {
     const user = req.user;
+
     if (!user) {
       throw new UnauthorizedException('User not connected!');
     }
 
-    return new UserEntity({ ...user, user_id: user.id });
+    const cybrid_verified = await this.usersService.getProfile(user.id);
+
+    return new UserEntity({
+      ...user,
+      user_id: user.id,
+      cybrid_verified
+    });
   }
 
   @Patch('profile')
