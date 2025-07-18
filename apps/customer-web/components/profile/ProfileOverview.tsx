@@ -19,15 +19,23 @@ interface ProfileFieldProps {
  */
 function ProfileField({ label, value }: ProfileFieldProps) {
   const theme = useTheme();
-  
+
   return (
-    <Box sx={{ marginBottom: '16px' }}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridAutoFlow: 'column',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '20px'
+      }}
+    >
       <Typography
         variant="p3r"
         sx={{
-          color: theme.palette.grey[600],
+          color: theme.palette.text.primary,
           marginBottom: '4px',
-          display: 'block',
+          display: 'block'
         }}
       >
         {label}
@@ -35,8 +43,8 @@ function ProfileField({ label, value }: ProfileFieldProps) {
       <Typography
         variant="p2r"
         sx={{
-          color: theme.palette.text.primary,
-          wordBreak: 'break-word',
+          color: theme.palette.grey[600],
+          wordBreak: 'break-word'
         }}
       >
         {value}
@@ -49,66 +57,53 @@ function ProfileField({ label, value }: ProfileFieldProps) {
  * Overview tab component displaying read-only user information.
  */
 export default function ProfileOverview({ user }: ProfileOverviewProps) {
-  const { formatMessage } = useIntl();
-  const theme = useTheme();
-
-  // Helper function to format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
-
-  // Generate username from first and last name
-  const username = `${user.first_name} ${user.last_name}`;
+  const { formatMessage, formatDate } = useIntl();
 
   return (
     <Box
       sx={{
         padding: '16px',
         backgroundColor: 'white',
-        minHeight: 'calc(100vh - 200px)', // Adjust based on header/tabs height
+        display: 'grid',
+        rowGap: '32px'
       }}
     >
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <ProfileField
-            label={formatMessage({ id: 'username' })}
-            value={username}
-          />
-        </Grid>
-        
+      <Typography variant="p1m" sx={{ color: 'rgba(177, 172, 165, 1)' }}>
+        {formatMessage({ id: 'personalInformations' })}
+      </Typography>
+      <Grid container direction="column">
         <Grid item xs={12} sm={6}>
           <ProfileField
             label={formatMessage({ id: 'firstName' })}
             value={user.first_name}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <ProfileField
             label={formatMessage({ id: 'lastName' })}
             value={user.last_name}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <ProfileField
             label={formatMessage({ id: 'dateOfBirth' })}
-            value={formatDate(user.birthdate)}
+            value={formatDate(user.birthdate, {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            })}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <ProfileField
             label={formatMessage({ id: 'email' })}
             value={user.email}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <ProfileField
             label={formatMessage({ id: 'phoneNumber' })}
