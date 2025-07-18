@@ -75,16 +75,16 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
       .matches(/^\+[1-9]\d{1,14}$/, formatMessage({ id: 'invalidPhoneNumber' }))
       .required(formatMessage({ id: 'requiredField' })),
     first_name: Yup.string()
-      .min(2, formatMessage({ id: 'minCharacters', values: { count: 2 } }))
-      .max(50, formatMessage({ id: 'maxCharacters', values: { count: 50 } }))
+      .min(2, formatMessage({ id: 'minCharacters' }))
+      .max(50, formatMessage({ id: 'maxCharacters' }))
       .required(formatMessage({ id: 'requiredField' })),
     last_name: Yup.string()
-      .min(2, formatMessage({ id: 'minCharacters', values: { count: 2 } }))
-      .max(50, formatMessage({ id: 'maxCharacters', values: { count: 50 } }))
+      .min(2, formatMessage({ id: 'minCharacters' }))
+      .max(50, formatMessage({ id: 'maxCharacters' }))
       .required(formatMessage({ id: 'requiredField' })),
     birthdate: Yup.date()
       .max(new Date(), formatMessage({ id: 'invalidBirthdate' }))
-      .required(formatMessage({ id: 'requiredField' })),
+      .required(formatMessage({ id: 'requiredField' }))
   });
 
   const {
@@ -347,7 +347,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             }
           </Button>
         </Box>
-      </form>
+      </Box>
     </Box>
   );
 }
