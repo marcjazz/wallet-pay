@@ -5,13 +5,14 @@ import {
   PickType,
 } from '@nestjs/swagger';
 import { Exclude, Transform } from 'class-transformer';
-import { 
-  IsISO8601, 
-  IsString, 
-  IsOptional, 
-  IsEmail, 
-  IsPhoneNumber, 
-  IsDateString 
+import {
+  IsBoolean,
+  IsDateString,
+  IsEmail,
+  IsISO8601,
+  IsOptional,
+  IsPhoneNumber,
+  IsString
 } from 'class-validator';
 import { SignUpDto } from '../../app/auth/auth.dto';
 
@@ -35,6 +36,11 @@ export class UserEntity extends OmitType(SignUpDto, ['country']) {
   @IsISO8601()
   @ApiProperty()
   created_at: Date;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty()
+  cybrid_verified?: boolean;
 
   constructor(props: UserEntity) {
     super(props);
