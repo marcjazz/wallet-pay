@@ -70,7 +70,7 @@ export class UsersController {
     }
 
     const updatedPerson = await this.usersService.updateProfile(
-      req.user.id, 
+      user.id,
       updateProfileDto
     );
 

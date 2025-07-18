@@ -40,13 +40,13 @@ export class UsersService {
     // Validate restricted fields for cybrid verified users
     if (isCybridVerified) {
       const restrictedFields = ['first_name', 'last_name', 'birthdate'];
-      const attemptedRestrictedFields = restrictedFields.filter(field => 
-        updateData[field] !== undefined
+      const attemptedRestrictedFields = restrictedFields.filter(
+        (field) => updateData[field as keyof UpdateProfileDto] !== undefined
       );
 
       if (attemptedRestrictedFields.length > 0) {
         throw new ForbiddenException(
-          `Cannot update ${attemptedRestrictedFields.join(', ')}: Account is cybrid verified`
+          `Cannot update birth data: Account is cybrid verified`
         );
       }
     }
