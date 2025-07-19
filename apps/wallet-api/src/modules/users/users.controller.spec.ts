@@ -10,6 +10,7 @@ describe('UsersController', () => {
 
   const mockUsersService = {
     updateProfile: jest.fn(),
+    getProfile: jest.fn()
   };
 
   beforeEach(async () => {
@@ -29,7 +30,7 @@ describe('UsersController', () => {
   });
 
   describe('getProfile', () => {
-    it('should return user profile', () => {
+    it('should return user profile', async () => {
       const mockRequest = {
         user: {
           id: 'test-user-id',
@@ -45,7 +46,8 @@ describe('UsersController', () => {
         },
       } as any;
 
-      const result = controller.getProfile(mockRequest);
+      mockUsersService.getProfile.mockResolvedValue(mockRequest.user);
+      const result = await controller.getProfile(mockRequest);
 
       expect(result).toBeInstanceOf(UserEntity);
       expect(result.user_id).toBe('test-user-id');

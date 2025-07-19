@@ -72,21 +72,21 @@ export default function ProfileOverview({ user }: ProfileOverviewProps) {
         {formatMessage({ id: 'personalInformations' })}
       </Typography>
       <Grid container direction="column">
-        <Grid item xs={12} sm={6}>
+        <Grid item>
           <ProfileField
             label={formatMessage({ id: 'firstName' })}
             value={user.first_name}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item>
           <ProfileField
             label={formatMessage({ id: 'lastName' })}
             value={user.last_name}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item>
           <ProfileField
             label={formatMessage({ id: 'dateOfBirth' })}
             value={formatDate(user.birthdate, {
@@ -97,14 +97,14 @@ export default function ProfileOverview({ user }: ProfileOverviewProps) {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item>
           <ProfileField
             label={formatMessage({ id: 'email' })}
             value={user.email}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item>
           <ProfileField
             label={formatMessage({ id: 'phoneNumber' })}
             value={user.phone_number}

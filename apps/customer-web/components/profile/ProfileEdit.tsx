@@ -144,7 +144,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
       <Box component="form" onSubmit={handleSubmit}>
         <Grid container direction="column" spacing={2}>
           {/* Always editable fields */}
-          <Grid item xs={12} sm={6}>
+          <Grid item>
             <FormControl
               fullWidth
               error={!!(touched.email && errors.email)}
@@ -175,7 +175,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item>
             <FormControl
               fullWidth
               error={!!(touched.phone_number && errors.phone_number)}
@@ -206,7 +206,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
           </Grid>
 
           {/* Conditionally editable fields */}
-          <Grid item xs={12} sm={6}>
+          <Grid item>
             {user.cybrid_verified ? (
               <ReadOnlyField
                 label={formatMessage({ id: 'firstName' })}
@@ -243,7 +243,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             )}
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item>
             {user.cybrid_verified ? (
               <ReadOnlyField
                 label={formatMessage({ id: 'lastName' })}
@@ -280,7 +280,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             )}
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item>
             {user.cybrid_verified ? (
               <ReadOnlyField
                 label={formatMessage({ id: 'dateOfBirth' })}
