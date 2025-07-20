@@ -255,8 +255,6 @@ export const website = {
   invalidBirthdate: 'Invalid date of birth',
   minCharacters: 'Must be at least {count} characters',
   maxCharacters: 'Must be at most {count} characters',
-  fieldLockedCybridVerified:
-    'This field cannot be edited after account verification',
   usernameReadOnly: 'Username is automatically generated from your name',
   saveChanges: 'Save Changes',
   saving: 'Saving...',
@@ -264,5 +262,7 @@ export const website = {
   errorLoadingProfile: 'Error loading profile',
   tryAgainLater: 'Please try again later',
   personalInformations: 'Personal Informations',
-  editInformations: 'Edit Informations'
+  editInformations: 'Edit Informations',
+  disabledFieldsInformations:
+    'Disabled fields cannot be edited because account is already verified!'
 };

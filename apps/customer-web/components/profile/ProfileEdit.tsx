@@ -18,7 +18,6 @@ interface ProfileEditProps {
 interface ReadOnlyFieldProps {
   label: string;
   value: string;
-  helperText?: string;
 }
 
 /**
@@ -48,11 +47,6 @@ function ReadOnlyField({ label, value, helperText }: ReadOnlyFieldProps) {
           },
         }}
       />
-      {helperText && (
-        <FormHelperText sx={{ color: theme.palette.grey[500] }}>
-          {helperText}
-        </FormHelperText>
-      )}
     </FormControl>
   );
 }
@@ -94,7 +88,8 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
     handleChange,
     handleBlur,
     handleSubmit,
-    isValid
+    isValid,
+    dirty
   } = useFormik({
     initialValues: {
       email: user.email,
@@ -204,14 +199,22 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               </FormHelperText>
             </FormControl>
           </Grid>
-
+          {user.cybrid_verified && (
+            <Grid item>
+              <Typography
+                variant="p2m"
+                sx={{ color: 'rgba(177, 172, 165, 1)' }}
+              >
+                {formatMessage({ id: 'disabledFieldsInformations' })}
+              </Typography>
+            </Grid>
+          )}
           {/* Conditionally editable fields */}
           <Grid item>
             {user.cybrid_verified ? (
               <ReadOnlyField
                 label={formatMessage({ id: 'firstName' })}
                 value={user.first_name}
-                helperText={formatMessage({ id: 'fieldLockedCybridVerified' })}
               />
             ) : (
               <FormControl
@@ -248,7 +251,6 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               <ReadOnlyField
                 label={formatMessage({ id: 'lastName' })}
                 value={user.last_name}
-                helperText={formatMessage({ id: 'fieldLockedCybridVerified' })}
               />
             ) : (
               <FormControl
@@ -287,9 +289,8 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
                 value={new Date(user.birthdate).toLocaleDateString('en-GB', {
                   day: '2-digit',
                   month: '2-digit',
-                  year: 'numeric',
+                  year: 'numeric'
                 })}
-                helperText={formatMessage({ id: 'fieldLockedCybridVerified' })}
               />
             ) : (
               <FormControl
@@ -328,7 +329,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             type="submit"
             variant="contained"
             fullWidth
-            disabled={isUpdateProfilPending || !isValid}
+            disabled={isUpdateProfilPending || !isValid || !dirty}
             sx={{
               height: '48px',
               textTransform: 'none',
