@@ -2,11 +2,18 @@ import {
   ApiHideProperty,
   ApiProperty,
   OmitType,
-  PartialType,
   PickType,
 } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
-import { IsISO8601, IsString } from 'class-validator';
+import { Exclude, Transform } from 'class-transformer';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEmail,
+  IsISO8601,
+  IsOptional,
+  IsPhoneNumber,
+  IsString
+} from 'class-validator';
 import { SignUpDto } from '../../app/auth/auth.dto';
 
 export class UserEntity extends OmitType(SignUpDto, ['country']) {
@@ -30,6 +37,11 @@ export class UserEntity extends OmitType(SignUpDto, ['country']) {
   @ApiProperty()
   created_at: Date;
 
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty()
+  cybrid_verified?: boolean;
+
   constructor(props: UserEntity) {
     super(props);
     Object.assign(this, props);
@@ -44,4 +56,49 @@ export class Profile extends PickType(UserEntity, [
   'preferred_language',
 ]) {}
 
-export class UpdateProfileDto extends PartialType(Profile) {}
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    description: 'User first name (editable only if not cybrid verified)',
+    required: false,
+  })
+  first_name?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    description: 'User last name (editable only if not cybrid verified)',
+    required: false,
+  })
+  last_name?: string;
+
+  @IsOptional()
+  @IsEmail()
+  @Transform(({ value }) => value.trim().toLowerCase())
+  @ApiProperty({
+    description: 'User email address (always editable)',
+    required: false,
+  })
+  email?: string;
+
+  @IsOptional()
+  @IsPhoneNumber()
+  @ApiProperty({
+    description: 'User phone number (always editable)',
+    required: false,
+  })
+  phone_number?: string;
+
+  @IsOptional()
+  @IsDateString()
+  @ApiProperty({
+    description: 'User date of birth (editable only if not cybrid verified)',
+    required: false,
+  })
+  birthdate?: string;
+
+  constructor(props: UpdateProfileDto) {
+    Object.assign(this, props);
+  }
+}

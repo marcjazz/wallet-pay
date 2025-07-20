@@ -28,7 +28,6 @@ import BottomSheet from '../shared/BottomSheet';
 import { errorHandling } from '../shared/errorHandling';
 import { preventRouteWhenSubmitting } from '../shared/utilities';
 
-
 interface DepositBottomSheetProps {
   isOpen: boolean;
   closeBottomSheet: () => void;
@@ -48,7 +47,15 @@ export default function DepositBottomSheet({
     amount: Yup.number()
       .required(formatMessage({ id: 'enterAmount' }))
       .positive(formatMessage({ id: 'invalidAmount' }))
-      .integer(formatMessage({ id: 'cannotBeFraction' }))
+      .test(
+        'decimal-places',
+        formatMessage({ id: 'maxTwoDecimalPlaces' }),
+        (value) => {
+          if (value === undefined || value === null) return true;
+          const decimalPlaces = (value.toString().split('.')[1] || '').length;
+          return decimalPlaces <= 2;
+        }
+      )
       .min(10, formatMessage({ id: 'minAmount' })),
     selectedAccount: Yup.string()
       .required(formatMessage({ id: 'externalAccountRequired' }))
