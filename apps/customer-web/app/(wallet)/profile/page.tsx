@@ -75,7 +75,9 @@ export default function ProfilePage() {
               gap: '10px'
             },
             bgcolor: 'rgba(190, 197, 197, 0.3)',
-            borderRadius: '10px'
+            borderRadius: '10px',
+            p: 0.5,
+            minHeight: 'unset'
           }}
         >
           {tabsLabel.map(({ label, tabIcon }, index) => (
@@ -85,7 +87,21 @@ export default function ProfilePage() {
               icon={tabIcon}
               iconPosition="start"
               sx={{
-                textTransform: 'none'
+                textTransform: 'none',
+                minHeight: 'unset', // Remove default min-height
+                height: 48, // Set custom height
+                py: 0.5, // Vertical padding
+                px: 2, // Horizontal padding
+                borderRadius: '8px', // Slightly rounded corners
+                boxShadow:
+                  activeTab === index ? '0 2px 4px rgba(0,0,0,0.2)' : 'none', // Shadow for active tab
+                transition: 'all 0.3s ease', // Smooth transition
+                '&:hover': {
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                },
+                // Optional: Different bg for active tab
+                bgcolor:
+                  activeTab === index ? 'background.paper' : 'transparent'
               }}
             />
           ))}
