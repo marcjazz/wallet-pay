@@ -1,6 +1,16 @@
 'use client';
 
-import { Box, Button, CircularProgress, FormControl, FormHelperText, FormLabel, OutlinedInput, Typography, Grid } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  OutlinedInput,
+  Typography,
+  Grid
+} from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useIntl } from 'react-intl';
@@ -23,16 +33,16 @@ interface ReadOnlyFieldProps {
 /**
  * Read-only field component for locked fields.
  */
-function ReadOnlyField({ label, value, helperText }: ReadOnlyFieldProps) {
+function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
   const theme = useTheme();
-  
+
   return (
     <FormControl fullWidth disabled>
       <FormLabel
         sx={{
           color: theme.palette.grey[600],
           marginBottom: '8px',
-          fontSize: '14px',
+          fontSize: '14px'
         }}
       >
         {label}
@@ -43,8 +53,8 @@ function ReadOnlyField({ label, value, helperText }: ReadOnlyFieldProps) {
         sx={{
           backgroundColor: theme.palette.grey[50],
           '& .MuiOutlinedInput-input': {
-            color: theme.palette.grey[600],
-          },
+            color: theme.palette.grey[600]
+          }
         }}
       />
     </FormControl>
@@ -102,7 +112,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
     onSubmit: (values) => {
       const payload: UpdateProfileDto = {
         email: values.email,
-        phone_number: values.phone_number,
+        phone_number: values.phone_number
       };
 
       // Only include restricted fields if user is not cybrid verified
@@ -119,9 +129,9 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
         },
         onError: (error) => {
           errorHandling({ error, formatMessage });
-        },
+        }
       });
-    },
+    }
   });
 
   return (
@@ -164,9 +174,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
                 placeholder={formatMessage({ id: 'enterEmail' })}
                 sx={{ backgroundColor: 'white' }}
               />
-              <FormHelperText>
-                {touched.email && errors.email}
-              </FormHelperText>
+              <FormHelperText>{touched.email && errors.email}</FormHelperText>
             </FormControl>
           </Grid>
 
@@ -334,7 +342,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               height: '48px',
               textTransform: 'none',
               fontSize: '16px',
-              fontWeight: 600,
+              fontWeight: 600
             }}
             endIcon={
               isUpdateProfilPending && (
@@ -344,8 +352,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
           >
             {isUpdateProfilPending
               ? formatMessage({ id: 'saving' })
-              : formatMessage({ id: 'saveChanges' })
-            }
+              : formatMessage({ id: 'saveChanges' })}
           </Button>
         </Box>
       </Box>
