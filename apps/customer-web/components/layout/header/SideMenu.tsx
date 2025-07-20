@@ -9,6 +9,7 @@ import {
   Layers as LayersIcon,
   Lock as LockIcon,
   LogOut as LogOutIcon,
+  User as UserIcon
 } from 'react-feather';
 import { useIntl } from 'react-intl';
 import { toast } from 'sonner';
@@ -49,6 +50,11 @@ export default function SideMenu({ isMenuOpen, handleClose }: SideMenuProps) {
       // },
     ],
     '2': [
+      {
+        title: formatMessage({ id: 'profile' }),
+        icon: <UserIcon size={22} />,
+        action: () => push('/profile')
+      },
       {
         title: formatMessage({ id: '2FactorAuthentication' }),
         icon: <LockIcon size={22} />,

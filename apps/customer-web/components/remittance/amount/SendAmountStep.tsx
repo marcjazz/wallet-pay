@@ -99,7 +99,11 @@ export default function SendAmountStep({
     sendingAmount: Yup.number()
       .required(formatMessage({ id: 'enterAmount' }))
       .positive(formatMessage({ id: 'invalidAmount' }))
-      .integer(formatMessage({ id: 'cannotBeFraction' }))
+      .test('decimal-places', formatMessage({ id: 'maxTwoDecimalPlaces' }), (value) => {
+        if (value === undefined || value === null) return true;
+        const decimalPlaces = (value.toString().split('.')[1] || '').length;
+        return decimalPlaces <= 2;
+      })
       .max(MAX_SENDING_AMOUNT, formatMessage({ id: 'maxRemitAmount' }))
       .min(MIN_SENDING_AMOUNT, formatMessage({ id: 'minRemitAmount' }))
   });
