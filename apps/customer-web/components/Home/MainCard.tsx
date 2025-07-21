@@ -39,8 +39,8 @@ export default function MainCard() {
 
   const {
     data: accounts,
-    isLoading: isActiveAccountLoading,
-    refetch: refetchAccounts,
+    isFetching: isLoadingAccounts,
+    refetch: refetchAccounts
   } = useCybridAccounts();
 
   useEffect(() => {
@@ -153,10 +153,15 @@ export default function MainCard() {
           color: 'white',
           padding: 3,
           display: 'grid',
-          rowGap: 4,
+          rowGap: isLoadingAccounts ? 0 : 4
         }}
       >
-        {/* TODO: ADD SKELETON SCREEN FOR WHEN ACTIVE ACCT IS NOT PRESENT (DATA IS LOADING) */}
+        {isLoadingAccounts && (
+          <CircularProgress
+            thickness={23}
+            sx={{ justifySelf: 'center', alignSelf: 'center' }}
+          />
+        )}
         {activeAccount && (
           <Box
             sx={{
@@ -194,7 +199,7 @@ export default function MainCard() {
             >
               {activeAccount.currency}
               <Typography variant="h1" sx={{ color: 'white' }} component="span">
-                {isActiveAccountLoading ? (
+                {isLoadingAccounts ? (
                   <Skeleton
                     sx={{
                       minWidth: '100px',
