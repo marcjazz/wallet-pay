@@ -223,7 +223,7 @@ export const website = {
   WEST: 'West',
   SOUTH: 'South',
   SOUTH_WEST: 'South West',
-  waitAminute: 'Wait a minute...',
+  waitAminute: 'KYC in progress...',
   completeNow: 'Complete KYC now',
   momoWarningNumber:
     'Ensure the receiver number is their correct number.There is no guarantee of refund for transfers to incorrect mobile numbers',
@@ -264,5 +264,7 @@ export const website = {
   personalInformations: 'Personal Informations',
   editInformations: 'Edit Informations',
   disabledFieldsInformations:
-    'Disabled fields cannot be edited because account is already verified!'
+    'Disabled fields cannot be edited because account is already verified!',
+  NotAvailableToAllYet:
+    'Xafpay is currently available to a limited group of users. We are gradually approving additional users and will notify you as soon as your access is granted.'
 };
