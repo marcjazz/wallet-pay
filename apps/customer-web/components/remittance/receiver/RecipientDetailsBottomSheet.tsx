@@ -491,10 +491,9 @@ export default function RecipientDetailsBottomSheet({
           form="recipient-details-form"
           disabled={isCreatingReceiver}
           endIcon={
-            isCreatingReceiver ||
-            (isUpdatingReceiver && (
+            (isCreatingReceiver || isUpdatingReceiver) && (
               <CircularProgress size={20} thickness={23} />
-            ))
+            )
           }
         >
           {formatMessage({ id: hasToUpdate ? 'update' : 'confirm' })}
