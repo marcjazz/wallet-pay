@@ -15,7 +15,10 @@ import { FormikErrors, FormikTouched, useFormik } from 'formik';
 import { ChevronDown } from 'react-feather';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
-import { useCreateReceiver } from '../../../api/hooks/useReciever';
+import {
+  useCreateReceiver,
+  useUpdateReciever
+} from '../../../api/hooks/useReciever';
 import {
   CameroonRegions,
   CreateReceiverDto,
@@ -33,6 +36,8 @@ interface RecipientBottomSheetProps {
   selectedPayoutMethod: SupportedPayoutMethod;
   selectedReceiver?: ReceiverEntity;
   handleNext: (receiverData: ReceiverEntity) => void;
+  setHasToUpdate: (hasToUpdate: boolean) => void;
+  hasToUpdate: boolean;
 }
 export default function RecipientDetailsBottomSheet({
   isOpen,
@@ -40,6 +45,8 @@ export default function RecipientDetailsBottomSheet({
   selectedPayoutMethod,
   selectedReceiver,
   handleNext,
+  setHasToUpdate,
+  hasToUpdate
 }: RecipientBottomSheetProps) {
   const { formatMessage } = useIntl();
   const isBank = selectedPayoutMethod === SupportedPayoutMethod.bank;
@@ -323,7 +330,7 @@ export default function RecipientDetailsBottomSheet({
                 error={Boolean(touched.fullname && errors.fullname)}
                 required
                 fullWidth
-                disabled={!!selectedReceiver}
+                disabled={!!selectedReceiver && !hasToUpdate}
               >
                 <FormLabel htmlFor="fullname">
                   {formatMessage({ id: 'fullname' })}
@@ -339,7 +346,7 @@ export default function RecipientDetailsBottomSheet({
               </FormControl>
             </Box>
 
-            {!selectedReceiver && (
+            {(!selectedReceiver || hasToUpdate) && (
               <>
                 <FormControl
                   error={Boolean(
@@ -456,19 +463,43 @@ export default function RecipientDetailsBottomSheet({
           </>
         )}
       </Box>
-
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        form="recipient-details-form"
-        disabled={isCreatingReceiver}
-        endIcon={
-          isCreatingReceiver && <CircularProgress size={20} thickness={23} />
-        }
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns:
+            !selectedReceiver || hasToUpdate ? '1fr' : '1fr 1fr',
+          columnGap: 1
+        }}
       >
-        {formatMessage({ id: 'confirm' })}
-      </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          disabled={isCreatingReceiver}
+          onClick={() => {
+            setHasToUpdate(true);
+          }}
+          sx={{
+            display: !selectedReceiver || hasToUpdate ? 'none' : 'block'
+          }}
+        >
+          {formatMessage({ id: 'update' })}
+        </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          form="recipient-details-form"
+          disabled={isCreatingReceiver}
+          endIcon={
+            isCreatingReceiver ||
+            (isUpdatingReceiver && (
+              <CircularProgress size={20} thickness={23} />
+            ))
+          }
+        >
+          {formatMessage({ id: hasToUpdate ? 'update' : 'confirm' })}
+        </Button>
+      </Box>
     </BottomSheet>
   );
 }

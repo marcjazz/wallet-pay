@@ -43,6 +43,7 @@ export default function ReceiverStep({
   handleNext,
 }: ReceiverStepProps) {
   const { formatMessage } = useIntl();
+  const [hasToUpdate, setHasToUpdate] = useState<boolean>(false);
 
   // const [receivers, setReceivers] = useState<Receiver[]>([]);
   // const [areReceiversLoading, setAreReceiversLoading] =
@@ -86,6 +87,8 @@ export default function ReceiverStep({
         selectedPayoutMethod={selectedPayoutMethod}
         selectedReceiver={selectedReceiver}
         handleNext={handleNext}
+        setHasToUpdate={setHasToUpdate}
+        hasToUpdate={hasToUpdate}
       />
       <Box
         sx={{
@@ -138,7 +141,10 @@ export default function ReceiverStep({
                   selectedReceiver={selectedReceiver}
                   setSelectedReceiver={(selectedReceiver) => {
                     setSelectedReceiver(selectedReceiver);
-                    if (selectedReceiver) setIsReceipientDetailsOpen(true);
+                    if (selectedReceiver) {
+                      setHasToUpdate(false);
+                      setIsReceipientDetailsOpen(true);
+                    }
                   }}
                 />
               ))
