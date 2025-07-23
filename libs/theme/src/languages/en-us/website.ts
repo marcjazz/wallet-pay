@@ -264,5 +264,6 @@ export const website = {
   errorLoadingProfile: 'Error loading profile',
   tryAgainLater: 'Please try again later',
   personalInformations: 'Personal Informations',
-  editInformations: 'Edit Informations'
+  editInformations: 'Edit Informations',
+  update: 'Update'
 };
