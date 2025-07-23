@@ -31,7 +31,10 @@ export default function RecipientCard({
       onClick={() => {
         isSelected
           ? setSelectedReceiver(undefined)
-          : setSelectedReceiver(receiver);
+          : setSelectedReceiver({
+              ...receiver,
+              phone_number: receiver.phone_number.split('+237')[1]
+            });
       }}
       sx={{
         display: 'grid',

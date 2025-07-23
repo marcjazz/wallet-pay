@@ -10,6 +10,7 @@ import Footer from '../../../components/layout/footer/Footer';
 import ProfileEdit from '../../../components/profile/ProfileEdit';
 import ProfileOverview from '../../../components/profile/ProfileOverview';
 import Header from '../../../components/shared/header';
+import Scrollbars from 'rc-scrollbars';
 
 interface ITabPanel {
   label: string;
@@ -56,56 +57,71 @@ export default function ProfilePage() {
         sx={{
           padding: 2,
           display: 'grid',
-          gridTemplateRows: 'auto 1fr',
+          gridTemplateRows: 'auto auto 1fr',
           rowGap: 5,
           overflow: 'auto'
         }}
       >
         <Header label="profile" />
-        <Box>
-          <Tabs
-            centered
-            value={activeTab}
-            onChange={(_, tabIndex) => setActiveTab(tabIndex)}
+        <Tabs
+          centered
+          value={activeTab}
+          onChange={(_, tabIndex) => setActiveTab(tabIndex)}
+          sx={{
+            '& .MuiTabs-indicator': {
+              display: 'none' // Hide default indicator
+            },
+            '& .MuiTabs-flexContainer': {
+              gap: '10px'
+            },
+            bgcolor: 'rgba(190, 197, 197, 0.3)',
+            borderRadius: '10px',
+            p: 0.5,
+            minHeight: 'unset'
+          }}
+        >
+          {tabsLabel.map(({ label, tabIcon }, index) => (
+            <Tab
+              key={`tab-${index}`}
+              label={label}
+              icon={tabIcon}
+              iconPosition="start"
+              sx={{
+                textTransform: 'none',
+                minHeight: 'unset', // Remove default min-height
+                height: 48, // Set custom height
+                py: 0.5, // Vertical padding
+                px: 2, // Horizontal padding
+                borderRadius: '8px', // Slightly rounded corners
+                boxShadow:
+                  activeTab === index ? '0 2px 4px rgba(0,0,0,0.2)' : 'none', // Shadow for active tab
+                transition: 'all 0.3s ease', // Smooth transition
+                '&:hover': {
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                },
+                // Optional: Different bg for active tab
+                bgcolor:
+                  activeTab === index ? 'background.paper' : 'transparent'
+              }}
+            />
+          ))}
+        </Tabs>
+        {isUserProfileLoading ? (
+          <Box
             sx={{
-              '& .MuiTabs-indicator': {
-                display: 'none' // Hide default indicator
-              },
-              '& .MuiTabs-flexContainer': {
-                gap: '10px'
-              },
-              bgcolor: 'rgba(190, 197, 197, 0.3)',
-              borderRadius: '10px',
-              marginBottom: '32px'
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '70%'
             }}
           >
-            {tabsLabel.map(({ label, tabIcon }, index) => (
-              <Tab
-                key={`tab-${index}`}
-                label={label}
-                icon={tabIcon}
-                iconPosition="start"
-                sx={{
-                  textTransform: 'none'
-                }}
-              />
-            ))}
-          </Tabs>
-          {isUserProfileLoading ? (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '70%'
-              }}
-            >
-              <CircularProgress thickness={23} color="primary" />
-            </Box>
-          ) : (
-            profileTabs[activeTab]
-          )}
-        </Box>
+            <CircularProgress thickness={23} color="primary" />
+          </Box>
+        ) : (
+          <Scrollbars universal autoHide>
+            {profileTabs[activeTab]}
+          </Scrollbars>
+        )}
       </Box>
       <Footer />
     </Box>

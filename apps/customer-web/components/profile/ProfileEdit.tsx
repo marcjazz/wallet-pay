@@ -1,6 +1,16 @@
 'use client';
 
-import { Box, Button, CircularProgress, FormControl, FormHelperText, FormLabel, OutlinedInput, Typography, Grid } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  OutlinedInput,
+  Typography,
+  Grid
+} from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useIntl } from 'react-intl';
@@ -18,22 +28,21 @@ interface ProfileEditProps {
 interface ReadOnlyFieldProps {
   label: string;
   value: string;
-  helperText?: string;
 }
 
 /**
  * Read-only field component for locked fields.
  */
-function ReadOnlyField({ label, value, helperText }: ReadOnlyFieldProps) {
+function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
   const theme = useTheme();
-  
+
   return (
     <FormControl fullWidth disabled>
       <FormLabel
         sx={{
           color: theme.palette.grey[600],
           marginBottom: '8px',
-          fontSize: '14px',
+          fontSize: '14px'
         }}
       >
         {label}
@@ -44,15 +53,10 @@ function ReadOnlyField({ label, value, helperText }: ReadOnlyFieldProps) {
         sx={{
           backgroundColor: theme.palette.grey[50],
           '& .MuiOutlinedInput-input': {
-            color: theme.palette.grey[600],
-          },
+            color: theme.palette.grey[600]
+          }
         }}
       />
-      {helperText && (
-        <FormHelperText sx={{ color: theme.palette.grey[500] }}>
-          {helperText}
-        </FormHelperText>
-      )}
     </FormControl>
   );
 }
@@ -94,7 +98,8 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
     handleChange,
     handleBlur,
     handleSubmit,
-    isValid
+    isValid,
+    dirty
   } = useFormik({
     initialValues: {
       email: user.email,
@@ -107,7 +112,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
     onSubmit: (values) => {
       const payload: UpdateProfileDto = {
         email: values.email,
-        phone_number: values.phone_number,
+        phone_number: values.phone_number
       };
 
       // Only include restricted fields if user is not cybrid verified
@@ -124,9 +129,9 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
         },
         onError: (error) => {
           errorHandling({ error, formatMessage });
-        },
+        }
       });
-    },
+    }
   });
 
   return (
@@ -169,9 +174,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
                 placeholder={formatMessage({ id: 'enterEmail' })}
                 sx={{ backgroundColor: 'white' }}
               />
-              <FormHelperText>
-                {touched.email && errors.email}
-              </FormHelperText>
+              <FormHelperText>{touched.email && errors.email}</FormHelperText>
             </FormControl>
           </Grid>
 
@@ -204,14 +207,22 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               </FormHelperText>
             </FormControl>
           </Grid>
-
+          {user.cybrid_verified && (
+            <Grid item>
+              <Typography
+                variant="p2m"
+                sx={{ color: 'rgba(177, 172, 165, 1)' }}
+              >
+                {formatMessage({ id: 'disabledFieldsInformations' })}
+              </Typography>
+            </Grid>
+          )}
           {/* Conditionally editable fields */}
           <Grid item>
             {user.cybrid_verified ? (
               <ReadOnlyField
                 label={formatMessage({ id: 'firstName' })}
                 value={user.first_name}
-                helperText={formatMessage({ id: 'fieldLockedCybridVerified' })}
               />
             ) : (
               <FormControl
@@ -248,7 +259,6 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
               <ReadOnlyField
                 label={formatMessage({ id: 'lastName' })}
                 value={user.last_name}
-                helperText={formatMessage({ id: 'fieldLockedCybridVerified' })}
               />
             ) : (
               <FormControl
@@ -287,9 +297,8 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
                 value={new Date(user.birthdate).toLocaleDateString('en-GB', {
                   day: '2-digit',
                   month: '2-digit',
-                  year: 'numeric',
+                  year: 'numeric'
                 })}
-                helperText={formatMessage({ id: 'fieldLockedCybridVerified' })}
               />
             ) : (
               <FormControl
@@ -328,12 +337,12 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
             type="submit"
             variant="contained"
             fullWidth
-            disabled={isUpdateProfilPending || !isValid}
+            disabled={isUpdateProfilPending || !isValid || !dirty}
             sx={{
               height: '48px',
               textTransform: 'none',
               fontSize: '16px',
-              fontWeight: 600,
+              fontWeight: 600
             }}
             endIcon={
               isUpdateProfilPending && (
@@ -343,8 +352,7 @@ export default function ProfileEdit({ user, onSaveSuccess }: ProfileEditProps) {
           >
             {isUpdateProfilPending
               ? formatMessage({ id: 'saving' })
-              : formatMessage({ id: 'saveChanges' })
-            }
+              : formatMessage({ id: 'saveChanges' })}
           </Button>
         </Box>
       </Box>

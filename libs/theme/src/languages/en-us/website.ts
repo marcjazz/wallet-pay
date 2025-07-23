@@ -223,7 +223,7 @@ export const website = {
   WEST: 'West',
   SOUTH: 'South',
   SOUTH_WEST: 'South West',
-  waitAminute: 'Wait a minute...',
+  waitAminute: 'KYC in progress...',
   completeNow: 'Complete KYC now',
   momoWarningNumber:
     'Ensure the receiver number is their correct number.There is no guarantee of refund for transfers to incorrect mobile numbers',
@@ -255,8 +255,6 @@ export const website = {
   invalidBirthdate: 'Invalid date of birth',
   minCharacters: 'Must be at least {count} characters',
   maxCharacters: 'Must be at most {count} characters',
-  fieldLockedCybridVerified:
-    'This field cannot be edited after account verification',
   usernameReadOnly: 'Username is automatically generated from your name',
   saveChanges: 'Save Changes',
   saving: 'Saving...',
@@ -265,5 +263,9 @@ export const website = {
   tryAgainLater: 'Please try again later',
   personalInformations: 'Personal Informations',
   editInformations: 'Edit Informations',
-  update: 'Update'
+  update: 'Update',
+  disabledFieldsInformations:
+    'Disabled fields cannot be edited because account is already verified!',
+  NotAvailableToAllYet:
+    'Xafpay is currently available to a limited group of users. We are gradually approving additional users and will notify you as soon as your access is granted.'
 };
