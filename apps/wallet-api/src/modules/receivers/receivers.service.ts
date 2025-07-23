@@ -49,9 +49,16 @@ export class RecieversService {
   }
 
   async findOne(counterpartyId: string) {
-    return this.prismaService.cybridCounterparty.findUnique({
-      where: { cybrid_counterparty_id: counterpartyId },
-    });
+    const counterparty = await this.prismaService.cybridCounterparty.findUnique(
+      {
+        where: { cybrid_counterparty_id: counterpartyId, is_deleted: false }
+      }
+    );
+
+    if (!counterparty) {
+      throw new NotFoundException(`Counterparty not found!`);
+    }
+    return counterparty;
   }
 
   async create(
@@ -79,17 +86,6 @@ export class RecieversService {
       );
     }
 
-    const isCounterpartyExists =
-      await this.prismaService.cybridCounterparty.findFirst({
-        where: {
-          AND: [{ phone_number: phoneNumber }, { person_id: personId }],
-        },
-      });
-
-    if (isCounterpartyExists) {
-      throw new UnprocessableEntityException('recipientExistAlready');
-    }
-
     // Validate receiver's account name
     // const { family_name, given_name } =
     //   await this.momoService.getAccountHolderBasicInfo(phoneNumber);
@@ -108,7 +104,11 @@ export class RecieversService {
 
     const existingCounterParty =
       await this.prismaService.cybridCounterparty.findFirst({
-        where: { fullname: normalizeName(fullname), person_id: personId },
+        where: {
+          fullname: normalizeName(fullname),
+          person_id: personId,
+          is_deleted: false
+        }
       });
 
     if (existingCounterParty?.phone_number === phoneNumber) {
