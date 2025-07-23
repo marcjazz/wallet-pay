@@ -1,16 +1,16 @@
-import { 
-  Controller, 
-  Get, 
-  Patch, 
-  Body, 
-  Req, 
+import {
+  Controller,
+  Get,
+  Patch,
+  Body,
+  Req,
   UnauthorizedException,
   HttpStatus
 } from '@nestjs/common';
-import { 
-  ApiBearerAuth, 
-  ApiOkResponse, 
-  ApiTags, 
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiTags,
   ApiOperation,
   ApiResponse,
   ApiForbiddenResponse,
@@ -49,26 +49,26 @@ export class UsersController {
   }
 
   @Patch('profile')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update user profile',
     description: `Update user profile information. Note:
     - email and phone_number are always editable
     - first_name, last_name, and birthdate can only be edited if account is not cybrid verified
     - Once cybrid verified, attempting to update restricted fields will result in 403 Forbidden`
   })
-  @ApiOkResponse({ 
-    type: UserEntity, 
-    description: 'Profile updated successfully' 
+  @ApiOkResponse({
+    type: UserEntity,
+    description: 'Profile updated successfully'
   })
-  @ApiForbiddenResponse({ 
-    description: 'Cannot update restricted fields - account is cybrid verified' 
+  @ApiForbiddenResponse({
+    description: 'Cannot update restricted fields - account is cybrid verified'
   })
-  @ApiNotFoundResponse({ 
-    description: 'User not found' 
+  @ApiNotFoundResponse({
+    description: 'User not found'
   })
-  @ApiResponse({ 
-    status: HttpStatus.BAD_REQUEST, 
-    description: 'Invalid input data' 
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data'
   })
   async updateProfile(
     @Req() req: Request,
@@ -89,7 +89,7 @@ export class UsersController {
       ...userWithoutPersonId,
       user_id: user.id,
       person_id,
-      is_active: user.is_active,
+      is_active: user.is_active
     });
   }
 }
