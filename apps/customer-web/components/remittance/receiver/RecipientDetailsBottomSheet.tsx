@@ -119,6 +119,8 @@ export default function RecipientDetailsBottomSheet({
 
   const { mutate: createReceiver, isPending: isCreatingReceiver } =
     useCreateReceiver();
+  const { mutate: updateReceiver, isPending: isUpdatingReceiver } =
+    useUpdateReciever();
 
   const formik = useFormik({
     // initialValues: isBank ? bankInitialValues : momoInitialValues,
@@ -126,12 +128,35 @@ export default function RecipientDetailsBottomSheet({
     validationSchema,
     enableReinitialize: true,
     onSubmit: (values, { resetForm }) => {
-      if (selectedReceiver) {
+      if (selectedReceiver && !hasToUpdate) {
         handleNext({
           ...(values as ReceiverEntity),
           phone_number: values.phone_number,
         });
         resetForm();
+      } else if (selectedReceiver && hasToUpdate) {
+        updateReceiver(
+          {
+            ...values,
+            phone_number: `+237${values.phone_number}`,
+            address: {
+              ...(values as CreateReceiverDto).address,
+              country_code: 'CM'
+            }
+          },
+          {
+            onSuccess: (data) => {
+              handleNext({
+                ...data,
+                phone_number: data.phone_number.split('+237')[1]
+              });
+              resetForm();
+            },
+            onError: (error) => {
+              errorHandling({ error, formatMessage });
+            }
+          }
+        );
       } else {
         createReceiver(
           {
