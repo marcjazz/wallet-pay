@@ -496,7 +496,9 @@ export default function RecipientDetailsBottomSheet({
             )
           }
         >
-          {formatMessage({ id: hasToUpdate ? 'update' : 'confirm' })}
+          {formatMessage({
+            id: selectedReceiver && hasToUpdate ? 'update' : 'confirm'
+          })}
         </Button>
       </Box>
     </BottomSheet>
