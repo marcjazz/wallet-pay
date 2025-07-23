@@ -34,6 +34,7 @@ export class RecieversService {
     return this.prismaService.cybridCounterparty.findMany({
       where: {
         person_id: query.person_id,
+        is_deleted: false,
         ...(query.search
           ? {
               OR: [
@@ -175,8 +176,33 @@ export class RecieversService {
         phone_number: phoneNumber,
         national_id_number: newReceiver.national_id_number,
         Person: { connect: { person_id: personId } },
-        status: status ?? 'STORING',
-      },
+        status: status ?? 'STORING'
+      }
     });
+  }
+
+  async update(
+    counterpartyId: string,
+    updatedReciever: CreateReceiverDto,
+    personId: string
+  ) {
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { person_id: personId }
+    });
+    if (!customer) {
+      throw new NotFoundException('No customer found!');
+    }
+
+    await this.prismaService.cybridCounterparty.update({
+      where: {
+        cybrid_counterparty_id: counterpartyId,
+        person_id: personId
+      },
+      data: {
+        is_deleted: true,
+        deleted_at: new Date()
+      }
+    });
+    return await this.create(updatedReciever, personId);
   }
 }
