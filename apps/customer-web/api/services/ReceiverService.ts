@@ -37,4 +37,17 @@ export class ReceiverService {
       receiverData
     );
   }
+
+  /**
+   * Update an existing receiver.
+   * @param receiverData Updated data for the receiver.
+   */
+  async updateReceiver(
+    receiverData: ReceiverEntity | CreateReceiverDto
+  ): Promise<ReceiverEntity> {
+    return this.apiClient.patch<ReceiverEntity>(
+      `/api/v1/receivers/${(receiverData as ReceiverEntity).receiver_id}`,
+      receiverData
+    );
+  }
 }
