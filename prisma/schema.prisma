@@ -302,6 +302,8 @@ model CybridCounterparty {
   status                     CybridCounterpartyStatus
   identity_verification_guid String?                     @db.VarChar(45)
   verification_status        IdentityVerificationStatus?
+  is_deleted                 Boolean                     @default(false) @db.Boolean
+  deleted_at                 DateTime?                   @db.Timestamp()
   person_id                  String
   Person                     Person                      @relation("personToreceiverpayoutinfo_person_id", fields: [person_id], references: [person_id], onDelete: Cascade, onUpdate: Cascade, map: "fk_ReceiverPayoutInfo_Person")
   created_at                 DateTime                    @default(now()) @db.Timestamp()

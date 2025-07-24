@@ -16,16 +16,17 @@ export function errorHandling({
     500: () => toast.error(formatMessage({ id: 'serverError' })),
     404: (message) => toast.error(formatMessage({ id: message ?? 'notFound' })),
     403: (message) => {
-      if (message?.includes('Platform not available')) {
+      if (message?.includes('NotAvailableToAllYet')) {
         toast.warning(formatMessage({ id: message ?? 'forbidden' }), {
           description: message,
+          duration: 10000
         });
         return;
-      }
-      toast.error(formatMessage({ id: message ?? 'forbidden' }), {
-        description: message,
-        closeButton: true,
-      });
+      } else
+        toast.error(formatMessage({ id: message ?? 'forbidden' }), {
+          description: message,
+          closeButton: true
+        });
     },
     400: (message) =>
       toast.error(formatMessage({ id: message ?? 'badRequest' })),

@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  NotFoundException,
+  UnauthorizedException
+} from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { UpdateProfileDto, UserEntity } from './user.dto';
@@ -16,9 +20,7 @@ describe('UsersController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [
-        { provide: UsersService, useValue: mockUsersService },
-      ],
+      providers: [{ provide: UsersService, useValue: mockUsersService }]
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
@@ -42,8 +44,8 @@ describe('UsersController', () => {
           gender: 'MALE',
           preferred_language: 'EN_US',
           is_verified: true,
-          created_at: new Date(),
-        },
+          created_at: new Date()
+        }
       } as any;
 
       mockUsersService.getProfile.mockResolvedValue(mockRequest.user);
@@ -71,8 +73,8 @@ describe('UsersController', () => {
         id: 'test-user-id',
         email: 'test@example.com',
         first_name: 'John',
-        last_name: 'Doe',
-      },
+        last_name: 'Doe'
+      }
     } as any;
 
     const mockUpdatedPerson = {
@@ -86,7 +88,7 @@ describe('UsersController', () => {
       preferred_language: 'EN_US',
       is_verified: true,
       created_at: new Date(),
-      password: 'hashed-password',
+      password: 'hashed-password'
     };
 
     it('should update profile successfully', async () => {
@@ -95,7 +97,7 @@ describe('UsersController', () => {
         first_name: 'Jane',
         last_name: 'Smith',
         phone_number: '+9876543210',
-        birthdate: '1992-05-15',
+        birthdate: '1992-05-15'
       };
 
       mockUsersService.updateProfile.mockResolvedValue(mockUpdatedPerson);
@@ -129,17 +131,21 @@ describe('UsersController', () => {
 
     it('should handle ForbiddenException from service', async () => {
       const updateDto: UpdateProfileDto = {
-        first_name: 'Jane',
+        first_name: 'Jane'
       };
 
       mockUsersService.updateProfile.mockRejectedValue(
-        new ForbiddenException('Cannot update first_name: Account is cybrid verified')
+        new ForbiddenException(
+          'Cannot update first_name: Account is cybrid verified'
+        )
       );
 
       await expect(
         controller.updateProfile(mockRequest, updateDto)
       ).rejects.toThrow(
-        new ForbiddenException('Cannot update first_name: Account is cybrid verified')
+        new ForbiddenException(
+          'Cannot update first_name: Account is cybrid verified'
+        )
       );
 
       expect(usersService.updateProfile).toHaveBeenCalledWith(
@@ -150,7 +156,7 @@ describe('UsersController', () => {
 
     it('should handle NotFoundException from service', async () => {
       const updateDto: UpdateProfileDto = {
-        email: 'test@example.com',
+        email: 'test@example.com'
       };
 
       mockUsersService.updateProfile.mockRejectedValue(

@@ -51,7 +51,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     // TODO: Remove this check when launch priod end
     if (!isPilotUser(user.email) && !isAuthorizedRoute) {
-      throw new ForbiddenException('Platform not available to all yet!');
+      // throw new ForbiddenException('Platform not available to all yet!');
+      throw new ForbiddenException('NotAvailableToAllYet');
     }
 
     return user as TUser;

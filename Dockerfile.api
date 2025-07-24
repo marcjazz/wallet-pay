@@ -33,9 +33,10 @@ RUN --mount=type=bind,src=package.json,target=/app/package.json \
     # Disable nx cloud & Build backend app
     && NX_CLOUD=0 npx nx run wallet-api:build:production \
     && cp -R /app/dist/apps/wallet-api ./final_dist \
+    && cp package.json ./final_dist \
+    && cp package-lock.json ./final_dist \
     # Prune node_modules to project specific deps
-    && npm ci --omit=dev --prefix /app/dist/apps/wallet-api \
-    && cp -R /app/dist/apps/wallet-api/node_modules /app/final_dist/node_modules \
+    && npm ci --omit=dev --prefix /app/final_dist \
     && cp -R /app/prisma /app/final_dist/prisma \
     # Regenerating prisma client
     && cd /app/final_dist \

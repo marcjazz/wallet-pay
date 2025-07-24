@@ -49,12 +49,32 @@ export const useReceiver = (id: string) => {
  * Hook for creating a new receiver.
  */
 export const useCreateReceiver = () => {
+  const { formatMessage } = useIntl();
+
   const tt = useMutation<ReceiverEntity, Error, CreateReceiverDto>({
     mutationKey: ['createReceiver'],
     mutationFn: (receiverData: CreateReceiverDto) =>
-      receiverService.createReceiver(receiverData),
+      receiverService.createReceiver(receiverData)
   });
   const { isError, error } = tt;
-  if (isError) console.error(error);
+  if (isError) errorHandling({ error, formatMessage });
+  return tt;
+};
+
+export const useUpdateReciever = () => {
+  const { formatMessage } = useIntl();
+
+  const tt = useMutation<
+    ReceiverEntity,
+    Error,
+    ReceiverEntity | CreateReceiverDto
+  >({
+    mutationKey: ['updateReceiver'],
+    mutationFn: (receiverData: ReceiverEntity | CreateReceiverDto) =>
+      receiverService.updateReceiver(receiverData)
+  });
+  const { isError, error } = tt;
+  if (isError) errorHandling({ error, formatMessage });
+
   return tt;
 };
