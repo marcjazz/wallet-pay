@@ -34,6 +34,7 @@ export class RecieversService {
     return this.prismaService.cybridCounterparty.findMany({
       where: {
         person_id: query.person_id,
+        is_deleted: false,
         ...(query.search
           ? {
               OR: [
@@ -48,9 +49,16 @@ export class RecieversService {
   }
 
   async findOne(counterpartyId: string) {
-    return this.prismaService.cybridCounterparty.findUnique({
-      where: { cybrid_counterparty_id: counterpartyId },
-    });
+    const counterparty = await this.prismaService.cybridCounterparty.findUnique(
+      {
+        where: { cybrid_counterparty_id: counterpartyId, is_deleted: false }
+      }
+    );
+
+    if (!counterparty) {
+      throw new NotFoundException(`Counterparty not found!`);
+    }
+    return counterparty;
   }
 
   async create(
@@ -78,17 +86,6 @@ export class RecieversService {
       );
     }
 
-    const isCounterpartyExists =
-      await this.prismaService.cybridCounterparty.findFirst({
-        where: {
-          AND: [{ phone_number: phoneNumber }, { person_id: personId }],
-        },
-      });
-
-    if (isCounterpartyExists) {
-      throw new UnprocessableEntityException('recipientExistAlready');
-    }
-
     // Validate receiver's account name
     // const { family_name, given_name } =
     //   await this.momoService.getAccountHolderBasicInfo(phoneNumber);
@@ -107,7 +104,11 @@ export class RecieversService {
 
     const existingCounterParty =
       await this.prismaService.cybridCounterparty.findFirst({
-        where: { fullname: normalizeName(fullname), person_id: personId },
+        where: {
+          fullname: normalizeName(fullname),
+          person_id: personId,
+          is_deleted: false
+        }
       });
 
     if (existingCounterParty?.phone_number === phoneNumber) {
@@ -175,8 +176,33 @@ export class RecieversService {
         phone_number: phoneNumber,
         national_id_number: newReceiver.national_id_number,
         Person: { connect: { person_id: personId } },
-        status: status ?? 'STORING',
-      },
+        status: status ?? 'STORING'
+      }
     });
+  }
+
+  async update(
+    counterpartyId: string,
+    updatedReciever: CreateReceiverDto,
+    personId: string
+  ) {
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { person_id: personId }
+    });
+    if (!customer) {
+      throw new NotFoundException('No customer found!');
+    }
+
+    await this.prismaService.cybridCounterparty.update({
+      where: {
+        cybrid_counterparty_id: counterpartyId,
+        person_id: personId
+      },
+      data: {
+        is_deleted: true,
+        deleted_at: new Date()
+      }
+    });
+    return await this.create(updatedReciever, personId);
   }
 }

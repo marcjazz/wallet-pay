@@ -263,6 +263,7 @@ export const website = {
   tryAgainLater: 'Please try again later',
   personalInformations: 'Personal Informations',
   editInformations: 'Edit Informations',
+  update: 'Update',
   disabledFieldsInformations:
     'Disabled fields cannot be edited because account is already verified!',
   NotAvailableToAllYet:

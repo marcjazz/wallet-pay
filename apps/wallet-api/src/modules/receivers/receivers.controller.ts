@@ -4,6 +4,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -68,6 +69,23 @@ export class ReceiversController {
   ) {
     const receiver = await this.receiversService.create(
       newReciever,
+      request.user?.person_id as string
+    );
+
+    return new ReceiverEntity(receiver);
+  }
+
+  @Patch(':id')
+  @ApiResponse({ status: 200, type: ReceiverEntity })
+  @ApiOperation({ summary: 'Update existing receiver' })
+  async updateReceiver(
+    @Req() request: Request,
+    @Param('id') cybridCounterpartyId: string,
+    @Body() updatedReciever: CreateReceiverDto
+  ) {
+    const receiver = await this.receiversService.update(
+      cybridCounterpartyId,
+      updatedReciever,
       request.user?.person_id as string
     );
 
