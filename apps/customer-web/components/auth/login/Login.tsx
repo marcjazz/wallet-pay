@@ -103,7 +103,6 @@ export default function Login() {
               type="email"
               {...formik.getFieldProps('email')}
               placeholder={formatMessage({ id: 'enterEmail' })}
-              autoFocus
             />
             <FormHelperText>{touched.email && errors.email}</FormHelperText>
           </FormControl>
