@@ -1,78 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useInstallPrompt } from '../../hooks/useInstallPrompt';
+import { Button } from '@mui/material';
+import { CloseRounded } from '@mui/icons-material'
+import { useState } from 'react';
 
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<PromptResponseObject>;
-  prompt(): Promise<void>;
-}
-
-interface PromptResponseObject {
-  readonly outcome: 'accepted' | 'dismissed';
-  readonly platform: string;
-}
-
-declare global {
-  interface Window {
-    MSStream?: unknown;
-  }
-}
-
+/**
+ * A component that prompts the user to install the PWA.
+ * It is displayed only when the app is not in standalone mode and the installation prompt is available.
+ */
 export function InstallPrompt() {
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const { isStandalone, deferredPrompt, handleInstall } = useInstallPrompt();
+  const [isHidden, setIsHidden] = useState(false);
 
-  useEffect(() => {
-    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
-    setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    });
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
-      } else {
-        console.log('User dismissed the install prompt');
-      }
-      setDeferredPrompt(null);
-    }
+  /**
+   * Hides the install prompt banner.
+   */
+  const handleDismiss = () => {
+    setIsHidden(true);
   };
 
-  if (isStandalone) {
-    return null; // Don't show install button if already installed
+  // Do not show the install prompt if the app is in standalone mode,
+  // if the prompt is not available, or if the user has dismissed it.
+  if (isStandalone || !deferredPrompt || isHidden) {
+    return null;
   }
 
   return (
-    <div>
-      <h3>Install App</h3>
-      {isIOS && (
-        <p>
-          To install this app on your iOS device, tap the share button{' '}
-          <span role="img" aria-label="share icon">
-            {' '}
-            ⎋{' '}
-          </span>{' '}
-          and then &quot;Add to Home Screen&quot;
-          <span role="img" aria-label="plus icon">
-            {' '}
-            ➕{' '}
-          </span>
-          .
-        </p>
-      )}
-      {!isIOS && deferredPrompt && (
-        <button onClick={handleInstallClick}>Add to Home Screen</button>
-      )}
+    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-gray-800 p-4 text-white">
+      <p className="mr-4">
+        For a better experience, install the Xafpy app on your device.
+      </p>
+      <div className="flex items-center">
+        <Button
+          onClick={handleInstall}
+          className="mr-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600">
+          Install
+        </Button>
+        <Button
+          onClick={handleDismiss}
+          className="rounded px-4 py-2 font-bold text-white">
+          <CloseRounded className="h-6 w-6" />
+        </Button>
+      </div>
     </div>
   );
 }

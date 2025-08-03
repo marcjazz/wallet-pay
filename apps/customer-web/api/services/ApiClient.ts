@@ -23,8 +23,8 @@ export class ApiClient {
       baseURL,
       withCredentials: true,
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'
+      }
     });
 
     // Request interceptor to add Authorization header
@@ -43,7 +43,7 @@ export class ApiClient {
         }
 
         if (isTokenExpired && !config.url?.includes('auth')) {
-          // If the token is expired, redirect to login
+          // If the token is expired, let the client handle the redirect
           this.clearAuthToken();
           window.location.href = '/login';
           throw new Error('Token expired, redirecting to login');

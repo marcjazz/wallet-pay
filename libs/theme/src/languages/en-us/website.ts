@@ -267,5 +267,6 @@ export const website = {
   disabledFieldsInformations:
     'Disabled fields cannot be edited because account is already verified!',
   NotAvailableToAllYet:
-    'Xafpay is currently available to a limited group of users. We are gradually approving additional users and will notify you as soon as your access is granted.'
+    'Xafpay is currently available to a limited group of users. We are gradually approving additional users and will notify you as soon as your access is granted.',
+  logout: "logout"
 };

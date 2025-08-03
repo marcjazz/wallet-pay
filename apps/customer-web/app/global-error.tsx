@@ -78,12 +78,14 @@ export default function GlobalError({
             transition: 'background 0.2s, color 0.2s',
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.background = '#232792';
-            e.currentTarget.style.color = '#fff';
+            const target = e.currentTarget as HTMLElement;
+            target.style.background = '#232792';
+            target.style.color = '#fff';
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = '#232792';
+            const target = e.currentTarget as HTMLElement;
+            target.style.background = 'transparent';
+            target.style.color = '#232792';
           }}
           onClick={() => (reset ? reset() : (window.location.href = '/'))}
         >
