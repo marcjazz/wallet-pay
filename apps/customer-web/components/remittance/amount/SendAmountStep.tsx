@@ -48,7 +48,7 @@ export default function SendAmountStep({
 }: SendAmountStepProps) {
   //TODO: CALL API TO FETCH LIMITS
   const MAX_SENDING_AMOUNT = 1000;
-  const MIN_SENDING_AMOUNT = 10;
+  const MIN_SENDING_AMOUNT = 1;
 
   const { formatMessage, formatNumber } = useIntl();
   const theme = useTheme();
