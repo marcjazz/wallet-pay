@@ -84,7 +84,7 @@ module.exports = async (phase) => {
     tunnelRoute: true,
   });
 
-  const finalConfig = composePlugins(...plugins)(sentryWrappedConfig);
+  let finalConfig = composePlugins(...plugins)(sentryWrappedConfig);
 
   if (phase === PHASE_DEVELOPMENT_SERVER || phase === PHASE_PRODUCTION_BUILD) {
     const withSerwist = (await import('@serwist/next')).default({
@@ -98,3 +98,4 @@ module.exports = async (phase) => {
 
   return finalConfig;
 };
+

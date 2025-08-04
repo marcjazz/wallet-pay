@@ -1,6 +1,5 @@
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { useIntl } from 'react-intl';
 
 interface SummaryLineProps {
   title: string;
@@ -12,7 +11,6 @@ export default function SummaryLine({
   value,
   isColored = false,
 }: SummaryLineProps) {
-  const { formatMessage, formatNumber } = useIntl();
   const theme = useTheme();
 
   return (

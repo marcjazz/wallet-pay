@@ -15,62 +15,11 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const serwist = new Serwist({
-  precacheEntries: [
-    ...(self.__SW_MANIFEST || []),
-    {
-      url: '/',
-      revision: null
-    },
-    {
-      url: '/app',
-      revision: null
-    },
-    {
-      url: '/assets/logo.png',
-      revision: null
-    },
-    {
-      url: '/assets/logo.svg',
-      revision: null
-    },
-    {
-      url: '/assets/pwa_logo.png',
-      revision: null
-    },
-    {
-      url: '/assets/pwa_logo.svg',
-      revision: null
-    },
-    {
-      url: '/assets/welcome_screen_img.png',
-      revision: null
-    }
-  ],
+  precacheEntries: self.__SW_MANIFEST || [],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache
-});
-
-/**
- * Event listener for push notifications.
- * @param {PushEvent} event - The push event.
- */
-self.addEventListener('push', function (event) {
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body,
-      icon: data.icon || '/assets/logo.png',
-      badge: '/assets/logo.png',
-      vibrate: [100, 50, 100],
-      data: {
-        dateOfArrival: Date.now(),
-        primaryKey: '2'
-      }
-    };
-    event.waitUntil(self.registration.showNotification(data.title, options));
-  }
+  runtimeCaching: defaultCache,
 });
 
 /**
