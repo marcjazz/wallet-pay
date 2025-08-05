@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 
 export function errorHandling({
   error,
-  formatMessage,
+  formatMessage
 }: {
   error: unknown;
   formatMessage: (message: { id: string }) => string;
@@ -17,14 +17,12 @@ export function errorHandling({
     404: (message) => toast.error(formatMessage({ id: message ?? 'notFound' })),
     403: (message) => {
       if (message?.includes('NotAvailableToAllYet')) {
-        toast.warning(formatMessage({ id: message ?? 'forbidden' }), {
-          description: message,
+        toast.error(formatMessage({ id: message ?? 'forbidden' }), {
           duration: 10000
         });
         return;
       } else
         toast.error(formatMessage({ id: message ?? 'forbidden' }), {
-          description: message,
           closeButton: true
         });
     },
@@ -37,7 +35,7 @@ export function errorHandling({
     503: (message) =>
       toast.error(formatMessage({ id: message ?? 'serviceUnavailable' })),
     504: (message) =>
-      toast.error(formatMessage({ id: message ?? 'gatewayTimeout' })),
+      toast.error(formatMessage({ id: message ?? 'gatewayTimeout' }))
   };
 
   if (axios.isAxiosError(error)) {
