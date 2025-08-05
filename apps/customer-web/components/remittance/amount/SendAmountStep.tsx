@@ -46,9 +46,7 @@ export default function SendAmountStep({
   areCurrenciesLoading,
   currencies,
 }: SendAmountStepProps) {
-  //TODO: CALL API TO FETCH LIMITS
-  const MAX_SENDING_AMOUNT = 1000;
-  const MIN_SENDING_AMOUNT = 1;
+  const MIN_SENDING_AMOUNT = 10;
 
   const { formatMessage, formatNumber } = useIntl();
   const theme = useTheme();
@@ -99,13 +97,16 @@ export default function SendAmountStep({
     sendingAmount: Yup.number()
       .required(formatMessage({ id: 'enterAmount' }))
       .positive(formatMessage({ id: 'invalidAmount' }))
-      .test('decimal-places', formatMessage({ id: 'maxTwoDecimalPlaces' }), (value) => {
-        if (value === undefined || value === null) return true;
-        const decimalPlaces = (value.toString().split('.')[1] || '').length;
-        return decimalPlaces <= 2;
-      })
-      .max(MAX_SENDING_AMOUNT, formatMessage({ id: 'maxRemitAmount' }))
-      .min(MIN_SENDING_AMOUNT, formatMessage({ id: 'minRemitAmount' }))
+      .test(
+        'decimal-places',
+        formatMessage({ id: 'maxTwoDecimalPlaces' }),
+        (value) => {
+          if (value === undefined || value === null) return true;
+          const decimalPlaces = (value.toString().split('.')[1] || '').length;
+          return decimalPlaces <= 2;
+        }
+      )
+      .min(MIN_SENDING_AMOUNT, formatMessage({ id: 'minRemitAmount' })),
   });
 
   const initialValues = {
@@ -250,9 +251,7 @@ export default function SendAmountStep({
                           onClick={() => {
                             formik.setFieldValue(
                               'sendingAmount',
-                              sendingAccount.balance > MAX_SENDING_AMOUNT
-                                ? MAX_SENDING_AMOUNT
-                                : sendingAccount.balance
+                              sendingAccount.balance
                             );
                           }}
                           sx={{

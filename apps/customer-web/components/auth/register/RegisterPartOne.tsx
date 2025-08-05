@@ -109,7 +109,6 @@ export default function RegisterPartOne({
             }
             placeholder={formatMessage({ id: 'firstName' })}
             {...formik.getFieldProps('firstName')}
-            autoFocus
           />
           <FormHelperText>
             {formik.touched.firstName && formik.errors.firstName}
