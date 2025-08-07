@@ -39,7 +39,6 @@
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/throttler": "^6.4.0",
     "@nx/next": "18.3.5",
-    "@opentelemetry/instrumentation": "^0.202.0",
     "@prisma/client": "^6.4.1",
     "@sentry/nextjs": "^9.38.0",
     "@serwist/next": "^9.1.1",

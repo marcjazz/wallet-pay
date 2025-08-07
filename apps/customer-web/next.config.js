@@ -17,8 +17,31 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
-  output: 'standalone',
   reactStrictMode: true,
+  // Use standard Next.js build output with Nx
+  distDir: '.next',
+  webpack: (config, { isServer }) => {
+    // Suppress OpenTelemetry instrumentation warnings
+    config.ignoreWarnings = [
+      // Ignore all critical dependency warnings from OpenTelemetry
+      /Critical dependency: the request of a dependency is an expression/,
+      /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+      // Additional patterns for OpenTelemetry warnings
+      /node_modules\/@opentelemetry\/instrumentation.*Critical dependency/,
+      /node_modules\/@prisma\/instrumentation.*Critical dependency/,
+      /node_modules\/require-in-the-middle.*Critical dependency/,
+      // Catch-all for Sentry-related OpenTelemetry warnings
+      /node_modules\/@sentry\/.*@opentelemetry.*Critical dependency/,
+    ];
+    
+    // Additional webpack configuration to handle dynamic imports
+    config.module = config.module || {};
+    config.module.unknownContextCritical = false;
+    config.module.exprContextCritical = false;
+    config.module.unknownContextRegExp = /^\.\/.*$/;
+    
+    return config;
+  },
   rewrites: async () => {
     return [
       {
@@ -82,6 +105,8 @@ module.exports = async (phase) => {
     // Upload a larger set of source maps for prettier stack traces (increases build time)
     widenClientFileUpload: true,
     tunnelRoute: true,
+    // Suppress build output
+    silent: true,
   });
 
   let finalConfig = composePlugins(...plugins)(sentryWrappedConfig);
