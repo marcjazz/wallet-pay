@@ -54,14 +54,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the Next.js application
-COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web ./apps/customer-web
-
-# Copy node_modules for production dependencies
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-
-# Copy package.json files
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+# Copy the Next.js application standalone output and public assets
+COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/public ./apps/customer-web/public
+COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/.next/static ./dist/apps/customer-web/.next/static
 
 USER nextjs
 
@@ -71,5 +67,5 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Start the Next.js application
-WORKDIR /app/apps/customer-web
-CMD ["npx", "next", "start"]
+WORKDIR /app
+CMD ["node", "apps/customer-web/server.js"]

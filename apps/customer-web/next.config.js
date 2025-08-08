@@ -3,10 +3,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { composePlugins, withNx } = require('@nx/next');
 const { withSentryConfig } = require('@sentry/nextjs');
-const {
-  PHASE_DEVELOPMENT_SERVER,
-  PHASE_PRODUCTION_BUILD,
-} = require('next/constants');
 
 /**
  * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
@@ -18,30 +14,7 @@ const nextConfig = {
     svgr: false,
   },
   reactStrictMode: true,
-  // Use standard Next.js build output with Nx
-  distDir: '.next',
-  webpack: (config, { isServer }) => {
-    // Suppress OpenTelemetry instrumentation warnings
-    config.ignoreWarnings = [
-      // Ignore all critical dependency warnings from OpenTelemetry
-      /Critical dependency: the request of a dependency is an expression/,
-      /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
-      // Additional patterns for OpenTelemetry warnings
-      /node_modules\/@opentelemetry\/instrumentation.*Critical dependency/,
-      /node_modules\/@prisma\/instrumentation.*Critical dependency/,
-      /node_modules\/require-in-the-middle.*Critical dependency/,
-      // Catch-all for Sentry-related OpenTelemetry warnings
-      /node_modules\/@sentry\/.*@opentelemetry.*Critical dependency/,
-    ];
-    
-    // Additional webpack configuration to handle dynamic imports
-    config.module = config.module || {};
-    config.module.unknownContextCritical = false;
-    config.module.exprContextCritical = false;
-    config.module.unknownContextRegExp = /^\.\/.*$/;
-    
-    return config;
-  },
+  output: 'standalone',
   rewrites: async () => {
     return [
       {
@@ -95,32 +68,28 @@ const plugins = [
   withNx,
 ];
 
-/** @type {(phase: string, defaultConfig: import("next").NextConfig) => Promise<import("next").NextConfig>} */
-module.exports = async (phase) => {
-  const sentryWrappedConfig = withSentryConfig(nextConfig, {
+const withSerwist = require('@serwist/next').default({
+  // Note: This is only an example. If you use Pages Router,
+  // use something else that works, such as "service-worker/index.ts".
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
+});
+const serwistWrappedConfig = withSerwist(nextConfig);
+
+let nextConfigFn;
+if (process.env.NODE_ENV === 'production') {
+  const sentryWrappedConfig = withSentryConfig(serwistWrappedConfig, {
     org: process.env.SENTRY_ORG,
     project: process.env.SENTRY_PROJECT,
     // Pass the auth token
     authToken: process.env.SENTRY_AUTH_TOKEN,
     // Upload a larger set of source maps for prettier stack traces (increases build time)
-    widenClientFileUpload: true,
+    widenClientFileUpload: false,
     tunnelRoute: true,
-    // Suppress build output
     silent: true,
   });
 
-  let finalConfig = composePlugins(...plugins)(sentryWrappedConfig);
+  nextConfigFn = composePlugins(...plugins)(sentryWrappedConfig);
+} else nextConfigFn = composePlugins(...plugins)(serwistWrappedConfig);
 
-  if (phase === PHASE_DEVELOPMENT_SERVER || phase === PHASE_PRODUCTION_BUILD) {
-    const withSerwist = (await import('@serwist/next')).default({
-      // Note: This is only an example. If you use Pages Router,
-      // use something else that works, such as "service-worker/index.ts".
-      swSrc: 'app/sw.ts',
-      swDest: 'public/sw.js',
-    });
-    return withSerwist(finalConfig);
-  }
-
-  return finalConfig;
-};
-
+module.exports = nextConfigFn;
