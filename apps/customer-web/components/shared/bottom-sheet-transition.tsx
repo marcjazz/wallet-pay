@@ -4,8 +4,7 @@ import * as React from 'react';
 
 export const BottomSheetTransition = React.forwardRef(function Transition(
   props: TransitionProps & {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    children: React.ReactElement<any, any>;
+    children: React.ReactElement;
   },
   ref: React.Ref<unknown>
 ) {

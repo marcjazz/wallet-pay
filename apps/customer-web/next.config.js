@@ -13,13 +13,51 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
-  output: 'standalone',
   reactStrictMode: true,
+  output: 'standalone',
   rewrites: async () => {
     return [
       {
         source: '/api/:path*',
         destination: 'https://api.xafpay.com/api/:path*',
+      },
+    ];
+  },
+  headers: async () => {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self'",
+          },
+        ],
       },
     ];
   },
@@ -30,13 +68,28 @@ const plugins = [
   withNx,
 ];
 
-const nextWithSentryConfig = withSentryConfig(nextConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  // Pass the auth token
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-  tunnelRoute: true,
+const withSerwist = require('@serwist/next').default({
+  // Note: This is only an example. If you use Pages Router,
+  // use something else that works, such as "service-worker/index.ts".
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
 });
-module.exports = composePlugins(...plugins)(nextWithSentryConfig);
+const serwistWrappedConfig = withSerwist(nextConfig);
+
+let nextConfigFn;
+if (process.env.NODE_ENV === 'production') {
+  const sentryWrappedConfig = withSentryConfig(serwistWrappedConfig, {
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    // Pass the auth token
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    // Upload a larger set of source maps for prettier stack traces (increases build time)
+    widenClientFileUpload: false,
+    tunnelRoute: true,
+    silent: true,
+  });
+
+  nextConfigFn = composePlugins(...plugins)(sentryWrappedConfig);
+} else nextConfigFn = composePlugins(...plugins)(serwistWrappedConfig);
+
+module.exports = nextConfigFn;

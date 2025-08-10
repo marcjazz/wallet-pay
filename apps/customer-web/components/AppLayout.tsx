@@ -29,10 +29,11 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
         push('/login');
       }
     }, 3000);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [apiClient, pathname, searchParams, push]);
 
   return (
-    <XafpayThemeProvider>{children}</XafpayThemeProvider>
+    <XafpayThemeProvider>
+      {children}
+    </XafpayThemeProvider>
   );
 };

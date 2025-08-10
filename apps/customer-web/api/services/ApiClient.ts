@@ -12,8 +12,8 @@ export class ApiClient {
     baseURL: string,
     private authToken?: AccessTokenResponse
   ) {
-    if (typeof window != 'undefined') {
-      const storedToken = localStorage.getItem('authToken');
+    if (typeof window !== 'undefined') {
+      const storedToken = window.localStorage.getItem('authToken');
       if (storedToken) {
         this.authToken = JSON.parse(storedToken);
       }
@@ -23,8 +23,8 @@ export class ApiClient {
       baseURL,
       withCredentials: true,
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'
+      }
     });
 
     // Request interceptor to add Authorization header
@@ -43,9 +43,9 @@ export class ApiClient {
         }
 
         if (isTokenExpired && !config.url?.includes('auth')) {
-          // If the token is expired, redirect to login
+          // If the token is expired, let the client handle the redirect
           this.clearAuthToken();
-          location.href = '/login';
+          window.location.href = '/login';
           throw new Error('Token expired, redirecting to login');
         }
 
@@ -57,12 +57,12 @@ export class ApiClient {
 
   setAuthToken(token: AccessTokenResponse): void {
     this.authToken = token;
-    localStorage.setItem('authToken', JSON.stringify(token));
+    window.localStorage.setItem('authToken', JSON.stringify(token));
   }
 
   clearAuthToken(): void {
     this.authToken = undefined;
-    localStorage.removeItem('authToken');
+    window.localStorage.removeItem('authToken');
   }
 
   getAuthToken(): AccessTokenResponse | undefined {
@@ -92,7 +92,7 @@ export class ApiClient {
       return tokenResp;
     } catch (error) {
       this.authToken = undefined; // Clear tokens on failure
-      location.href = '/login';
+      window.location.href = '/login';
       throw error;
     } finally {
       this.isRefreshing = false;

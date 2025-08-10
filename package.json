@@ -12,7 +12,8 @@
     "wallet-api:start-prod": "nx run wallet-api:serve:production",
     "customer-web:build": "nx run customer-web:build:production",
     "wallet-api:build": "nx run wallet-api:build:production",
-    "customer-web:export": "nx run customer-web:export"
+    "customer-web:export": "nx run customer-web:export",
+    "web-push:gen-keys": "web-push generate-vapid-keys"
   },
   "private": true,
   "dependencies": {
@@ -40,6 +41,7 @@
     "@nx/next": "18.3.5",
     "@prisma/client": "^6.4.1",
     "@sentry/nextjs": "^9.38.0",
+    "@serwist/next": "^9.1.1",
     "@tchakoumi/handy-components": "^0.0.1",
     "@wallet/source": "file:",
     "axios": "^1.8.3",
@@ -74,6 +76,7 @@
     "sharp": "^0.33.5",
     "sonner": "^2.0.6",
     "tslib": "^2.3.0",
+    "web-push": "^3.6.7",
     "xhr2": "^0.2.1",
     "yup": "^1.4.0"
   },
@@ -115,6 +118,7 @@
     "@types/react-dom": "18.2.14",
     "@types/react-lottie": "^1.2.10",
     "@types/shelljs": "^0.8.15",
+    "@types/web-push": "^3.6.4",
     "@typescript-eslint/eslint-plugin": "7.3.0",
     "@typescript-eslint/parser": "7.3.0",
     "@wallet/source": "file:",
@@ -146,10 +150,12 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "sass": "^1.89.2",
+    "serwist": "^9.1.1",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
     "typescript": "^5.8.3",
     "url-loader": "^4.1.1"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
