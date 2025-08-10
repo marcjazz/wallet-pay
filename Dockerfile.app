@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci 
+RUN apk add --no-cache --virtual .gyp python3 make g++ && npm install -g npm@11.5.2 && npm ci && apk del .gyp
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -37,7 +37,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build project
 RUN npx nx reset && \
-    npx nx run customer-web:build:production --skip-nx-cache --verbose
+    npx nx run customer-web:build:production --skip-nx-cache --verbose && \
+    echo "Listing build output:" && \
+    find /app/dist/apps/customer-web -type f -name "*.js" | head -20 && \
+    ls -la /app/dist/apps/customer-web/ && \
+    ls -la /app/dist/apps/customer-web/.next/ || echo "No .next directory found"
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -50,8 +54,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Copy the Next.js application standalone output and public assets
 COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/public ./apps/customer-web/public
 COPY --from=builder --chown=nextjs:nodejs /app/dist/apps/customer-web/.next/static ./dist/apps/customer-web/.next/static
@@ -61,7 +64,8 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT=3000
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
+
+# Start the Next.js application
+WORKDIR /app
 CMD ["node", "apps/customer-web/server.js"]

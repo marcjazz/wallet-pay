@@ -16,7 +16,8 @@
         "name": "next"
       }
     ],
-    "types": ["jest", "node"]
+    "types": ["jest", "node", "@serwist/next/typings"],
+    "lib": ["DOM", "WebWorker"]
   },
   "include": [
     "**/*.ts",
@@ -32,6 +33,7 @@
     "node_modules",
     "jest.config.ts",
     "src/**/*.spec.ts",
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "public/sw.js",
   ]
 }
