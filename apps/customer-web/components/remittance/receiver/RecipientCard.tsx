@@ -33,7 +33,9 @@ export default function RecipientCard({
           ? setSelectedReceiver(undefined)
           : setSelectedReceiver({
               ...receiver,
-              phone_number: receiver.phone_number.split('+237')[1]
+              phone_number: receiver.phone_number.includes('+237')
+                ? receiver.phone_number.split('+237')[1]
+                : receiver.phone_number,
             });
       }}
       sx={{

@@ -55,7 +55,14 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self'",
+            value: [
+              "default-src 'self' https://app.xafpay.com",
+              "connect-src 'self' https://api.xafpay.com https://fonts.googleapis.com https://fonts.gstatic.com",
+              "font-src 'self'",
+              "style-src 'self' https://fonts.googleapis.com",
+              "script-src 'self' 'unsafe-inline'",
+              "img-src 'self'"
+            ].join('; ')
           },
         ],
       },
