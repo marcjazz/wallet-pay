@@ -310,7 +310,6 @@ model CybridCounterparty {
   CybridTransactions         CybridTransaction[]
   StripeTransactions         StripeTransaction[]
 
-  @@unique([person_id, phone_number])
   @@map("receiver_payout_info")
 }
 
@@ -482,7 +481,7 @@ enum CybridExternalAccountStatus {
   DELETING         @map("deleting")
   DELETED          @map("deleted")
 
-  @@map("cybrid_external_acccount_status")
+  @@map("cybrid_external_account_status")
 }
 
 enum IdentityVerificationStatus {
@@ -493,6 +492,7 @@ enum IdentityVerificationStatus {
   EXPIRED   @map("expired")
   PASSED    @map("passed")
   FAILED    @map("failed")
+  COMPLETED @map("completed")
 
   @@map("identity_verification_status")
 }
