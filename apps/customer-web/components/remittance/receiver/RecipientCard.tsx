@@ -1,6 +1,6 @@
 import { Avatar, Box, Button, Typography } from '@mui/material';
 import { useTheme } from '@xafpay/theme';
-import { CheckCircle } from 'react-feather';
+import { CheckCircle, AlertTriangle } from 'react-feather';
 import { useIntl } from 'react-intl';
 import { ReceiverEntity } from '../../../api/types';
 import { getUsernameInitials } from '../../shared/utilities';
@@ -23,6 +23,8 @@ export default function RecipientCard({
   const { formatMessage } = useIntl();
 
   const isSelected = selectedReceiver?.receiver_id === receiver.receiver_id;
+  const isUnverified = receiver.verification_status !== 'PASSED';
+
   return (
     <Box
       component={Button}
@@ -121,9 +123,21 @@ export default function RecipientCard({
             </Typography>
           )}
         </Box>
+        <Box>
+          <Typography color="#db3e22ff">
+            {receiver.verification_status === 'EXPIRED'
+              ? formatMessage({ id: 'verificationExpired' })
+              : receiver.verification_status !== 'PASSED'
+              ? formatMessage({ id: 'notVerifiedYet' })
+              : ''}
+          </Typography>
+        </Box>
         {/* )} */}
       </Box>
-      {isSelected && <CheckCircle />}
+      <Box sx={{ display: 'grid', rowGap: 2 }}>
+        {isSelected && <CheckCircle />}
+        {isUnverified && <AlertTriangle color="#db3e22ff" />}
+      </Box>
     </Box>
   );
 }

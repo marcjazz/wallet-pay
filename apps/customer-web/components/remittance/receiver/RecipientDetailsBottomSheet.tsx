@@ -193,7 +193,8 @@ export default function RecipientDetailsBottomSheet({
   });
 
   const { touched, errors, values } = formik;
-
+  const isVerificationPassed =
+    selectedReceiver && selectedReceiver?.verification_status !== 'PASSED';
   return (
     <BottomSheet open={isOpen} closeBottomSheet={closeBottomSheet}>
       <Typography variant="h2">
@@ -489,7 +490,11 @@ export default function RecipientDetailsBottomSheet({
           variant="contained"
           color="primary"
           form="recipient-details-form"
-          disabled={isCreatingReceiver}
+          disabled={
+            isCreatingReceiver ||
+            isUpdatingReceiver ||
+            (isVerificationPassed && !hasToUpdate)
+          }
           endIcon={
             (isCreatingReceiver || isUpdatingReceiver) && (
               <CircularProgress size={20} thickness={23} />
