@@ -25,6 +25,8 @@ export interface ReceiverEntity {
   receiver_guid: string;
   /** Timestamp of creation. */
   created_at: string;
+  /** Verification status of the receiver. */
+  verification_status: string;
 }
 
 export type CreateReceiverDto = {

@@ -83,7 +83,10 @@ export default function ReceiverStep({
     <>
       <RecipientDetailsBottomSheet
         isOpen={isReceipientDetailsOpen}
-        closeBottomSheet={() => setIsReceipientDetailsOpen(false)}
+        closeBottomSheet={() => {
+          setIsReceipientDetailsOpen(false);
+          refetch();
+        }}
         selectedPayoutMethod={selectedPayoutMethod}
         selectedReceiver={selectedReceiver}
         handleNext={handleNext}
