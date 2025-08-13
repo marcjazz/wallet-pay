@@ -53,7 +53,11 @@ export default function ReceiverStep({
   >(receiverData);
 
   // TODO: receivers will be stored based on payout method. so fetch data based on selected payout method
-  const { data: receivers, isFetching: areReceiversLoading } = useReceivers();
+  const {
+    data: receivers,
+    isFetching: areReceiversLoading,
+    refetch,
+  } = useReceivers();
 
   // useEffect(() => {
   // setAreReceiversLoading(true);
