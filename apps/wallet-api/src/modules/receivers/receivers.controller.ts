@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   Req,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -103,11 +104,31 @@ export class ReceiversController {
     @Param('id') cybridCounterpartyId: string,
     @Body() updatedReciever: CreateReceiverDto
   ) {
-    const receiver = await this.receiversService.update(
-      cybridCounterpartyId,
-      updatedReciever,
-      request.user?.person_id as string
-    );
+    const { counterpartyVerify, receiverVerified: receiver } =
+      await this.receiversService.update(
+        cybridCounterpartyId,
+        updatedReciever,
+        request.user?.person_id as string
+      );
+
+    if (counterpartyVerify.outcome === 'failed') {
+      throw new UnprocessableEntityException(
+        `Failed to verify the new counterParty due to ${counterpartyVerify.failure_codes?.join(
+          ', '
+        )}`
+      );
+    }
+
+    if (receiver.verification_status === 'EXPIRED') {
+      throw new UnprocessableEntityException(
+        'Sorry! Verification takes too much time and expired. Please try again.'
+      );
+    }
+    if (receiver.verification_status !== 'PASSED') {
+      throw new UnprocessableEntityException(
+        'Receiver is still in verification process!'
+      );
+    }
 
     return new ReceiverEntity(receiver);
   }
