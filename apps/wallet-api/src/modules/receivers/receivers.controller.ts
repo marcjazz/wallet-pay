@@ -67,10 +67,30 @@ export class ReceiversController {
     @Req() request: Request,
     @Body() newReciever: CreateReceiverDto
   ) {
-    const receiver = await this.receiversService.create(
-      newReciever,
-      request.user?.person_id as string
-    );
+    const { counterpartyVerify, receiverVerified: receiver } =
+      await this.receiversService.create(
+        newReciever,
+        request.user?.person_id as string
+      );
+
+    if (counterpartyVerify.outcome === 'failed') {
+      throw new UnprocessableEntityException(
+        `Failed to verify the new counterParty due to ${counterpartyVerify.failure_codes?.join(
+          ', '
+        )}`
+      );
+    }
+
+    if (receiver.verification_status === 'EXPIRED') {
+      throw new UnprocessableEntityException(
+        'Sorry! Verification got too much time and expired. Please try again.'
+      );
+    }
+    if (receiver.verification_status !== 'PASSED') {
+      throw new UnprocessableEntityException(
+        'counterparty under verification!'
+      );
+    }
 
     return new ReceiverEntity(receiver);
   }

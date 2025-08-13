@@ -3,6 +3,7 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from '@nestjs/swagger';
+import { IdentityVerificationStatus } from '@prisma/client';
 import { Exclude, Expose, Type } from 'class-transformer';
 import {
   IsEnum,
@@ -47,6 +48,9 @@ export class ReceiverEntity {
   @ApiProperty()
   created_at: Date;
 
+  @ApiProperty({ enum: IdentityVerificationStatus, default: null })
+  @IsEnum(IdentityVerificationStatus)
+  verification_status: IdentityVerificationStatus | null;
   constructor(props: ReceiverEntity) {
     Object.assign(this, props);
   }
