@@ -11,7 +11,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { $Enums } from '@prisma/client';
+import { $Enums, IdentityVerificationStatus } from '@prisma/client';
 import { SearchQueryDto } from '../../app/app.dto';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { normalizeName, validatePhoneNumber } from '../../helpers/utils';
@@ -36,6 +36,9 @@ export class RecieversService {
       where: {
         person_id: query.person_id,
         is_deleted: false,
+        verification_status: {
+          not: IdentityVerificationStatus.FAILED,
+        },
         ...(query.search
           ? {
               OR: [
@@ -52,7 +55,7 @@ export class RecieversService {
   async findOne(counterpartyId: string) {
     const counterparty = await this.prismaService.cybridCounterparty.findUnique(
       {
-        where: { cybrid_counterparty_id: counterpartyId, is_deleted: false }
+        where: { cybrid_counterparty_id: counterpartyId, is_deleted: false },
       }
     );
 
@@ -106,61 +109,94 @@ export class RecieversService {
     const existingCounterParty =
       await this.prismaService.cybridCounterparty.findFirst({
         where: {
-          fullname: normalizeName(fullname),
+          phone_number: phoneNumber,
           person_id: personId,
-          is_deleted: false
-        }
+          is_deleted: false,
+        },
       });
 
-    if (existingCounterParty?.phone_number === phoneNumber) {
+    if (existingCounterParty) {
       throw new ConflictException(
         `Receiver already exist with phone number: ${phoneNumber}`
       );
     }
 
-    let status = existingCounterParty?.status;
-    let counterpartyGuid = existingCounterParty?.cybrid_counterparty_guid;
+    let status = null;
 
-    if (!existingCounterParty) {
-      const counterparty = await this.cybridService.createCounterparty(
-        customer.cybrid_customer_guid,
-        {
-          address,
-          name: { full: fullname, last, first },
-          type: PostCounterpartyBankModelTypeEnum.Individual,
-        }
-      );
-      status =
-        counterparty.state?.toLocaleUpperCase() as $Enums.CybridCounterpartyStatus;
-      counterpartyGuid = counterparty.guid as string;
+    const counterparty = await this.cybridService.createCounterparty(
+      customer.cybrid_customer_guid,
+      {
+        address,
+        name: { full: fullname, last, first },
+        type: PostCounterpartyBankModelTypeEnum.Individual,
+      }
+    );
+    status =
+      counterparty.state?.toLocaleUpperCase() as $Enums.CybridCounterpartyStatus;
 
+    // Create Counterparty in the database
+    await this.prismaService.cybridCounterparty.create({
+      data: {
+        fullname: normalizeName(fullname),
+        address: `${address.city}, ${address.street} (${address.country_code}-${address.subdivision})`,
+        cybrid_counterparty_guid: counterparty.guid as string,
+        phone_number: phoneNumber,
+        national_id_number: newReceiver.national_id_number,
+        Person: { connect: { person_id: personId } },
+        status: status ?? 'STORING',
+      },
+    });
+
+    // Create identity verification for such the counterparty from Cybrid platform
+    const identityVerification = await this.cybridService.verifyIdentity(
+      customer.cybrid_customer_guid,
+      {
+        counterparty_guid: counterparty.guid,
+        type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
+        method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
+      }
+    );
+
+    // Verify Counterparty
+    const counterpartyVerification = (await this.counterpartyVerif(
+      identityVerification.guid as string,
+      customer.cybrid_customer_guid,
+      {
+        maxAttempts: 2,
+        initialDelay: 1000,
+      }
+    )) as IdentityVerificationBankModel;
+
+    // Pass through the verification loop if verification is not completed
+    if (
+      !['completed', 'expired'].includes(
+        counterpartyVerification.state as string
+      )
+    ) {
+      /**
+       * Call pooling event that will check the status of the counterparty until it is completed
+       * Then update the database and notify the user using push notification.
+       * Run as a non-blocking background task.
+       */
       const timeout = setTimeout(async () => {
         try {
-          this.logger.log(`Counterparty verification started...`);
-          const counterpartyVerification =
-            await this.cybridService.verifyIdentity(
-              customer.cybrid_customer_guid,
-              {
-                counterparty_guid: counterparty.guid,
-                type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
-                method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
-              }
-            );
+          await this.counterpartyVerif(
+            identityVerification.guid as string,
+            customer.cybrid_customer_guid,
+            {
+              onComplete: async (result) => {
+                await this.prismaService.cybridCounterparty.update({
+                  data: {
+                    verification_status: (
+                      result.outcome ?? result.state
+                    )?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus,
+                  },
+                  where: { cybrid_counterparty_guid: counterparty.guid },
+                });
 
-          await this.prismaService.cybridCounterparty.update({
-            data: {
-              identity_verification_guid:
-                counterpartyVerification.guid as string,
-              verification_status:
-                counterpartyVerification.outcome === 'failed'
-                  ? $Enums.IdentityVerificationStatus.FAILED
-                  : (counterpartyVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus),
-            },
-            where: { cybrid_counterparty_guid: counterparty.guid },
-          });
-
-          this.logger.log(
-            `Counterparty verification completed with status ${counterpartyVerification.state}`
+                // TODO: Send push notification to notify user for their counterparty status
+              },
+            }
           );
           clearInterval(timeout);
         } catch (error) {
@@ -168,18 +204,26 @@ export class RecieversService {
         }
       }, 1000);
     }
-
-    return await this.prismaService.cybridCounterparty.create({
-      data: {
-        fullname,
-        address: `${address.city}, ${address.street} (${address.country_code}-${address.subdivision})`,
-        cybrid_counterparty_guid: counterpartyGuid as string,
-        phone_number: phoneNumber,
-        national_id_number: newReceiver.national_id_number,
-        Person: { connect: { person_id: personId } },
-        status: status ?? 'STORING'
+    const receiverVerified = await this.prismaService.cybridCounterparty.update(
+      {
+        data: {
+          identity_verification_guid: counterpartyVerification.guid as string,
+          verification_status:
+            counterpartyVerification.outcome === 'failed'
+              ? $Enums.IdentityVerificationStatus.FAILED
+              : ((
+                  counterpartyVerification.outcome ??
+                  counterpartyVerification.state
+                )?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus),
+        },
+        where: { cybrid_counterparty_guid: counterparty.guid },
       }
-    });
+    );
+
+    return {
+      counterpartyVerify: counterpartyVerification,
+      receiverVerified,
+    };
   }
 
   async update(
@@ -188,7 +232,7 @@ export class RecieversService {
     personId: string
   ) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
-      where: { person_id: personId }
+      where: { person_id: personId },
     });
     if (!customer) {
       throw new NotFoundException('No customer found!');
@@ -197,12 +241,12 @@ export class RecieversService {
     await this.prismaService.cybridCounterparty.update({
       where: {
         cybrid_counterparty_id: counterpartyId,
-        person_id: personId
+        person_id: personId,
       },
       data: {
         is_deleted: true,
-        deleted_at: new Date()
-      }
+        deleted_at: new Date(),
+      },
     });
     return await this.create(updatedReciever, personId);
   }
