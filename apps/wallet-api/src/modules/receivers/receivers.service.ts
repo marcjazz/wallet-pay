@@ -1,4 +1,5 @@
 import {
+  IdentityVerificationBankModel,
   PostCounterpartyBankModelTypeEnum,
   PostIdentityVerificationBankModelMethodEnum,
   PostIdentityVerificationBankModelTypeEnum,
@@ -204,5 +205,74 @@ export class RecieversService {
       }
     });
     return await this.create(updatedReciever, personId);
+  }
+
+  /**
+   * Generalized counterparty verification loop.
+   *
+   * @param verificationGuid - The verification GUID.
+   * @param cybrid_customer_guid - The Cybrid customer GUID.
+   * @param options - Optional settings:
+   *    maxAttempts: number of attempts before giving up (undefined for infinite),
+   *    initialDelay: delay before first check (ms),
+   *    onComplete: callback when verification completes (optional).
+   * @returns The final IdentityVerificationBankModel if maxAttempts is set, otherwise void.
+   */
+  private async counterpartyVerif(
+    verificationGuid: string,
+    cybrid_customer_guid: string,
+    options?: {
+      maxAttempts?: number;
+      initialDelay?: number;
+      onComplete?: (
+        result: IdentityVerificationBankModel
+      ) => Promise<void> | void;
+    }
+  ): Promise<IdentityVerificationBankModel | void> {
+    let attempt = 1;
+    let delay = options?.initialDelay ?? 1000;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      this.logger.log(`Counterparty verification attempt #${attempt}...`);
+      const counterpartyVerification =
+        await new Promise<IdentityVerificationBankModel>((resolve, reject) => {
+          setTimeout(async () => {
+            try {
+              const result = await this.cybridService.getIdentityVerification(
+                cybrid_customer_guid,
+                verificationGuid
+              );
+              resolve(result);
+            } catch (error) {
+              reject(error);
+            }
+          }, delay);
+        });
+
+      if (
+        ['completed', 'expired'].includes(
+          counterpartyVerification.state as string
+        )
+      ) {
+        this.logger.log(
+          `Counterparty verification completed with status ${counterpartyVerification.state}`
+        );
+        if (options?.onComplete) {
+          await options.onComplete(counterpartyVerification);
+        }
+        return options?.maxAttempts ? counterpartyVerification : undefined;
+      }
+
+      if (options?.maxAttempts && attempt >= options.maxAttempts) {
+        this.logger.log(
+          `Counterparty verification did not complete after ${attempt} attempts. Last status: ${counterpartyVerification.state}`
+        );
+        return counterpartyVerification;
+      }
+
+      delay = 3000;
+      attempt += 1;
+    }
   }
 }
