@@ -51,6 +51,7 @@ export class ReceiverEntity {
   @ApiProperty({ enum: IdentityVerificationStatus, default: null })
   @IsEnum(IdentityVerificationStatus)
   verification_status: IdentityVerificationStatus | null;
+
   constructor(props: ReceiverEntity) {
     Object.assign(this, props);
   }
