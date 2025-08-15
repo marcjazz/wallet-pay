@@ -121,12 +121,12 @@ export class ReceiversController {
 
     if (receiver.verification_status === 'EXPIRED') {
       throw new UnprocessableEntityException(
-        'Sorry! Verification takes too much time and expired. Please try again.'
+        'Sorry! Verification got too much time and expired. Please try again.'
       );
     }
     if (receiver.verification_status !== 'PASSED') {
       throw new UnprocessableEntityException(
-        'Receiver is still in verification process!'
+        'counterparty under verification!'
       );
     }
 
