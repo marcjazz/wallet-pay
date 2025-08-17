@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateProfileDto } from './user.dto';
-import { Person } from '@prisma/client';
+import { Person, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -52,7 +52,7 @@ export class UsersService {
     }
 
     // Prepare update data
-    const updatePayload: any = {};
+    const updatePayload: Prisma.PersonUpdateInput = {};
     
     // Always editable fields
     if (updateData.email !== undefined) {

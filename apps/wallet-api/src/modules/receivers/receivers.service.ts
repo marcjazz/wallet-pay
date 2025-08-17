@@ -7,6 +7,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { $Enums, IdentityVerificationStatus } from '@prisma/client';
 import { Queue } from 'bull';
 import { randomUUID } from 'crypto';
@@ -29,10 +30,6 @@ export class RecieversService {
     @InjectQueue(constants.WEBHOOK_QUEUE)
     private readonly webhooksQueue: Queue<UnsupportedCybridSubcriptionEventObjectDto>
   ) {}
-
-  async getCustomers() {
-    return this.cybridService.getCustomers();
-  }
 
   async findAll(query: SearchQueryDto) {
     return this.prismaService.cybridCounterparty.findMany({
@@ -120,7 +117,7 @@ export class RecieversService {
       counterparty.state?.toLocaleUpperCase() as $Enums.CybridCounterpartyStatus;
 
     // Create Counterparty in the database
-    const innternalCounterparty =
+    const cybridCounterparty =
       await this.prismaService.cybridCounterparty.create({
         data: {
           fullname: normalizeName(fullname),
@@ -141,12 +138,11 @@ export class RecieversService {
         environment:
           process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
         event_type: UnsupportedCybridSubcriptionEvents.COUNTERPARTY_CREATED,
-        object_guid: innternalCounterparty.cybrid_counterparty_guid,
+        object_guid: cybridCounterparty.cybrid_counterparty_guid,
       },
       {
         attempts: 3,
         removeOnComplete: true,
-        removeOnFail: true,
         backoff: {
           type: 'exponential',
           delay: 1000,
@@ -154,7 +150,7 @@ export class RecieversService {
       }
     );
 
-    return innternalCounterparty;
+    return cybridCounterparty;
   }
 
   async update(
@@ -180,5 +176,47 @@ export class RecieversService {
       },
     });
     return await this.create(updatedReciever, personId);
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async rescueUnverifiedCounterparties() {
+    const counterparties = await this.prismaService.cybridCounterparty.findMany(
+      {
+        where: {
+          is_deleted: false,
+          created_at: {
+            lte: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+          },
+          identity_verification_guid: null,
+        },
+      }
+    );
+
+    if (counterparties.length === 0) {
+      this.logger.log('No counterparties to pull');
+      return;
+    }
+
+    counterparties.map((counterparty) => {
+      // Start a job that will initiate the counterparty verification
+      this.webhooksQueue.add(
+        constants.INITIATE_COUNTERPARTY_VERIFICATION,
+        {
+          guid: randomUUID(),
+          environment:
+            process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+          event_type: UnsupportedCybridSubcriptionEvents.COUNTERPARTY_CREATED,
+          object_guid: counterparty.cybrid_counterparty_guid,
+        },
+        {
+          attempts: 3,
+          removeOnComplete: true,
+          backoff: {
+            type: 'exponential',
+            delay: 1000,
+          },
+        }
+      );
+    });
   }
 }

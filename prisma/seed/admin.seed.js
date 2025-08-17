@@ -1,7 +1,7 @@
 import {
   PersonGender,
   PrismaClient,
-  SupportedLocalCurrency,
+  SupportedLocalCurrency
 } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcrypt';
 import { logger } from './logger.js';
@@ -30,10 +30,13 @@ export async function createInitialAdminAcount({
     password: hashPassword,
     phone_number: '+1 (703) 899-5276',
     LocalCustomers: {
-      create: {
-        balance: 0,
-        currency: SupportedLocalCurrency.XAF,
-        account_number,
+      connectOrCreate: {
+        where: { account_number, currency: SupportedLocalCurrency.XAF },
+        create: {
+          balance: 0,
+          currency: SupportedLocalCurrency.XAF,
+          account_number,
+        },
       },
     },
   };
