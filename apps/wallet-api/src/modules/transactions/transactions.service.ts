@@ -336,7 +336,9 @@ export class TransactionsService {
     }
 
     if (cybridCounterparty.verification_status !== 'PASSED') {
-      throw new UnauthorizedException(`Potential faulty receiver detected!`);
+      throw new UnauthorizedException(
+        `Cannot send money to unverified counterparty!`
+      );
     }
 
     if (receiver.national_id_number || receiver.phone_number) {

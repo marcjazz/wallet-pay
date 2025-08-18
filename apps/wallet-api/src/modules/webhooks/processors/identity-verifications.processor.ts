@@ -17,17 +17,15 @@ export class IdentityVerificationsProcessor {
   ) {}
 
   @Process(constants.CYBRID_IDENTITY_VERIFICATION_EVENTS)
-  async handle(
-    job: Job<CybridSubscriptionEventObjectDto>
-  ) {
+  async handle(job: Job<CybridSubscriptionEventObjectDto>) {
     const { event_type: eventType, object_guid: objectGuid, guid } = job.data;
     this.logger.log(
       `Processing (event: ${eventType}, Guid: ${guid}, objectGuid: ${objectGuid}) from cybrid...`
     );
 
     const customer = await this.prismaService.cybridCustomer.findFirst({
-      include: {
-        // cybrid_customer_guid: true,
+      select: {
+        cybrid_customer_guid: true,
         CybridExternalAccounts: {
           take: 1,
           where: { identity_verification_guid: objectGuid },

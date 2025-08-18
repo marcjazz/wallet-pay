@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
   Query,
-  Req,
+  Req
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -67,12 +67,12 @@ export class ReceiversController {
     @Req() request: Request,
     @Body() newReciever: CreateReceiverDto
   ) {
-    const receiver = await this.receiversService.create(
+    const counterpartyVerify = await this.receiversService.create(
       newReciever,
       request.user?.person_id as string
     );
 
-    return new ReceiverEntity(receiver);
+    return new ReceiverEntity(counterpartyVerify);
   }
 
   @Patch(':id')
@@ -83,12 +83,12 @@ export class ReceiversController {
     @Param('id') cybridCounterpartyId: string,
     @Body() updatedReciever: CreateReceiverDto
   ) {
-    const receiver = await this.receiversService.update(
+    const counterpartyVerify = await this.receiversService.update(
       cybridCounterpartyId,
       updatedReciever,
       request.user?.person_id as string
     );
 
-    return new ReceiverEntity(receiver);
+    return new ReceiverEntity(counterpartyVerify);
   }
 }

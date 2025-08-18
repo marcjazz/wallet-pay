@@ -42,6 +42,6 @@ export const constants = {
   CYBRID_TRADE_EVENTS: 'cybrid_trade_events',
   PAYOUT_PARTNER_EVENTS: 'payout_partner_events',
   SUPPORTED_TRADE_SYMBOL: 'USDC_SOL-USD',
-  UNSCHEDULED_TRASACTION: 'waiting',
+  INITIATE_COUNTERPARTY_VERIFICATION: 'initiate-counterparty-verification',
   INITIATE_PAYOUT_EVENTS: 'initiate-payout'
 };

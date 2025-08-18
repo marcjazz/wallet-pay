@@ -1,8 +1,5 @@
-import {
-  PostCounterpartyBankModelTypeEnum,
-  PostIdentityVerificationBankModelMethodEnum,
-  PostIdentityVerificationBankModelTypeEnum,
-} from '@cybrid/cybrid-api-bank-typescript';
+import { PostCounterpartyBankModelTypeEnum } from '@cybrid/cybrid-api-bank-typescript';
+import { InjectQueue } from '@nestjs/bull';
 import {
   ConflictException,
   Injectable,
@@ -10,11 +7,17 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { $Enums } from '@prisma/client';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { $Enums, IdentityVerificationStatus } from '@prisma/client';
+import { Queue } from 'bull';
+import { randomUUID } from 'crypto';
 import { SearchQueryDto } from '../../app/app.dto';
+import { constants } from '../../constants';
 import { CybridService } from '../../cybrid/cybrid.service';
 import { normalizeName, validatePhoneNumber } from '../../helpers/utils';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UnsupportedCybridSubcriptionEvents } from '../../types/cybrid/enums';
+import { UnsupportedCybridSubcriptionEventObjectDto } from '../webhooks/dtos/cybrid-subscription.dto';
 import { CreateReceiverDto } from './receiver.dto';
 
 @Injectable()
@@ -23,18 +26,19 @@ export class RecieversService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly cybridService: CybridService
+    private readonly cybridService: CybridService,
+    @InjectQueue(constants.WEBHOOK_QUEUE)
+    private readonly webhooksQueue: Queue<UnsupportedCybridSubcriptionEventObjectDto>
   ) {}
-
-  async getCustomers() {
-    return this.cybridService.getCustomers();
-  }
 
   async findAll(query: SearchQueryDto) {
     return this.prismaService.cybridCounterparty.findMany({
       where: {
         person_id: query.person_id,
         is_deleted: false,
+        verification_status: {
+          not: IdentityVerificationStatus.FAILED,
+        },
         ...(query.search
           ? {
               OR: [
@@ -51,7 +55,7 @@ export class RecieversService {
   async findOne(counterpartyId: string) {
     const counterparty = await this.prismaService.cybridCounterparty.findUnique(
       {
-        where: { cybrid_counterparty_id: counterpartyId, is_deleted: false }
+        where: { cybrid_counterparty_id: counterpartyId, is_deleted: false },
       }
     );
 
@@ -86,99 +90,67 @@ export class RecieversService {
       );
     }
 
-    // Validate receiver's account name
-    // const { family_name, given_name } =
-    //   await this.momoService.getAccountHolderBasicInfo(phoneNumber);
-    // const regex = new RegExp(
-    //   `(?=.*\\b${family_name}\\b)(?=.*\\b${given_name}\\b)`,
-    //   'i'
-    // );
-    // if (
-    //   process.env.NODE_ENV === 'production' &&
-    //   fullname.search(regex) === -1
-    // ) {
-    //   throw new UnprocessableEntityException(
-    //     `Receiver's fullname doesn't match MoMo Account holder basic info`
-    //   );
-    // }
-
     const existingCounterParty =
       await this.prismaService.cybridCounterparty.findFirst({
         where: {
-          fullname: normalizeName(fullname),
+          phone_number: phoneNumber,
           person_id: personId,
-          is_deleted: false
-        }
+          is_deleted: false,
+        },
       });
 
-    if (existingCounterParty?.phone_number === phoneNumber) {
+    if (existingCounterParty) {
       throw new ConflictException(
         `Receiver already exist with phone number: ${phoneNumber}`
       );
     }
 
-    let status = existingCounterParty?.status;
-    let counterpartyGuid = existingCounterParty?.cybrid_counterparty_guid;
-
-    if (!existingCounterParty) {
-      const counterparty = await this.cybridService.createCounterparty(
-        customer.cybrid_customer_guid,
-        {
-          address,
-          name: { full: fullname, last, first },
-          type: PostCounterpartyBankModelTypeEnum.Individual,
-        }
-      );
-      status =
-        counterparty.state?.toLocaleUpperCase() as $Enums.CybridCounterpartyStatus;
-      counterpartyGuid = counterparty.guid as string;
-
-      const timeout = setTimeout(async () => {
-        try {
-          this.logger.log(`Counterparty verification started...`);
-          const counterpartyVerification =
-            await this.cybridService.verifyIdentity(
-              customer.cybrid_customer_guid,
-              {
-                counterparty_guid: counterparty.guid,
-                type: PostIdentityVerificationBankModelTypeEnum.Counterparty,
-                method: PostIdentityVerificationBankModelMethodEnum.Watchlists,
-              }
-            );
-
-          await this.prismaService.cybridCounterparty.update({
-            data: {
-              identity_verification_guid:
-                counterpartyVerification.guid as string,
-              verification_status:
-                counterpartyVerification.outcome === 'failed'
-                  ? $Enums.IdentityVerificationStatus.FAILED
-                  : (counterpartyVerification.state?.toLocaleUpperCase() as $Enums.IdentityVerificationStatus),
-            },
-            where: { cybrid_counterparty_guid: counterparty.guid },
-          });
-
-          this.logger.log(
-            `Counterparty verification completed with status ${counterpartyVerification.state}`
-          );
-          clearInterval(timeout);
-        } catch (error) {
-          this.logger.error(error);
-        }
-      }, 1000);
-    }
-
-    return await this.prismaService.cybridCounterparty.create({
-      data: {
-        fullname,
-        address: `${address.city}, ${address.street} (${address.country_code}-${address.subdivision})`,
-        cybrid_counterparty_guid: counterpartyGuid as string,
-        phone_number: phoneNumber,
-        national_id_number: newReceiver.national_id_number,
-        Person: { connect: { person_id: personId } },
-        status: status ?? 'STORING'
+    const counterparty = await this.cybridService.createCounterparty(
+      customer.cybrid_customer_guid,
+      {
+        address,
+        name: { full: fullname, last, first },
+        type: PostCounterpartyBankModelTypeEnum.Individual,
       }
-    });
+    );
+    const status =
+      counterparty.state?.toLocaleUpperCase() as $Enums.CybridCounterpartyStatus;
+
+    // Create Counterparty in the database
+    const cybridCounterparty =
+      await this.prismaService.cybridCounterparty.create({
+        data: {
+          fullname: normalizeName(fullname),
+          address: `${address.city}, ${address.street} (${address.country_code}-${address.subdivision})`,
+          cybrid_counterparty_guid: counterparty.guid as string,
+          phone_number: phoneNumber,
+          national_id_number: newReceiver.national_id_number,
+          Person: { connect: { person_id: personId } },
+          status: status ?? 'STORING',
+        },
+      });
+
+    // Start a job that will initiate the counterparty verification
+    this.webhooksQueue.add(
+      constants.INITIATE_COUNTERPARTY_VERIFICATION,
+      {
+        guid: randomUUID(),
+        environment:
+          process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+        event_type: UnsupportedCybridSubcriptionEvents.COUNTERPARTY_CREATED,
+        object_guid: cybridCounterparty.cybrid_counterparty_guid,
+      },
+      {
+        attempts: 3,
+        removeOnComplete: true,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      }
+    );
+
+    return cybridCounterparty;
   }
 
   async update(
@@ -187,7 +159,7 @@ export class RecieversService {
     personId: string
   ) {
     const customer = await this.prismaService.cybridCustomer.findFirst({
-      where: { person_id: personId }
+      where: { person_id: personId },
     });
     if (!customer) {
       throw new NotFoundException('No customer found!');
@@ -196,13 +168,55 @@ export class RecieversService {
     await this.prismaService.cybridCounterparty.update({
       where: {
         cybrid_counterparty_id: counterpartyId,
-        person_id: personId
+        person_id: personId,
       },
       data: {
         is_deleted: true,
-        deleted_at: new Date()
-      }
+        deleted_at: new Date(),
+      },
     });
     return await this.create(updatedReciever, personId);
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async rescueUnverifiedCounterparties() {
+    const counterparties = await this.prismaService.cybridCounterparty.findMany(
+      {
+        where: {
+          is_deleted: false,
+          created_at: {
+            lte: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+          },
+          identity_verification_guid: null,
+        },
+      }
+    );
+
+    if (counterparties.length === 0) {
+      this.logger.log('No counterparties to pull');
+      return;
+    }
+
+    counterparties.map((counterparty) => {
+      // Start a job that will initiate the counterparty verification
+      this.webhooksQueue.add(
+        constants.INITIATE_COUNTERPARTY_VERIFICATION,
+        {
+          guid: randomUUID(),
+          environment:
+            process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+          event_type: UnsupportedCybridSubcriptionEvents.COUNTERPARTY_CREATED,
+          object_guid: counterparty.cybrid_counterparty_guid,
+        },
+        {
+          attempts: 3,
+          removeOnComplete: true,
+          backoff: {
+            type: 'exponential',
+            delay: 1000,
+          },
+        }
+      );
+    });
   }
 }

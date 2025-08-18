@@ -310,7 +310,6 @@ model CybridCounterparty {
   CybridTransactions         CybridTransaction[]
   StripeTransactions         StripeTransaction[]
 
-  @@unique([person_id, phone_number])
   @@map("receiver_payout_info")
 }
 

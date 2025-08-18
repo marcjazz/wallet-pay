@@ -22,3 +22,7 @@ export enum CybridSubcriptionEvents {
   IDENTITY_VERIFICATION_EXPIRED = 'identity_verification.expired',
   IDENTITY_VERIFICATION_COMPLETED = 'identity_verification.completed',
 }
+
+export enum UnsupportedCybridSubcriptionEvents {
+  COUNTERPARTY_CREATED = 'counterparty.created',
+}
