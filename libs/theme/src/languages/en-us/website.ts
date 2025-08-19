@@ -33,7 +33,8 @@ export const website = {
   sendCode: 'Send code',
   backTo: 'Back to ',
   enterYourOTP: 'Enter your OTP',
-  otpDescription: 'Enter the one-time password sent to your email address',
+  otpDescription:
+    "Enter the one-time password sent to your email address. If you don't see it in your email, please check your junk or spam folder.",
   otp: 'OTP',
   enterOtp: 'Enter OTP',
   submit: 'Submit',
@@ -143,7 +144,7 @@ export const website = {
   noTransactionsYet: 'No transactions yet',
   confirmTransaction: 'Confirm Transaction',
   confirmTransactionDescription:
-    'Enter the one-time password sent to your email address to confirm the transaction',
+    "Enter the one-time password sent to your email address to confirm the transaction. If you don't see it in your email, please check your junk or spam folder.",
   expiredIn: 'Expired in',
   resendEmail: 'Resend Email',
   manageFiatAccounts: 'Manage fiat accounts',
@@ -177,12 +178,12 @@ export const website = {
   other: 'Other',
   confirmEmail: 'Confirm Email',
   confirmEmailDescription:
-    'A confirmation email has been sent to your email address. Please enter the code to verify your account.',
+    'A confirmation email has been sent to your email address. Please enter the code to verify your account. If you don\'t see it in your email, please check your junk or spam folder.',
   gender: 'Gender',
   accountName: 'Account Name',
   confirmDeposit: 'Confirm Deposit',
   confirmDepositDescription:
-    'Enter the one-time password sent to your email address to confirm the deposit',
+    'Enter the one-time password sent to your email address to confirm the deposit. If you don\'t see it in your email, please check your junk or spam folder.',
   otpViaEmail: 'One Time Password via email',
   authenticatorApp: 'Authenticator App',
   biometrics: 'Biometrics',
