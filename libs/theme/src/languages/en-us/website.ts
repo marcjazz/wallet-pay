@@ -34,7 +34,7 @@ export const website = {
   backTo: 'Back to ',
   enterYourOTP: 'Enter your OTP',
   otpDescription:
-    "Enter the one-time password sent to your email address. If you don't see it in your email, please check your junk or spam folder.",
+    "Enter the one-time password sent to your email address. If you don't see it in your inbox, please check your junk or spam folder.",
   otp: 'OTP',
   enterOtp: 'Enter OTP',
   submit: 'Submit',
