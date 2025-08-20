@@ -4,6 +4,7 @@ import { ReceiversController } from './receivers.controller';
 import { RecieversService } from './receivers.service';
 import { BullModule } from '@nestjs/bull';
 import { constants } from '../../constants';
+import { IdentityVerificationProcessor } from '../webhooks/processors/counter-party.processor';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { constants } from '../../constants';
     }),
   ],
   controllers: [ReceiversController],
-  providers: [RecieversService],
+  providers: [RecieversService, IdentityVerificationProcessor],
   exports: [RecieversService],
 })
 export class ReceiversModule {}
