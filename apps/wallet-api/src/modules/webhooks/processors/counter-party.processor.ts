@@ -14,8 +14,8 @@ import {
 } from '../dtos/cybrid-subscription.dto';
 
 @Processor(constants.WEBHOOK_QUEUE)
-export class IdentityVerificationsProcessor {
-  private readonly logger = new Logger(IdentityVerificationsProcessor.name);
+export class IdentityVerificationProcessor {
+  private readonly logger = new Logger(IdentityVerificationProcessor.name);
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -35,7 +35,7 @@ export class IdentityVerificationsProcessor {
       select: { cybrid_customer_guid: true },
       where: {
         Person: {
-          Receivers: { some: { identity_verification_guid: objectGuid } },
+          Receivers: { some: { cybrid_counterparty_guid: objectGuid } },
         },
       },
     });
