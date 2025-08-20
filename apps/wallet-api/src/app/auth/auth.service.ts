@@ -12,7 +12,6 @@ import { $Enums } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { CybridService } from '../../cybrid/cybrid.service';
-import { generateAccountNumber } from '../../helpers/otp-generator';
 import { generateConfirmEmail } from '../../mailer/emails/confirm-email';
 import { generateOtpCodeEmail } from '../../mailer/emails/otp-email';
 import { MailerService } from '../../mailer/mailer.service';
@@ -99,13 +98,6 @@ export class AuthService {
             CreatedBy: createdBy
               ? { connect: { person_has_role_id: createdBy } }
               : undefined,
-          },
-        },
-        LocalCustomers: {
-          create: {
-            balance: 0,
-            currency: 'XAF',
-            account_number: generateAccountNumber(),
           },
         },
         CybridCustomers: {

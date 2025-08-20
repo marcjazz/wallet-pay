@@ -1,17 +1,13 @@
 import {
   PersonGender,
   PrismaClient,
-  SupportedLocalCurrency
+  SupportedLocalCurrency,
 } from '@prisma/client';
 import { genSaltSync, hashSync } from 'bcrypt';
 import { logger } from './logger.js';
 const prisma = new PrismaClient();
 
-export async function createInitialAdminAcount({
-  email,
-  password,
-  account_number,
-}) {
+export async function createInitialAdminAcount({ email, password }) {
   logger.info('Creating initial admin account...');
   const salt = Number(process.env.SALT_ROUNDS);
   if (isNaN(salt)) {
@@ -29,16 +25,6 @@ export async function createInitialAdminAcount({
     gender: PersonGender.MALE,
     password: hashPassword,
     phone_number: '+1 (703) 899-5276',
-    LocalCustomers: {
-      connectOrCreate: {
-        where: { account_number, currency: SupportedLocalCurrency.XAF },
-        create: {
-          balance: 0,
-          currency: SupportedLocalCurrency.XAF,
-          account_number,
-        },
-      },
-    },
   };
 
   const admin = await prisma.person.upsert({
