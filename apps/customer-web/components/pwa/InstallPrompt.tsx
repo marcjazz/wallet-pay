@@ -1,7 +1,9 @@
 'use client';
 
-import { Button, Snackbar } from '@mui/material';
+import { Button, Snackbar, IconButton } from '@mui/material';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
+import React, { useState } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
 
 /**
  * A component that prompts the user to install the PWA.
@@ -9,15 +11,25 @@ import { useInstallPrompt } from '../../hooks/useInstallPrompt';
  */
 export function InstallPrompt() {
   const { isStandalone, deferredPrompt, handleInstall } = useInstallPrompt();
+  const [dismissed, setDismissed] = useState(false);
 
   // Do not show the install prompt if the app is in standalone mode,
   // if the prompt is not available, or if the user has dismissed it.
-  const open = !isStandalone && !!deferredPrompt;
+  const open = !isStandalone && !!deferredPrompt && !dismissed;
+
+  const handleClose = () => {
+    setDismissed(true);
+  };
 
   const action = (
-    <Button color="primary" size="small" onClick={handleInstall}>
-      Install
-    </Button>
+    <>
+      <Button color="primary" size="small" onClick={handleInstall}>
+        Install
+      </Button>
+      <IconButton size="small" color="inherit" onClick={handleClose}>
+        <CloseIcon />
+      </IconButton>
+    </>
   );
 
   return (
@@ -26,6 +38,7 @@ export function InstallPrompt() {
       message="For a better experience, install the Xafpy app on your device."
       action={action}
       anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      onClose={handleClose}
     />
   );
 }
