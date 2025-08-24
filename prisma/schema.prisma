@@ -224,6 +224,7 @@ model Person {
   RoleAudits         RoleAudit[]
   Roles              Role[]
   Receivers          CybridCounterparty[] @relation("personToreceiverpayoutinfo_person_id")
+  pushSubscriptions  PushSubscription[]
 
   @@map("persons")
 }
@@ -515,4 +516,15 @@ enum CybridCounterpartyStatus {
   REJECTED   @map("rejected")
 
   @@map("cybrid_counterparty_status")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  person    Person   @relation(fields: [person_id], references: [person_id])
+  person_id String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

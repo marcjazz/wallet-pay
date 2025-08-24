@@ -6,6 +6,8 @@ import { CybridService } from '../../../cybrid/cybrid.service';
 import { verificationStatusFrom } from '../../../helpers/utils';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
+import { PushNotificationsService } from '../../notifications/push-notifications.service';
+import { CreateNotificationDto } from '../../notifications/dto/create-notification.dto';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class IdentityVerificationsProcessor {
@@ -13,7 +15,8 @@ export class IdentityVerificationsProcessor {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly cybridService: CybridService
+    private readonly cybridService: CybridService,
+    private readonly pushNotificationsService: PushNotificationsService
   ) {}
 
   @Process(constants.CYBRID_IDENTITY_VERIFICATION_EVENTS)
@@ -32,6 +35,7 @@ export class IdentityVerificationsProcessor {
         },
         Person: {
           select: {
+            person_id: true,
             Receivers: {
               take: 1,
               where: { identity_verification_guid: objectGuid },
@@ -67,6 +71,7 @@ export class IdentityVerificationsProcessor {
 
     const {
       Person: {
+        person_id: personId,
         Receivers: [counterparty],
       },
       cybrid_customer_guid: customerGuid,
@@ -81,6 +86,11 @@ export class IdentityVerificationsProcessor {
 
     const verificationStatus = verificationStatusFrom(identityVerfication);
 
+    const data: CreateNotificationDto = {
+      title: '',
+      body: '',
+    };
+
     if (counterparty) {
       await this.prismaService.cybridCounterparty.updateMany({
         data: {
@@ -92,6 +102,8 @@ export class IdentityVerificationsProcessor {
           cybrid_counterparty_guid: counterparty.cybrid_counterparty_guid,
         },
       });
+      data.title = `Counterparty ${counterparty.fullname} Status Updated`;
+      data.body = `The verification status for counterparty ${counterparty.fullname} has been updated to ${verificationStatus}.`;
     } else if (externalAccount) {
       await this.prismaService.cybridExternalAccount.update({
         data: {
@@ -104,6 +116,8 @@ export class IdentityVerificationsProcessor {
             externalAccount.cybrid_external_account_guid,
         },
       });
+      data.title = `External Account ...${externalAccount.mask} Status Updated`;
+      data.body = `The verification status for your external account ${externalAccount.name} (...${externalAccount.mask}) has been updated to ${verificationStatus}.`;
     } else {
       await this.prismaService.cybridCustomer.update({
         data: {
@@ -115,10 +129,15 @@ export class IdentityVerificationsProcessor {
           identity_verification_guid: objectGuid,
         },
       });
+      data.title = 'KYC Status Updated';
+      data.body = `Your KYC status has been updated to ${verificationStatus}.`;
     }
 
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid`
     );
+
+    // Send push notification
+    this.pushNotificationsService.sendNotification(personId, data);
   }
 }

@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FC, PropsWithChildren, useEffect } from 'react';
 import { API_BASE_URL } from '../api/constants';
 import { ApiClient } from '../api/services/ApiClient';
+import { InstallPrompt } from './pwa/InstallPrompt';
 
 export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
   const pathname = usePathname();
@@ -15,7 +16,6 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     setTimeout(() => {
-
       if (!apiClient.getAuthToken()) {
         if (pathname === '/register' || pathname === '/login') return;
 
@@ -33,6 +33,7 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <XafpayThemeProvider>
+      <InstallPrompt />
       {children}
     </XafpayThemeProvider>
   );

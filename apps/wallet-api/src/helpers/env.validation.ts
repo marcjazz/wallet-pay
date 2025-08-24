@@ -58,7 +58,7 @@ class EnvironmentVariables {
 
   @IsUrl()
   CYBRID_API_BASE_URL: string;
-  
+
   @IsUrl()
   CYBRID_BANK_LEVEL_TOKEN_ENDPOINT: string;
 
@@ -93,21 +93,31 @@ class EnvironmentVariables {
   RATE_API_KEY: string;
 
   @IsUrl()
-  PEEX_API_BASE_URL: string
+  PEEX_API_BASE_URL: string;
 
   @IsUUID()
-  PEEX_SECRETKEY: string
+  PEEX_SECRETKEY: string;
 
   @IsString()
   PEEX_USERNAME: string;
-  
+
   @IsString()
   PEEX_PASSWORD: string;
 
   @IsNumber()
   RATE_BONUS_PERCENTAGE: number;
 
-  PILOT_USER_EMAILS: string[]
+  @IsString()
+  VAPID_PUBLIC_KEY: string;
+
+  @IsString()
+  VAPID_PRIVATE_KEY: string;
+
+  @IsString()
+  VAPID_SUBJECT: string;
+
+  @IsString({ each: true })
+  PILOT_USER_EMAILS: string[];
 }
 
 export function validate(config: Record<string, unknown>) {

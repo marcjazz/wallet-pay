@@ -8,6 +8,7 @@ import OTPBottomSheet from '../../components/auth/forgot-password/OTPBottomSheet
 import { errorHandling } from '../../components/shared/errorHandling';
 import { ApiClient } from '../../api/services/ApiClient';
 import { API_BASE_URL } from '../../api/constants';
+import PushNotificationManager from '../../components/pwa/PushNotificationManager';
 
 interface IEmailVerificationState {
   isBottomSheetOpen: boolean;
@@ -68,6 +69,7 @@ export default function WalletLayout({
   }
   return (
     <>
+      <PushNotificationManager />
       <OTPBottomSheet
         otpId={emailVerificationState.otpId}
         isOpen={emailVerificationState.isBottomSheetOpen}

@@ -1,10 +1,9 @@
 import './global.css';
 export const dynamic = 'force-dynamic';
 
+import { Viewport, type Metadata } from 'next';
 import { AppLayout } from '../components/AppLayout';
 import { ReactQueryProvider } from '../context/ReactQueryProvider';
-import { Viewport, type Metadata } from 'next';
-import { InstallPrompt } from '../components/pwa/InstallPrompt';
 
 const APP_NAME = 'XafPay Wallet';
 const APP_DEFAULT_TITLE = 'XafPay Wallet';
@@ -77,7 +76,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ReactQueryProvider>
-          <InstallPrompt />
           <AppLayout>{children}</AppLayout>
         </ReactQueryProvider>
       </body>

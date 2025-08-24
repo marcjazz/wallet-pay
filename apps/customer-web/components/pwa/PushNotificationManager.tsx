@@ -1,80 +1,73 @@
 'use client';
 
+import CloseIcon from '@mui/icons-material/Close';
+import { Button, IconButton, Snackbar } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Button } from '@mui/material';
-import { subscribeUser, unsubscribeUser } from './actions';
-import { PushSubscription } from 'web-push';
+import { useIntl } from 'react-intl';
+import { API_BASE_URL } from '../../api/constants';
+import { ApiClient } from '../../api/services/ApiClient';
+import { NotificationService } from '../../api/services/NotificationService';
 
-/**
- * A component to manage push notification subscriptions.
- * It allows users to enable or disable push notifications.
- */
-export function PushNotificationManager() {
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [notificationPermission, setNotificationPermission] =
-    useState('default');
+const PushNotificationManager = () => {
+  const { formatMessage } = useIntl();
+  const [permission, setPermission] =
+    useState<NotificationPermission>('default');
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    async function checkSubscription() {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
-        const serviceWorker = await navigator.serviceWorker.ready;
-        const subscription = await serviceWorker.pushManager.getSubscription();
-        setIsSubscribed(!!subscription);
-      }
-      setIsLoading(false);
-    }
-
-    if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-    }
-
-    checkSubscription();
+    setPermission(Notification.permission);
   }, []);
 
-  /**
-   * Handles the subscription change event.
-   * Subscribes or unsubscribes the user from push notifications.
-   */
-  const handleSubscriptionChange = async () => {
-    setIsLoading(true);
-    if (isSubscribed) {
-      await unsubscribeUser();
-      setIsSubscribed(false);
-    } else {
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-
-      if (permission === 'granted') {
-        const serviceWorker = await navigator.serviceWorker.ready;
-        const subscription = await serviceWorker.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-        });
-        await subscribeUser(subscription as unknown as PushSubscription);
-        setIsSubscribed(true);
-      }
+  const requestPermission = async () => {
+    const newPermission = await Notification.requestPermission();
+    setPermission(newPermission);
+    if (newPermission === 'granted') {
+      subscribeUserToPush();
     }
-    setIsLoading(false);
   };
 
-  if (notificationPermission === 'denied') {
-    return (
-      <p>
-        Push notifications have been disabled. Please enable them in your
-        browser settings.
-      </p>
-    );
-  }
+  const subscribeUserToPush = async () => {
+    const serviceWorker = await navigator.serviceWorker.ready;
+    const subscription = await serviceWorker.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    });
+
+    try {
+      const apiClient = ApiClient.getInstance(API_BASE_URL);
+      const notificationService = new NotificationService(apiClient);
+      await notificationService.subscribe(subscription);
+    } catch (error) {
+      console.error('Failed to subscribe the user: ', error);
+    }
+  };
+
+  // Show the prompt if permission is not granted and the user has not dismissed it
+  const open = !dismissed && permission !== 'granted';
+
+  const handleClose = () => {
+    setDismissed(true);
+  };
+
+  const action = (
+    <>
+      <Button variant='text' color="primary" size="small" onClick={requestPermission}>
+        {formatMessage({ id: 'enablePushNotification' }).toUpperCase()}
+      </Button>
+      <IconButton size="small" color="inherit" onClick={handleClose}>
+        <CloseIcon />
+      </IconButton>
+    </>
+  );
 
   return (
-    <Button onClick={handleSubscriptionChange} disabled={isLoading}>
-      {isLoading
-        ? 'Loading...'
-        : isSubscribed
-        ? 'Disable'
-        : 'Enable'}{' '}
-      Push Notifications
-    </Button>
+    <Snackbar
+      open={open}
+      message="Enable push notification to get updates about KYC status and transactions status updates."
+      action={action}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    />
   );
-}
+};
+
+export default PushNotificationManager;

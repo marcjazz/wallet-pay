@@ -178,12 +178,12 @@ export const website = {
   other: 'Other',
   confirmEmail: 'Confirm Email',
   confirmEmailDescription:
-    'A confirmation email has been sent to your email address. Please enter the code to verify your account. If you don\'t see it in your inbox, please check your junk or spam folder.',
+    "A confirmation email has been sent to your email address. Please enter the code to verify your account. If you don't see it in your inbox, please check your junk or spam folder.",
   gender: 'Gender',
   accountName: 'Account Name',
   confirmDeposit: 'Confirm Deposit',
   confirmDepositDescription:
-    'Enter the one-time password sent to your email address to confirm the deposit. If you don\'t see it in your inbox, please check your junk or spam folder.',
+    "Enter the one-time password sent to your email address to confirm the deposit. If you don't see it in your inbox, please check your junk or spam folder.",
   otpViaEmail: 'One Time Password via email',
   authenticatorApp: 'Authenticator App',
   biometrics: 'Biometrics',
@@ -272,4 +272,6 @@ export const website = {
   logout: 'logout',
   verificationExpired: 'Verification expired.',
   notVerifiedYet: 'Verification in process...',
+  install: 'Install',
+  enablePushNotification: 'Enable Push Notification',
 };

@@ -32,4 +32,17 @@ self.addEventListener('notificationclick', function (event) {
   event.waitUntil(self.clients.openWindow('/'));
 });
 
+self.addEventListener('push', (event) => {
+  console.log('Push received:', event);
+  const { title, body } = event.data?.json() || {
+    title: 'Push Notification',
+    body: 'You have a new notification.',
+  };
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+    })
+  );
+});
+
 serwist.addEventListeners();
