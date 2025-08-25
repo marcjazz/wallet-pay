@@ -17,6 +17,7 @@ import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PayoutPayload } from '../../../types/payout';
+import { PushNotificationsService } from '../../notifications/push-notifications.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 import {
   CustomerAccountInfo,
@@ -32,6 +33,7 @@ export class TradesProcessor {
     private readonly cybridService: CybridService,
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
+    private readonly pushNotificationsService: PushNotificationsService,
     @InjectQueue(constants.WEBHOOK_QUEUE)
     private readonly webhooksQueue: Queue<PayoutPayload>
   ) {}
@@ -146,6 +148,15 @@ export class TradesProcessor {
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
     );
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { cybrid_customer_guid: customerGuid },
+    });
+    if (customer) {
+      await this.pushNotificationsService.sendNotification(customer.person_id, {
+        title: 'Trade update',
+        body: `Your trade status has been updated to ${transactionStatus}`,
+      });
+    }
   }
 
   private async executeBookTransfer(

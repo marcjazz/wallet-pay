@@ -5,6 +5,7 @@ import { Job } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
 import { MailerService } from '../../../mailer/mailer.service';
+import { PushNotificationsService } from '../../notifications/push-notifications.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 import { parseEventObject } from '../helpers/event-parser';
@@ -16,7 +17,8 @@ export class TransactionsProcessor {
   constructor(
     private readonly cybridService: CybridService,
     private readonly mailerService: MailerService,
-    private readonly prismaService: PrismaService
+    private readonly prismaService: PrismaService,
+    private readonly pushNotificationsService: PushNotificationsService
   ) {}
 
   @Process(constants.CYBRID_TRANSFER_EVENTS)
@@ -129,5 +131,15 @@ export class TransactionsProcessor {
     this.logger.log(
       `Successfully processed (event: ${eventType}, Guid: ${guid}) from cybrid.`
     );
+    const customer = await this.prismaService.cybridCustomer.findFirst({
+      where: { cybrid_customer_guid: customerGuid },
+    });
+
+    if (customer) {
+      await this.pushNotificationsService.sendNotification(customer.person_id, {
+        title: 'Transaction update',
+        body: `Your transaction status has been updated to ${transactionStatus}`,
+      });
+    }
   }
 }

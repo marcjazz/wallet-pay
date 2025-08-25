@@ -4,6 +4,7 @@ import { PeexService } from '../../peex/peex.service';
 import { constants } from '../../constants';
 import { CybridModule } from '../../cybrid/cybrid.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PushNotificationsService } from '../notifications/push-notifications.service';
 import { IdentityVerificationsProcessor } from './processors/identity-verifications.processor';
 import { TradesProcessor } from './processors/trades.processor';
 import { TransactionsProcessor } from './processors/transactions.processor';
@@ -25,6 +26,7 @@ import { PayoutProcessor } from './processors/payout.processor';
     TradesProcessor,
     PayoutProcessor,
     PeexService,
+    PushNotificationsService,
   ],
 })
 export class WebhooksModule {}
