@@ -45,4 +45,10 @@ self.addEventListener('push', (event) => {
   );
 });
 
+import { PrecacheRoute } from 'serwist';
+
+new PrecacheRoute(serwist, {
+  ignoreURLParametersMatching: [/.*/], // ignore all query params
+});
+
 serwist.addEventListeners();

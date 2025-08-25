@@ -23,6 +23,7 @@ const nextConfig = {
       },
     ];
   },
+  productionBrowserSourceMaps: true,
   headers: async () => {
     return [
       {
@@ -57,12 +58,12 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self' https://app.xafpay.com",
-              "connect-src 'self' https://api.xafpay.com https://fonts.googleapis.com https://fonts.gstatic.com, https://cdn.plaid.com",
-              "font-src 'self'",
-              "style-src 'self' https://fonts.googleapis.com",
-              "script-src 'self' 'unsafe-inline'",
-              "img-src 'self'"
-            ].join('; ')
+              "connect-src 'self' https://api.xafpay.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.plaid.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "script-src 'self' 'unsafe-inline' https://cdn.plaid.com",
+              "img-src 'self' data: https://cdn.plaid.com",
+            ].join('; '),
           },
         ],
       },
