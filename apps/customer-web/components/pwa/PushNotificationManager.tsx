@@ -8,6 +8,22 @@ import { API_BASE_URL } from '../../api/constants';
 import { ApiClient } from '../../api/services/ApiClient';
 import { NotificationService } from '../../api/services/NotificationService';
 
+/**
+ *
+ * @param base64String a base64 string
+ * @returns
+ */
+export const urlBase64ToUint8Array = (base64String: string) => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+
 const PushNotificationManager = () => {
   const { formatMessage } = useIntl();
   const [permission, setPermission] =
@@ -27,13 +43,20 @@ const PushNotificationManager = () => {
   };
 
   const subscribeUserToPush = async () => {
-    const serviceWorker = await navigator.serviceWorker.ready;
-    const subscription = await serviceWorker.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-    });
-
     try {
+      const serviceWorker = await navigator.serviceWorker.ready;
+      const subscription = await serviceWorker.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as ''
+        ),
+      });
+      console.log({
+        subscription,
+        serviceWorker,
+        key: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      });
+
       const apiClient = ApiClient.getInstance(API_BASE_URL);
       const notificationService = new NotificationService(apiClient);
       await notificationService.subscribe(subscription);
@@ -51,7 +74,12 @@ const PushNotificationManager = () => {
 
   const action = (
     <>
-      <Button variant='text' color="primary" size="small" onClick={requestPermission}>
+      <Button
+        variant="text"
+        color="primary"
+        size="small"
+        onClick={requestPermission}
+      >
         {formatMessage({ id: 'enablePushNotification' }).toUpperCase()}
       </Button>
       <IconButton size="small" color="inherit" onClick={handleClose}>

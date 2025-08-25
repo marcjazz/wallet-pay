@@ -1,4 +1,4 @@
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Transform } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
@@ -116,7 +116,8 @@ class EnvironmentVariables {
   @IsString()
   VAPID_SUBJECT: string;
 
-  @IsString({ each: true })
+  @IsEmail({}, { each: true })
+  @Transform(({ value }) => JSON.parse(value))
   PILOT_USER_EMAILS: string[];
 }
 

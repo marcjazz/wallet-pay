@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 class PushSubscriptionKeysDto {
   @IsString()
@@ -15,5 +16,7 @@ export class CreatePushSubscriptionDto {
   @IsNotEmpty()
   endpoint: string;
 
+  @ValidateNested()
+  @Type(() => PushSubscriptionKeysDto)
   keys: PushSubscriptionKeysDto;
 }

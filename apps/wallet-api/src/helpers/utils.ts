@@ -30,7 +30,7 @@ export function validatePhoneNumber(phoneNumber: string) {
  */
 export function verificationStatusFrom({
   state,
-  outcome
+  outcome,
 }: IdentityVerificationBankModel): IdentityVerificationStatus {
   return state === 'completed' && outcome === 'failed'
     ? 'FAILED'
