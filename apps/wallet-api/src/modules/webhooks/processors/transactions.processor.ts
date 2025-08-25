@@ -1,6 +1,10 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger, NotImplementedException } from '@nestjs/common';
-import { PrismaPromise } from '@prisma/client';
+import {
+  CybridTransaction,
+  CybridTransactionStatus,
+  PrismaPromise,
+} from '@prisma/client';
 import { Job } from 'bull';
 import { constants } from '../../../constants';
 import { CybridService } from '../../../cybrid/cybrid.service';
@@ -9,6 +13,7 @@ import { PushNotificationsService } from '../../notifications/push-notifications
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CybridSubscriptionEventObjectDto } from '../dtos/cybrid-subscription.dto';
 import { parseEventObject } from '../helpers/event-parser';
+import { TransferBankModel } from '@cybrid/cybrid-api-bank-typescript';
 
 @Processor(constants.WEBHOOK_QUEUE)
 export class TransactionsProcessor {
@@ -20,6 +25,47 @@ export class TransactionsProcessor {
     private readonly prismaService: PrismaService,
     private readonly pushNotificationsService: PushNotificationsService
   ) {}
+
+  getNotificationMessage(
+    transfer: TransferBankModel,
+    cybridTransaction: CybridTransaction,
+    transactionStatus: CybridTransactionStatus
+  ): { title: string; body: string } | null {
+    if (!['completed', 'failed'].includes(transactionStatus)) {
+      return null;
+    }
+
+    const { transfer_type } = transfer;
+    const { transaction_type } = cybridTransaction;
+
+    let title = 'Transaction update';
+    let body = `Your transaction status has been updated to ${transactionStatus}`;
+
+    if (transfer_type?.includes('funding')) {
+      switch (transactionStatus) {
+        case 'COMPLETED':
+          title = 'Funding completed';
+          body = `Your account has been successfully funded.`;
+          break;
+        case 'FAILED':
+          title = 'Funding failed';
+          body = `Your funding transaction has failed.`;
+          break;
+      }
+    } else if (transfer_type === 'book' && transaction_type === 'REMITTANCE') {
+      switch (transactionStatus) {
+        case 'COMPLETED':
+          title = 'Remittance completed';
+          body = `Your remittance has been sent successfully.`;
+          break;
+        case 'FAILED':
+          title = 'Remittance failed';
+          body = `Your remittance has failed.`;
+          break;
+      }
+    }
+    return { title, body };
+  }
 
   @Process(constants.CYBRID_TRANSFER_EVENTS)
   async handle(job: Job<CybridSubscriptionEventObjectDto>) {
@@ -136,10 +182,18 @@ export class TransactionsProcessor {
     });
 
     if (customer) {
-      await this.pushNotificationsService.sendNotification(customer.person_id, {
-        title: 'Transaction update',
-        body: `Your transaction status has been updated to ${transactionStatus}`,
-      });
+      const notification = this.getNotificationMessage(
+        transfer,
+        cybridTransaction,
+        transactionStatus
+      );
+
+      if (notification) {
+        await this.pushNotificationsService.sendNotification(
+          customer.person_id,
+          notification
+        );
+      }
     }
   }
 }
