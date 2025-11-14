@@ -8,12 +8,7 @@ import { API_BASE_URL } from '../../api/constants';
 import { ApiClient } from '../../api/services/ApiClient';
 import { NotificationService } from '../../api/services/NotificationService';
 
-/**
- *
- * @param base64String a base64 string
- * @returns
- */
-export const urlBase64ToUint8Array = (base64String: string) => {
+function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
@@ -22,7 +17,7 @@ export const urlBase64ToUint8Array = (base64String: string) => {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
-};
+}
 
 const PushNotificationManager = () => {
   const { formatMessage } = useIntl();
@@ -32,6 +27,18 @@ const PushNotificationManager = () => {
 
   useEffect(() => {
     setPermission(Notification.permission);
+
+    // Ensure service worker is registered
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(() => {
+          console.log('Service Worker registered');
+        })
+        .catch((err) => {
+          console.error('Service Worker registration failed:', err);
+        });
+    }
   }, []);
 
   const requestPermission = async () => {
@@ -45,17 +52,18 @@ const PushNotificationManager = () => {
   const subscribeUserToPush = async () => {
     try {
       const serviceWorker = await navigator.serviceWorker.ready;
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+      if (!vapidKey) {
+        throw new Error('Missing VAPID public key in environment variables');
+      }
+
       const subscription = await serviceWorker.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as ''
-        ),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
-      console.log({
-        subscription,
-        serviceWorker,
-        key: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-      });
+
+      console.log('Push subscription:', subscription);
 
       const apiClient = ApiClient.getInstance(API_BASE_URL);
       const notificationService = new NotificationService(apiClient);
